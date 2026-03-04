@@ -2,10 +2,13 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="common-util" />
+        <module name="common-service" />
         <module name="Gym-Model" />
         <module name="Gym-admin" />
       </profile>
@@ -15,6 +18,9 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Gym-Model" options="-parameters" />
       <module name="Gym-admin" options="-parameters" />
+      <module name="Gym-common" options="" />
+      <module name="common-service" options="-parameters" />
+      <module name="common-util" options="-parameters" />
     </option>
   </component>
 </project>

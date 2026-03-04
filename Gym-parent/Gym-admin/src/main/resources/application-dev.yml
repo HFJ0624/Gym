@@ -1,0 +1,36 @@
+# 配置服务端口号
+server:
+  port: 9601
+
+# 配置数据库连接信息 url需要改成自己的虚拟机ip地址192.168.10.100
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.10.100:3306/gym?characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
+
+    # Redis的相关配置
+    data:
+      redis:
+        host: 192.168.10.100
+        port: 6379
+  #  password: 1234
+
+# mybatis的配置
+mybatis:
+  config-location: classpath:/mybatis-config.xml
+  mapper-locations: classpath:/mapper/*/*.xml
+
+# 自定义配置
+#spzx:
+#  auth:
+#    noAuthUrls:
+#      - /admin/system/index/login
+#      - /admin/system/index/generateValidateCode
+#  minio:
+#    endpointUrl: http://127.0.0.1:9000
+#    accessKey: minioadmin
+#    secreKey: minioadmin
+#    bucketName: spzx-bucket

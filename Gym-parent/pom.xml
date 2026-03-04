@@ -11,6 +11,7 @@
     <modules>
         <module>Gym-admin</module>
         <module>Gym-Model</module>
+        <module>Gym-common</module>
     </modules>
 
     <properties>
