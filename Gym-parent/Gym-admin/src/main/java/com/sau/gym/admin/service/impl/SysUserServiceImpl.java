@@ -81,4 +81,10 @@ public class SysUserServiceImpl implements SysUserService {
         User user = JSON.parseObject(userJson, User.class);
         return user;
     }
+
+    //退出功能
+    @Override
+    public void logout(String token) {
+        redisTemplate.delete("user:login:" + token);
+    }
 }

@@ -11,4 +11,7 @@ public interface SysUserService {
 
     //获取用户信息
     User getUserInfo(String token);
+
+    //退出功能
+    void logout(String token);
 }

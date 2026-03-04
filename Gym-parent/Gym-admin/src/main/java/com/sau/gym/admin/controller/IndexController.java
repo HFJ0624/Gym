@@ -49,4 +49,11 @@ public class IndexController {
         User user = sysUserService.getUserInfo(token);
         return Result.build(user,ResultCodeEnum.SUCCESS);
     }
+
+    //退出功能
+    @GetMapping("/logout")
+    public Result logout(@RequestHeader(value = "token") String token){
+        sysUserService.logout(token);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
 }
