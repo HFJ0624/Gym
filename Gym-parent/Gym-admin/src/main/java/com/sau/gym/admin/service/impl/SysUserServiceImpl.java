@@ -1,5 +1,6 @@
 package com.sau.gym.admin.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.sau.gym.admin.mapper.SysUserMapper;
 import com.sau.gym.admin.service.SysUserService;
@@ -47,6 +48,19 @@ public class SysUserServiceImpl implements SysUserService {
             throw new RuntimeException("用户名或者密码错误") ;
         }
 
+        //3.校验验证码是否正确
+        String captcha = loginDto.getCaptcha();//用户输入的验证码
+        String codeKey = loginDto.getCodeKey();//redis中验证码的数据key
+
+        //从Redis中获取验证码
+        String redisCode = redisTemplate.opsForValue().get("user:login:CAPTCHA:" + codeKey);
+        if(StrUtil.isEmpty(redisCode) || !StrUtil.equalsIgnoreCase(redisCode , captcha)) {
+            throw new SauException(ResultCodeEnum.VALIDATECODE_ERROR);
+        }
+
+        // 验证通过删除redis中的验证码
+        redisTemplate.delete("user:login:CAPTCHA:" + codeKey);
+
         //3.生成令牌，保存数据到Redis中
         String token = UUID.randomUUID().toString().replace("-", "");
         redisTemplate.opsForValue().set("user:login:" + token , JSON.toJSONString(user) , 30 , TimeUnit.DAYS);
@@ -58,5 +72,13 @@ public class SysUserServiceImpl implements SysUserService {
 
         //5.返回
         return loginVo;
+    }
+
+    //获取用户信息
+    @Override
+    public User getUserInfo(String token) {
+        String userJson = redisTemplate.opsForValue().get("user:login:" + token);
+        User user = JSON.parseObject(userJson, User.class);
+        return user;
     }
 }
