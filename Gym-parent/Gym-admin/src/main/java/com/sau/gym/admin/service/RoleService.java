@@ -14,4 +14,7 @@ public interface RoleService {
 
     //角色修改
     void updateRole(Role role);
+
+    //角色删除
+    void deleteById(Long roleId);
 }

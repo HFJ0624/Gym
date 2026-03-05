@@ -42,4 +42,10 @@ public class RoleServiceImpl implements RoleService {
     public void updateRole(Role role) {
         roleMapper.updateRole(role);
     }
+
+    //角色删除
+    @Override
+    public void deleteById(Long roleId) {
+        roleMapper.deleteById(roleId);
+    }
 }

@@ -41,4 +41,11 @@ public class RoleController {
         roleService.updateRole(role);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
+
+    //角色删除
+    @DeleteMapping(value = "/deleteById/{roleId}")
+    public Result deleteById(@PathVariable(value = "roleId") Long roleId){
+        roleService.deleteById(roleId);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
 }
