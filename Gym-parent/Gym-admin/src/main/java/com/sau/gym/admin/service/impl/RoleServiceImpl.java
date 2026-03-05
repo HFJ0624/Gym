@@ -30,4 +30,10 @@ public class RoleServiceImpl implements RoleService {
         PageInfo<Role> pageInfo = new PageInfo<>(roleList);
         return pageInfo;
     }
+
+    //角色添加
+    @Override
+    public void saveRole(Role role) {
+        roleMapper.saveRole(role);
+    }
 }

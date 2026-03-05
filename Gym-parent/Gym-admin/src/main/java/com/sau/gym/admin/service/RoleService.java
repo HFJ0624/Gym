@@ -8,4 +8,7 @@ public interface RoleService {
 
     //分页查询所有角色
     PageInfo<Role> findByPage(RoleDto roleDto, Integer pageNum, Integer pageSize);
+
+    //角色添加
+    void saveRole(Role role);
 }

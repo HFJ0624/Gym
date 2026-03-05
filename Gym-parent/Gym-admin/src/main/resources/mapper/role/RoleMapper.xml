@@ -26,4 +26,19 @@
         order by id desc
     </select>
 
+    <!-- 新增角色 -->
+    <insert id="saveRole">
+        insert into role (
+            id,
+            role_name,
+            role_code,
+            description
+        ) values (
+                     #{id},
+                     #{roleName},
+                     #{roleCode},
+                     #{description}
+                 )
+    </insert>
+
 </mapper>

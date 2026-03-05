@@ -11,4 +11,7 @@ public interface RoleMapper {
 
     //分页查询所有角色
     List<Role> findByPage(RoleDto roleDto);
+
+    //角色添加
+    void saveRole(Role role);
 }

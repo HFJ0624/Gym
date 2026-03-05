@@ -27,4 +27,11 @@ public class RoleController {
         PageInfo<Role> pageInfo = roleService.findByPage(roleDto,pageNum,pageSize);
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
+
+    //角色添加
+    @PostMapping(value = "/saveSysRole")
+    public Result saveRole(@RequestBody Role role){
+        roleService.saveRole(role);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
 }
