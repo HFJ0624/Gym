@@ -1,9 +1,13 @@
 package com.sau.gym.admin.controller;
 
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.UserService;
+import com.sau.gym.model.dto.user.UserDto;
+import com.sau.gym.model.entity.base.Result;
+import com.sau.gym.model.entity.base.ResultCodeEnum;
+import com.sau.gym.model.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 作者:hfj
@@ -11,9 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
  * 日期: 2026/3/5 16:49
  */
 @RestController
-@RequestMapping(value = "/admin/system/sysUser")
+@RequestMapping(value = "/admin/system/user")
 public class UserController {
 
     @Autowired
     private UserService userService;
+
+    //角色的分页查询
+    @PostMapping(value = "/findByPage/{pageNum}/{pageSize}")
+    public Result<PageInfo<User>> findByPage(@RequestBody UserDto userDto,@PathVariable(value = "pageNum") Integer pageNum , @PathVariable(value = "pageSize") Integer pageSize){
+        PageInfo<User> pageInfo = userService.findByPage(userDto,pageNum,pageSize);
+        return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
+    }
 }

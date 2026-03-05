@@ -2,10 +2,13 @@ package com.sau.gym.admin.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.UserMapper;
 import com.sau.gym.admin.service.UserService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.system.LoginDto;
+import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
@@ -14,6 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -86,5 +90,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public void logout(String token) {
         redisTemplate.delete("user:login:" + token);
+    }
+
+    //角色的分页查询
+    @Override
+    public PageInfo<User> findByPage(UserDto userDto, Integer pageNum, Integer pageSize) {
+        PageHelper.startPage(pageNum,pageSize);
+        List<User> userList = userMapper.findByPage(userDto);
+        PageInfo<User> pageInfo = new PageInfo<>(userList);
+        return pageInfo;
     }
 }

@@ -1,6 +1,8 @@
 package com.sau.gym.admin.service;
 
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.model.dto.system.LoginDto;
+import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
 
@@ -14,4 +16,7 @@ public interface UserService {
 
     //退出功能
     void logout(String token);
+
+    //角色的分页查询
+    PageInfo<User> findByPage(UserDto userDto, Integer pageNum, Integer pageSize);
 }
