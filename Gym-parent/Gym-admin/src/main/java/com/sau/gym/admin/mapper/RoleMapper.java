@@ -14,4 +14,7 @@ public interface RoleMapper {
 
     //角色添加
     void saveRole(Role role);
+
+    //角色修改
+    void updateRole(Role role);
 }

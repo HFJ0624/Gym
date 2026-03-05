@@ -34,4 +34,11 @@ public class RoleController {
         roleService.saveRole(role);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
+
+    //角色修改
+    @PutMapping(value = "/updateSysRole")
+    public Result updateRole(@RequestBody Role role){
+        roleService.updateRole(role);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
 }

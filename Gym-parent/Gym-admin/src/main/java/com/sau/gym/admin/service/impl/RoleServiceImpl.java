@@ -36,4 +36,10 @@ public class RoleServiceImpl implements RoleService {
     public void saveRole(Role role) {
         roleMapper.saveRole(role);
     }
+
+    //角色修改
+    @Override
+    public void updateRole(Role role) {
+        roleMapper.updateRole(role);
+    }
 }

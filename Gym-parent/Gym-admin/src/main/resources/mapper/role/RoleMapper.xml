@@ -15,6 +15,9 @@
             <if test="roleName != null and roleName != ''">
                 and role_name like CONCAT('%',#{roleName},'%')
             </if>
+            <if test="roleCode != null and roleCode != ''">
+                and role_code like CONCAT('%',#{roleCode},'%')
+            </if>
             and is_deleted = 0
         </where>
     </sql>
@@ -40,5 +43,22 @@
                      #{description}
                  )
     </insert>
+
+    <!-- 修改角色 -->
+    <update id="updateRole">
+        update role set
+        <if test="roleName != null and roleName != ''">
+            role_name = #{roleName},
+        </if>
+        <if test="roleCode != null and roleCode != ''">
+            role_code = #{roleCode},
+        </if>
+        <if test="description != null and description != ''">
+            description = #{description},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
 
 </mapper>
