@@ -1,6 +1,6 @@
 package com.sau.gym.admin.controller;
 
-import com.sau.gym.admin.service.SysUserService;
+import com.sau.gym.admin.service.UserService;
 import com.sau.gym.admin.service.ValidateCodeService;
 import com.sau.gym.model.dto.system.LoginDto;
 import com.sau.gym.model.entity.base.Result;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class IndexController {
 
     @Autowired
-    private SysUserService sysUserService;
+    private UserService userService;
 
     @Autowired
     private ValidateCodeService validateCodeService;
@@ -33,7 +33,7 @@ public class IndexController {
     @Operation(summary = "登录接口")
     @PostMapping(value = "/login")
     public Result<LoginVo> login(@RequestBody LoginDto loginDto){
-        LoginVo loginVo = sysUserService.login(loginDto);
+        LoginVo loginVo = userService.login(loginDto);
         return Result.build(loginVo,ResultCodeEnum.SUCCESS);
     }
 
@@ -53,7 +53,7 @@ public class IndexController {
     //退出功能
     @GetMapping("/logout")
     public Result logout(@RequestHeader(value = "token") String token){
-        sysUserService.logout(token);
+        userService.logout(token);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }

@@ -2,8 +2,8 @@ package com.sau.gym.admin.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
-import com.sau.gym.admin.mapper.SysUserMapper;
-import com.sau.gym.admin.service.SysUserService;
+import com.sau.gym.admin.mapper.UserMapper;
+import com.sau.gym.admin.service.UserService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.system.LoginDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
@@ -23,10 +23,10 @@ import java.util.concurrent.TimeUnit;
  * 日期: 2026/3/4 15:25
  */
 @Service
-public class SysUserServiceImpl implements SysUserService {
+public class UserServiceImpl implements UserService {
 
     @Autowired
-    private SysUserMapper sysUserMapper;
+    private UserMapper userMapper;
 
     @Autowired
     private RedisTemplate<String , String> redisTemplate;
@@ -35,7 +35,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public LoginVo login(LoginDto loginDto) {
         //1.根据用户名查询用户
-        User user = sysUserMapper.selectByUserName(loginDto.getUserName());
+        User user = userMapper.selectByUserName(loginDto.getUserName());
 
         if (user == null){
             throw new SauException(ResultCodeEnum.LOGIN_ERROR);

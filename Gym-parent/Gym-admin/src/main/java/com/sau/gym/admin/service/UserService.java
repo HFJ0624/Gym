@@ -4,7 +4,7 @@ import com.sau.gym.model.dto.system.LoginDto;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
 
-public interface SysUserService {
+public interface UserService {
 
     //登录接口
     LoginVo login(LoginDto loginDto);
