@@ -15,4 +15,10 @@ public interface UserMapper {
 
     //角色的分页查询
     List<User> findByPage(UserDto userDto);
+
+    //保存用户
+    void saveUser(User user);
+
+    //修改用户状态
+    int updateUserStatus(Long id, String status);
 }

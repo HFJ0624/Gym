@@ -100,4 +100,36 @@ public class UserServiceImpl implements UserService {
         PageInfo<User> pageInfo = new PageInfo<>(userList);
         return pageInfo;
     }
+
+    //角色添加
+    @Override
+    public void saveUser(User user) {
+
+        //1.先查数据库是否存在该用户名
+        User dbUser = userMapper.selectByUserName(user.getUsername());
+        if (dbUser != null){
+            throw new SauException(ResultCodeEnum.USER_NAME_IS_EXISTS);
+        }
+
+        //2.存入数据库
+        String password = user.getPassword();
+        String md5Password = DigestUtils.md5DigestAsHex(password.getBytes());
+        user.setPassword(md5Password);
+        user.setStatus(1);
+
+        //保存用户
+        userMapper.saveUser(user);
+    }
+
+    //修改用户状态
+    @Override
+    public boolean updateUserStatus(Long id, String status) {
+        //1.校验参数（非空/合法值）
+        if (id == null || status == null) {
+            return false;
+        }
+        //2.修改用户状态
+        int row = userMapper.updateUserStatus(id,status);
+        return row > 0;
+    }
 }

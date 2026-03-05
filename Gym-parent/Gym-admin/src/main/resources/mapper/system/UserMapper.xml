@@ -33,4 +33,35 @@
         order by id desc
     </select>
 
+    <insert id="saveUser">
+        insert into user (
+            id,
+            username,
+            password,
+            real_name,
+            sex,
+            phone,
+            email,
+            avatar,
+            status
+        ) values (
+                     #{id},
+                     #{userName},
+                     #{password},
+                     #{realName},
+                     #{sex},
+                     #{phone},
+                     #{email},
+                     #{avatar},
+                     #{status}
+                 )
+    </insert>
+
+    <update id="updateUserStatus">
+        UPDATE user SET
+        status = #{status}
+        WHERE id = #{id}
+        and is_deleted = 0
+    </update>
+
 </mapper>

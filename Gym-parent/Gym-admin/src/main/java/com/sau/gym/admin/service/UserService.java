@@ -19,4 +19,10 @@ public interface UserService {
 
     //角色的分页查询
     PageInfo<User> findByPage(UserDto userDto, Integer pageNum, Integer pageSize);
+
+    //角色添加
+    void saveUser(User user);
+
+    //修改用户状态
+    boolean updateUserStatus(Long id, String status);
 }
