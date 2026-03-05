@@ -8,6 +8,7 @@ import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
 import com.sau.gym.model.vo.system.ValidateCodeVo;
+import com.sau.gym.utils.AuthContextUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,11 +44,10 @@ public class IndexController {
         return Result.build(validateCodeVo,ResultCodeEnum.SUCCESS);
     }
 
-    //获取用户信息
+    //后端获取用户信息的接口就无需获取token，然后根据token从Redis中进行查询。可以直接从ThreadLocal中获取用户信息，然后进行返回。
     @GetMapping("/getUserInfo")
-    public Result<User> getUserInfo(@RequestHeader(name = "token") String token){
-        User user = sysUserService.getUserInfo(token);
-        return Result.build(user,ResultCodeEnum.SUCCESS);
+    public Result<User> getUserInfo(){
+        return Result.build(AuthContextUtil.get(),ResultCodeEnum.SUCCESS);
     }
 
     //退出功能

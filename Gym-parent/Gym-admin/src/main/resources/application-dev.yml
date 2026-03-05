@@ -24,11 +24,11 @@ mybatis:
   mapper-locations: classpath:/mapper/*/*.xml
 
 # 自定义配置
-#spzx:
-#  auth:
-#    noAuthUrls:
-#      - /admin/system/index/login
-#      - /admin/system/index/generateValidateCode
+gym:
+  auth:
+    noAuthUrls:
+      - /admin/system/index/login
+      - /admin/system/index/generateValidateCode
 #  minio:
 #    endpointUrl: http://127.0.0.1:9000
 #    accessKey: minioadmin
