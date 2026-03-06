@@ -9,7 +9,9 @@ import com.sau.gym.model.entity.role.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作者:hfj
@@ -47,5 +49,15 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public void deleteById(Long roleId) {
         roleMapper.deleteById(roleId);
+    }
+
+
+    //查询所有角色
+    @Override
+    public Map<String, Object> findAllRoles() {
+        List<Role> roleList = roleMapper.findAllRoles();
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("allRolesList",roleList);
+        return resultMap;
     }
 }

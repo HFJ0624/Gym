@@ -9,6 +9,8 @@ import com.sau.gym.model.entity.role.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 作者:hfj
  * 功能:
@@ -47,5 +49,12 @@ public class RoleController {
     public Result deleteById(@PathVariable(value = "roleId") Long roleId){
         roleService.deleteById(roleId);
         return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //查询所有角色
+    @GetMapping(value = "/findAllRoles")
+    public Result<Map<String,Object>> findAllRoles(){
+        Map<String, Object> resultMap = roleService.findAllRoles();
+        return Result.build(resultMap,ResultCodeEnum.SUCCESS);
     }
 }

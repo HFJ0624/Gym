@@ -20,4 +20,7 @@ public interface RoleMapper {
 
     //角色删除
     void deleteById(Long roleId);
+
+    //查询所有角色
+    List<Role> findAllRoles();
 }

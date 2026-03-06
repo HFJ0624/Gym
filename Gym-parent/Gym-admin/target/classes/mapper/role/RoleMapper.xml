@@ -66,4 +66,10 @@
         update role set is_deleted = 1 where id=#{roleId}
     </update>
 
+    <!-- 查询所有的角色数据 -->
+    <select id="findAllRoles" resultMap="RoleMap">
+        select <include refid="columns" />
+        from role where is_deleted = 0
+    </select>
+
 </mapper>
