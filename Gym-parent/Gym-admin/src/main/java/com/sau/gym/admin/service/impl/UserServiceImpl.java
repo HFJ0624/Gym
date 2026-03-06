@@ -4,9 +4,12 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.sau.gym.admin.mapper.RoleMapper;
+import com.sau.gym.admin.mapper.RoleUserMapper;
 import com.sau.gym.admin.mapper.UserMapper;
 import com.sau.gym.admin.service.UserService;
 import com.sau.gym.common.exception.SauException;
+import com.sau.gym.model.dto.role.AssignRoleDto;
 import com.sau.gym.model.dto.system.LoginDto;
 import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
@@ -15,6 +18,7 @@ import com.sau.gym.model.vo.system.LoginVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.util.List;
@@ -31,6 +35,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private RoleUserMapper roleUserMapper;
 
     @Autowired
     private RedisTemplate<String , String> redisTemplate;
@@ -143,5 +150,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteById(Long userId) {
         userMapper.deleteById(userId);
+    }
+
+    //分配角色
+    @Transactional //增加事务锁机制,防止插入失败造成脏数据
+    @Override
+    public void doAssign(AssignRoleDto assignRoleDto) {
+
+        //1.先删除之前的所有的用户所对应的角色数据
+        roleUserMapper.deleteByUserId(assignRoleDto.getUserId());
+
+        //2.分配新的角色数据
+        List<Long> roleIdList = assignRoleDto.getRoleIdList();
+        roleIdList.forEach(roleId ->{
+            roleUserMapper.doAssign(assignRoleDto.getUserId(),roleId);
+        });
     }
 }

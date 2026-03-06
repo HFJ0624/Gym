@@ -3,6 +3,7 @@ package com.sau.gym.admin.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.RoleMapper;
+import com.sau.gym.admin.mapper.RoleUserMapper;
 import com.sau.gym.admin.service.RoleService;
 import com.sau.gym.model.dto.role.RoleDto;
 import com.sau.gym.model.entity.role.Role;
@@ -23,6 +24,9 @@ public class RoleServiceImpl implements RoleService {
 
     @Autowired
     private RoleMapper roleMapper;
+
+    @Autowired
+    private RoleUserMapper roleUserMapper;
 
     //分页查询所有角色
     @Override
@@ -54,10 +58,18 @@ public class RoleServiceImpl implements RoleService {
 
     //查询所有角色
     @Override
-    public Map<String, Object> findAllRoles() {
+    public Map<String, Object> findAllRoles(Long userId) {
+
+        //1.查询所有的角色数据
         List<Role> roleList = roleMapper.findAllRoles();
+
+        //2.查询当前登录用户的角色数据
+        List<Long> roles = roleUserMapper.findUserRoleByUserId(userId);
+
+        //3.构建响应结果数据
         HashMap<String, Object> resultMap = new HashMap<>();
         resultMap.put("allRolesList",roleList);
+        resultMap.put("sysUserRoles", roles);
         return resultMap;
     }
 }

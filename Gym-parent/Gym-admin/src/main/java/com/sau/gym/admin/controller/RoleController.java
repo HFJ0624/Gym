@@ -52,9 +52,9 @@ public class RoleController {
     }
 
     //查询所有角色
-    @GetMapping(value = "/findAllRoles")
-    public Result<Map<String,Object>> findAllRoles(){
-        Map<String, Object> resultMap = roleService.findAllRoles();
+    @GetMapping(value = "/findAllRoles/{userId}")
+    public Result<Map<String,Object>> findAllRoles(@PathVariable(value = "userId") Long userId){
+        Map<String, Object> resultMap = roleService.findAllRoles(userId);
         return Result.build(resultMap,ResultCodeEnum.SUCCESS);
     }
 }

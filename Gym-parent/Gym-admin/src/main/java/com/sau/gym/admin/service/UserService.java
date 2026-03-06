@@ -1,6 +1,7 @@
 package com.sau.gym.admin.service;
 
 import com.github.pagehelper.PageInfo;
+import com.sau.gym.model.dto.role.AssignRoleDto;
 import com.sau.gym.model.dto.system.LoginDto;
 import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.user.User;
@@ -31,4 +32,7 @@ public interface UserService {
 
     //根据用户Id删除用户信息
     void deleteById(Long userId);
+
+    //分配角色
+    void doAssign(AssignRoleDto assignRoleDto);
 }

@@ -2,6 +2,7 @@ package com.sau.gym.admin.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.UserService;
+import com.sau.gym.model.dto.role.AssignRoleDto;
 import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.dto.user.UserStatusDTO;
 import com.sau.gym.model.entity.base.Result;
@@ -58,6 +59,13 @@ public class UserController {
     @DeleteMapping(value = "/deleteById/{userId}")
     public Result deleteById(@PathVariable("userId") Long userId){
         userService.deleteById(userId);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //分配角色
+    @PostMapping(value = "/doAssign")
+    public Result doAssign(@RequestBody AssignRoleDto assignRoleDto){
+        userService.doAssign(assignRoleDto);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }
