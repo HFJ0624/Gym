@@ -19,4 +19,60 @@
         order by sort_value
     </select>
 
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into menu (
+            id,
+            parent_id,
+            title,
+            component,
+            sort_value,
+            status
+        ) values (
+                     #{id},
+                     #{parentId},
+                     #{title},
+                     #{component},
+                     #{sortValue},
+                     #{status}
+                 )
+    </insert>
+
+    <update id="updateById" >
+        update menu set
+        <if test="parentId != null and parentId != ''">
+            parent_id = #{parentId},
+        </if>
+        <if test="title != null and title != ''">
+            title = #{title},
+        </if>
+        <if test="component != null and component != ''">
+            component = #{component},
+        </if>
+        <if test="sortValue != null">
+            sort_value = #{sortValue},
+        </if>
+        <if test="status != null">
+            status = #{status},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
+
+    <select id="countByParentId" resultType="Integer">
+        select count(id)
+        from menu
+        where
+            parent_id = #{parentId}
+          and is_deleted = 0
+    </select>
+
+    <update id="deleteById">
+        update menu set
+            update_time = now() ,
+            is_deleted = 1
+        where
+            id = #{id}
+    </update>
+
 </mapper>

@@ -10,4 +10,16 @@ public interface MenuMapper {
 
     //找到所有节点
     List<Menu> selectAll();
+
+    //保存菜单
+    void save(Menu menu);
+
+    //修改菜单
+    void updateById(Menu menu);
+
+    //先查询是否存在子菜单，如果存在不允许进行删除
+    int countByParentId(Long id);
+
+    //不存在子菜单直接删除
+    void deleteById(Long id);
 }
