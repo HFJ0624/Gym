@@ -1,5 +1,6 @@
 package com.sau.gym.admin;
 
+import com.sau.gym.admin.properties.MinioProperties;
 import com.sau.gym.admin.properties.UserAuthProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,7 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
  */
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.sau.gym"})
-@EnableConfigurationProperties(value = {UserAuthProperties.class}) //自定义配置类的注解
+@EnableConfigurationProperties(value = {UserAuthProperties.class, MinioProperties.class}) //自定义配置类的注解
 public class AdminApplication {
 
     public static void main(String[] args) {
