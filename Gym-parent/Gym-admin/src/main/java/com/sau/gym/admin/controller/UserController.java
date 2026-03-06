@@ -53,4 +53,11 @@ public class UserController {
         userService.updateUser(user);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
+
+    //根据用户Id删除用户信息
+    @DeleteMapping(value = "/deleteById/{userId}")
+    public Result deleteById(@PathVariable("userId") Long userId){
+        userService.deleteById(userId);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
 }

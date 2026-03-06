@@ -28,4 +28,7 @@ public interface UserService {
 
     //修改用户信息
     void updateUser(User user);
+
+    //根据用户Id删除用户信息
+    void deleteById(Long userId);
 }

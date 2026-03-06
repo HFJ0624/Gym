@@ -138,4 +138,10 @@ public class UserServiceImpl implements UserService {
     public void updateUser(User user) {
         userMapper.updateUser(user);
     }
+
+    //根据用户Id删除用户信息
+    @Override
+    public void deleteById(Long userId) {
+        userMapper.deleteById(userId);
+    }
 }
