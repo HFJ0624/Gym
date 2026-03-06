@@ -22,4 +22,10 @@ public interface MenuMapper {
 
     //不存在子菜单直接删除
     void deleteById(Long id);
+
+    //根据用户id查询该用户有的菜单
+    List<Menu> selectListByUserId(Long userId);
+
+    //查询是否存在父节点
+    Menu selectById(Long parentId);
 }

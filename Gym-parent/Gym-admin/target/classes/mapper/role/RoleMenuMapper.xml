@@ -6,4 +6,23 @@
         select menu_id from role_menu where role_id = #{roleId} and is_deleted = 0 and is_half = 0
     </select>
 
+    <delete id="deleteByRoleId">
+        delete from role_menu where role_id = #{roleId}
+    </delete>
+
+    <insert id="doAssign">
+        insert into role_menu (
+        role_id,
+        menu_id,
+        create_time , update_time , is_deleted , is_half
+        ) values
+        <foreach collection="menuIdList" item="menuInfo" separator=",">
+            (#{roleId} , #{menuInfo.id} , now() , now() , 0 , #{menuInfo.isHalf})
+        </foreach>
+    </insert>
+
+    <select id="updateSysRoleMenuIsHalf">
+        update role_menu srm set srm.is_half = 1 where menu_id = #{id}
+    </select>
+
 </mapper>

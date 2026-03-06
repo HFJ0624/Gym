@@ -3,9 +3,11 @@ package com.sau.gym.admin.service.impl;
 import com.sau.gym.admin.mapper.RoleMenuMapper;
 import com.sau.gym.admin.service.MenuService;
 import com.sau.gym.admin.service.RoleMenuService;
+import com.sau.gym.model.dto.menu.AssignMenuDto;
 import com.sau.gym.model.entity.menu.Menu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,5 +43,20 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
         //4.返回
         return result;
+    }
+
+    //保存分配菜单
+    @Transactional
+    @Override
+    public void doAssign(AssignMenuDto assignMenuDto) {
+
+        //1.根据角色的id删除其所对应的菜单数据
+        roleMenuMapper.deleteByRoleId(assignMenuDto.getRoleId());
+
+        //2.获取菜单的id
+        List<Map<String, Number>> menuInfo = assignMenuDto.getMenuIdList();
+        if(menuInfo != null && menuInfo.size() > 0) {
+            roleMenuMapper.doAssign(assignMenuDto);
+        }
     }
 }

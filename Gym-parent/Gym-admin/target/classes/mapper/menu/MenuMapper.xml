@@ -75,4 +75,15 @@
             id = #{id}
     </update>
 
+    <select id="selectListByUserId" resultMap="MenuMap">
+        SELECT DISTINCT m.* FROM menu m
+                                     INNER JOIN role_menu rm ON rm.menu_id = m.id
+                                     INNER JOIN user_role ur ON ur.role_id = rm.role_id
+        WHERE ur.user_id=#{userId} and m.is_deleted = 0
+    </select>
+
+    <select id="selectById" resultMap="MenuMap">
+        select <include refid="columns" /> from menu where id = #{parentId}
+    </select>
+
 </mapper>

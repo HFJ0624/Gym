@@ -1,13 +1,11 @@
 package com.sau.gym.admin.controller;
 
 import com.sau.gym.admin.service.RoleMenuService;
+import com.sau.gym.model.dto.menu.AssignMenuDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -28,5 +26,12 @@ public class RoleMenuController {
     public Result<Map<String , Object>> findRoleMenuByRoleId(@PathVariable(value = "roleId") Long roleId) {
         Map<String , Object> roleMenuList = roleMenuService.findRoleMenuByRoleId(roleId);
         return Result.build(roleMenuList, ResultCodeEnum.SUCCESS);
+    }
+
+    //保存分配菜单
+    @PostMapping("/doAssign")
+    public Result doAssign(@RequestBody AssignMenuDto assignMenuDto) {
+        roleMenuService.doAssign(assignMenuDto);
+        return Result.build(null, ResultCodeEnum.SUCCESS);
     }
 }
