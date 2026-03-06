@@ -17,7 +17,7 @@ import java.util.Map;
  * 日期: 2026/3/5 10:23
  */
 @RestController
-@RequestMapping(value = "/admin/system/sysRole")
+@RequestMapping(value = "/admin/system/role")
 public class RoleController {
 
     @Autowired
