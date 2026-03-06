@@ -35,25 +35,21 @@
 
     <insert id="saveUser">
         insert into user (
-            id,
             username,
             password,
             real_name,
             sex,
             phone,
             email,
-            avatar,
-            status
+            avatar
         ) values (
-                     #{id},
-                     #{userName},
+                     #{username},
                      #{password},
                      #{realName},
                      #{sex},
                      #{phone},
                      #{email},
-                     #{avatar},
-                     #{status}
+                     #{avatar}
                  )
     </insert>
 
@@ -62,6 +58,35 @@
         status = #{status}
         WHERE id = #{id}
         and is_deleted = 0
+    </update>
+
+
+    <update id="updateUser">
+        update user set
+        <if test="username != null and username != ''">
+            username = #{username},
+        </if>
+        <if test="password != null and password != ''">
+            password = #{password},
+        </if>
+        <if test="realName != null and realName != ''">
+            real_name = #{realName},
+        </if>
+        <if test="sex != null and sex != ''">
+            sex = #{sex},
+        </if>
+        <if test="phone != null and phone != ''">
+            phone = #{phone},
+        </if>
+        <if test="email != null and email != ''">
+            email = #{email},
+        </if>
+        <if test="avatar != null and avatar != ''">
+            avatar = #{avatar},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
     </update>
 
 </mapper>

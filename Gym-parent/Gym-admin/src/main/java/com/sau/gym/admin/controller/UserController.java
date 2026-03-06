@@ -46,4 +46,11 @@ public class UserController {
             return Result.build(null,ResultCodeEnum.DATA_ERROR);
         }
     }
+
+    //修改用户信息
+    @PutMapping(value = "/updateUser")
+    public Result updateUser(@RequestBody User user){
+        userService.updateUser(user);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
 }

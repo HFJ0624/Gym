@@ -25,4 +25,7 @@ public interface UserService {
 
     //修改用户状态
     boolean updateUserStatus(Long id, String status);
+
+    //修改用户信息
+    void updateUser(User user);
 }

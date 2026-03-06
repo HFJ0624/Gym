@@ -132,4 +132,10 @@ public class UserServiceImpl implements UserService {
         int row = userMapper.updateUserStatus(id,status);
         return row > 0;
     }
+
+    //修改用户信息
+    @Override
+    public void updateUser(User user) {
+        userMapper.updateUser(user);
+    }
 }

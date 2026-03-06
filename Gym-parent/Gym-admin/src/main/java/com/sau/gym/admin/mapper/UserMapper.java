@@ -21,4 +21,7 @@ public interface UserMapper {
 
     //修改用户状态
     int updateUserStatus(Long id, String status);
+
+    //修改用户信息
+    void updateUser(User user);
 }
