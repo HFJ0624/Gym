@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.VenueMapper">
+
+
+    <!--  映射查询到的字段 -->
+    <resultMap id="venueMap" type="com.sau.gym.model.entity.venue.Venue" autoMapping="true"></resultMap>
+
+
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+        id,venue_name,venue_type,location,phone,capacity,description,status,open_time,close_time,create_time,update_time,status,is_deleted
+    </sql>
+
+    <sql id="findPageWhere">
+        <where>
+            <if test="venueName != null and venueName != ''">
+                and venue_name like CONCAT('%',#{venueName},'%')
+            </if>
+            <if test="venueType != null and venueType != ''">
+                and venue_type like CONCAT('%',#{venueType},'%')
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone like CONCAT('%',#{phone},'%')
+            </if>
+            and is_deleted = 0
+        </where>
+    </sql>
+
+    <!--  角色列表查询方法  -->
+    <select id="findByPage" resultMap="venueMap">
+        select <include refid="columns" />
+        from venue
+        <include refid="findPageWhere"/>
+        order by id
+    </select>
+
+
+
+</mapper>

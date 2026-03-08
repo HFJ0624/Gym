@@ -166,4 +166,22 @@ public class UserServiceImpl implements UserService {
             roleUserMapper.doAssign(assignRoleDto.getUserId(),roleId);
         });
     }
+
+    //注册用户
+    @Override
+    public void register(User user) {
+        //1.先查数据库是否存在该用户名
+        User dbUser = userMapper.selectByUserName(user.getUsername());
+        if (dbUser != null){
+            throw new SauException(ResultCodeEnum.USER_NAME_IS_EXISTS);
+        }
+
+        //2.存入数据库
+        String password = user.getPassword();
+        String md5Password = DigestUtils.md5DigestAsHex(password.getBytes());
+        user.setPassword(md5Password);
+
+        //注册用户
+        userMapper.register(user);
+    }
 }

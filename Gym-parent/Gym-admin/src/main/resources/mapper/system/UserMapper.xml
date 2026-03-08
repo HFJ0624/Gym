@@ -97,4 +97,28 @@
             id = #{id}
     </update>
 
+    <insert id="register">
+        insert into user (
+            username,
+            password,
+            real_name,
+            sex,
+            phone,
+            email,
+            role,
+            avatar,
+            status
+        ) values (
+                     #{username},
+                     #{password},
+                     #{realName},
+                     #{sex},
+                     #{phone},
+                     #{email},
+                     #{role},
+                     #{avatar},
+                     #{status}
+                 )
+    </insert>
+
 </mapper>

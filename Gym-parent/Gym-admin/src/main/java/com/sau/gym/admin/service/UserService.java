@@ -35,4 +35,7 @@ public interface UserService {
 
     //分配角色
     void doAssign(AssignRoleDto assignRoleDto);
+
+    //注册用户
+    void register(User user);
 }

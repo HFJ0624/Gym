@@ -23,12 +23,14 @@ mybatis:
   config-location: classpath:/mybatis-config.xml
   mapper-locations: classpath:/mapper/*/*.xml
 
-# 自定义配置
+# 自定义配置 访问权限路由配置
 gym:
   auth:
     noAuthUrls:
       - /admin/system/index/login
       - /admin/system/index/generateValidateCode
+      - /admin/system/user/register
+      - /admin/system/fileUpload
   minio:
     endpointUrl: http://192.168.10.100:9001
     accessKey: admin

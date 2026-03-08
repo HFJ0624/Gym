@@ -27,4 +27,7 @@ public interface UserMapper {
 
     //根据用户Id删除用户信息
     void deleteById(Long id);
+
+    //注册用户
+    void register(User user);
 }

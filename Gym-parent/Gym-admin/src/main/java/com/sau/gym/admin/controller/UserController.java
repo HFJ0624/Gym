@@ -68,4 +68,11 @@ public class UserController {
         userService.doAssign(assignRoleDto);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
+
+    //注册用户
+    @PostMapping(value = "/register")
+    public Result register(@RequestBody User user){
+        userService.register(user);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
 }
