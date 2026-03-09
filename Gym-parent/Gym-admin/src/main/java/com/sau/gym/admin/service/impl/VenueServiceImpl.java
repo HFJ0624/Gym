@@ -36,4 +36,22 @@ public class VenueServiceImpl implements VenueService {
         PageInfo<Venue> pageInfo = new PageInfo<>(list);
         return pageInfo;
     }
+
+    //添加场馆
+    @Override
+    public void saveVenue(Venue venue) {
+        venueMapper.saveVenue(venue);
+    }
+
+    //修改场馆
+    @Override
+    public void updateVenue(Venue venue) {
+        venueMapper.updateVenue(venue);
+    }
+
+    //删除场馆
+    @Override
+    public void deleteById(Long venueId) {
+        venueMapper.deleteById(venueId);
+    }
 }

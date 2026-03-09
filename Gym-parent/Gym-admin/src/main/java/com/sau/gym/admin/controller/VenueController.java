@@ -28,4 +28,26 @@ public class VenueController {
         PageInfo<Venue> pageInfo = venueService.findByPage(current,limit,venueDto);
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
+
+    //添加场馆
+    @PostMapping(value = "/saveVenue")
+    public Result saveVenue(@RequestBody Venue venue){
+        venueService.saveVenue(venue);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //修改场馆
+    @PutMapping(value = "/updateVenue")
+    public Result updateVenue(@RequestBody Venue venue){
+        venueService.updateVenue(venue);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //删除场馆
+    @DeleteMapping(value = "/deleteById/{venueId}")
+    public Result deleteById(@PathVariable(value = "venueId") Long venueId){
+        venueService.deleteById(venueId);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
 }

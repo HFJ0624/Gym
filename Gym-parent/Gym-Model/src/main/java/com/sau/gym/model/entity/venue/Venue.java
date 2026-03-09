@@ -31,7 +31,7 @@ public class Venue extends BaseEntity {
     private String phone;
 
     @Schema(description = "场馆最大容量")
-    private String capacity;
+    private Integer capacity;
 
     @Schema(description = "描述")
     private String description;

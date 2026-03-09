@@ -35,6 +35,68 @@
         order by id
     </select>
 
+    <!-- 新增角色 -->
+    <insert id="saveVenue">
+        insert into venue (
+            id,
+            venue_name,
+            venue_type,
+            location,
+            phone,
+            capacity,
+            description,
+            open_time,
+            close_time
+        ) values (
+                     #{id},
+                     #{venueName},
+                     #{venueType},
+                     #{location},
+                     #{phone},
+                     #{capacity},
+                     #{description},
+                     #{openTime},
+                     #{closeTime}
+                 )
+    </insert>
+
+    <!-- 修改场馆 -->
+    <update id="updateVenue">
+        update venue set
+        <if test="venueName != null and venueName != ''">
+            venue_name = #{venueName},
+        </if>
+        <if test="venueType != null and venueType != ''">
+            venue_type = #{venueType},
+        </if>
+        <if test="location != null and location != ''">
+            location = #{location},
+        </if>
+        <if test="phone != null and phone != ''">
+            phone = #{phone},
+        </if>
+        <if test="capacity != null and capacity != ''">
+            capacity = #{capacity},
+        </if>
+        <if test="description != null and description != ''">
+            description = #{description},
+        </if>
+        <if test="openTime != null">
+            open_time = #{openTime},
+        </if>
+        <if test="closeTime != null">
+            close_time = #{closeTime},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
+
+    <!-- 根据id删除场馆信息 -->
+    <update id="deleteById">
+        update venue set is_deleted = 1 where id = #{venueId}
+    </update>
+
 
 
 </mapper>
