@@ -33,4 +33,39 @@
                  )
     </insert>
 
+    <!--  映射查询到的字段 -->
+    <resultMap id="operaLogMap" type="com.sau.gym.model.entity.system.OperaLog" autoMapping="true"></resultMap>
+
+
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+        id,title,business_type,method,request_method,operator_type,oper_name operaName,oper_url operaUrl,oper_ip operaIp,oper_param operaParam,json_result,create_time
+    </sql>
+
+    <sql id="findPageWhere">
+        <where>
+            <if test="title != null and title != ''">
+                and title like CONCAT('%',#{title},'%')
+            </if>
+            <if test="operaName != null and operaName != ''">
+                and operaName like CONCAT('%',#{oper_name},'%')
+            </if>
+            <if test="type != null and type != ''">
+                and type like CONCAT('%',#{business_type},'%')
+            </if>
+            <if test="method != null and method != ''">
+                and method like CONCAT('%',#{method},'%')
+            </if>
+            and is_deleted = 0
+        </where>
+    </sql>
+
+    <!--  角色列表查询方法  -->
+    <select id="findByPage" resultMap="operaLogMap">
+        select <include refid="columns" />
+        from oper_log
+        <include refid="findPageWhere"/>
+        order by id
+    </select>
+
 </mapper>

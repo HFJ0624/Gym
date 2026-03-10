@@ -18,9 +18,9 @@ public class OperaLogDto {
     @Schema(description = "操作用户名")
     private String operaName;
 
-    @Schema(description = "开始时间")
-    private String createTimeBegin;
+    @Schema(description = "业务类型")
+    private String type;
 
-    @Schema(description = "结束时间")
-    private String createTimeEnd;
+    @Schema(description = "请求方式")
+    private String method;
 }
