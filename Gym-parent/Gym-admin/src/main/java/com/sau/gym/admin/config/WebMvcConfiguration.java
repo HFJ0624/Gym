@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * 作者:hfj
- * 功能:配置类配置跨域请求
+ * 功能:配置类配置跨域请求,以及基本拦截路径
  * 日期: 2026/3/4 16:32
  */
 @Component

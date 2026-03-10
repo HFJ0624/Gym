@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:文件上传功能
  * 日期: 2026/3/6 15:00
  */
 @RestController

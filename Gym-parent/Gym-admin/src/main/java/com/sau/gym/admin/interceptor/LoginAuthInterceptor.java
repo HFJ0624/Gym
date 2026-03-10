@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 作者:hfj
- * 功能:拦截器
+ * 功能:登录拦截器
  * 日期: 2026/3/5 9:29
  */
 @Component

@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="common-util" />
+        <module name="common-log" />
         <module name="common-service" />
         <module name="Gym-Model" />
         <module name="Gym-admin" />
@@ -19,6 +20,7 @@
       <module name="Gym-Model" options="-parameters" />
       <module name="Gym-admin" options="-parameters" />
       <module name="Gym-common" options="" />
+      <module name="common-log" options="-parameters" />
       <module name="common-service" options="-parameters" />
       <module name="common-util" options="-parameters" />
     </option>

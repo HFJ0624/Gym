@@ -5,14 +5,13 @@ import com.sau.gym.admin.service.CourtService;
 import com.sau.gym.model.dto.venue.CourtDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
-import com.sau.gym.model.entity.venue.Court;
 import com.sau.gym.model.vo.court.CourtVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * 作者:hfj
- * 功能:场地增删改查
+ * 功能:场地的增删改查
  * 日期: 2026/3/10 9:23
  */
 @RestController

@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:自定义的minio配置类
  * 日期: 2026/3/6 15:02
  */
 @Data

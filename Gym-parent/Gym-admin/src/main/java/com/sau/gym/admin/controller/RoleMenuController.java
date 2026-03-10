@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:角色对应的菜单功能
  * 日期: 2026/3/6 20:35
  */
 @RestController

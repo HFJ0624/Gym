@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 作者:hfj
- * 功能:场馆
+ * 功能:场馆增删改查功能
  * 日期: 2026/3/7 10:51
  */
 @RestController
