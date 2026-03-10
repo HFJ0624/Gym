@@ -52,6 +52,11 @@ public class UserServiceImpl implements UserService {
             throw new SauException(ResultCodeEnum.LOGIN_ERROR);
         }
 
+        //用户为禁用状态禁止登录
+        if (user.getStatus() == 0){
+            throw new SauException(ResultCodeEnum.LOGIN_PROHIBIT);
+        }
+
         //2.验证密码是否正确
         String inputPassword = loginDto.getPassword();
         String md5InputPassword = DigestUtils.md5DigestAsHex(inputPassword.getBytes());

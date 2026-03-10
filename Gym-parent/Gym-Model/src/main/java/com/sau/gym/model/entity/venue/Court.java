@@ -17,7 +17,7 @@ public class Court extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "场地ID")
+    @Schema(description = "所属场馆ID")
     private Long venueId;
 
     @Schema(description = "场地名称")

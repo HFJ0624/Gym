@@ -1,0 +1,15 @@
+package com.sau.gym.admin.mapper;
+
+import com.sau.gym.model.dto.venue.CourtDto;
+import com.sau.gym.model.entity.venue.Court;
+import com.sau.gym.model.vo.court.CourtVO;
+import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
+
+@Mapper
+public interface CourtMapper {
+
+    //场地查询方法
+    List<CourtVO> findByPage(CourtDto courtDto);
+}
