@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:场地增删改查
  * 日期: 2026/3/10 9:23
  */
 @RestController
@@ -28,4 +28,6 @@ public class CourtController {
         PageInfo<CourtVO> pageInfo = courtService.findByPage(current,limit,courtDto);
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
+
+
 }

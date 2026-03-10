@@ -2,6 +2,8 @@ package com.sau.gym.admin.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.UserService;
+import com.sau.gym.common.log.annotation.Log;
+import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.role.AssignRoleDto;
 import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.dto.user.UserStatusDTO;
@@ -30,6 +32,7 @@ public class UserController {
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "新增用户",businessType = 1,operatorType = OperatorType.MANAGE)
     //角色添加
     @PostMapping(value = "/saveUser")
     public Result saveUser(@RequestBody User user){
@@ -48,6 +51,7 @@ public class UserController {
         }
     }
 
+    @Log(title = "修改用户",businessType = 2,operatorType = OperatorType.MANAGE)
     //修改用户信息
     @PutMapping(value = "/updateUser")
     public Result updateUser(@RequestBody User user){
@@ -55,6 +59,7 @@ public class UserController {
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "删除用户",businessType = 3,operatorType = OperatorType.MANAGE)
     //根据用户Id删除用户信息
     @DeleteMapping(value = "/deleteById/{userId}")
     public Result deleteById(@PathVariable("userId") Long userId){
@@ -69,6 +74,7 @@ public class UserController {
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "注册用户",businessType = 0,operatorType = OperatorType.MANAGE)
     //注册用户
     @PostMapping(value = "/register")
     public Result register(@RequestBody User user){

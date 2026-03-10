@@ -2,6 +2,8 @@ package com.sau.gym.admin.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.VenueService;
+import com.sau.gym.common.log.annotation.Log;
+import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.venue.VenueDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
@@ -29,6 +31,7 @@ public class VenueController {
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "添加场馆",businessType = 1,operatorType = OperatorType.MANAGE)
     //添加场馆
     @PostMapping(value = "/saveVenue")
     public Result saveVenue(@RequestBody Venue venue){
@@ -36,6 +39,7 @@ public class VenueController {
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "修改场馆",businessType = 2,operatorType = OperatorType.MANAGE)
     //修改场馆
     @PutMapping(value = "/updateVenue")
     public Result updateVenue(@RequestBody Venue venue){
@@ -43,6 +47,7 @@ public class VenueController {
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "删除场馆",businessType = 3,operatorType = OperatorType.MANAGE)
     //删除场馆
     @DeleteMapping(value = "/deleteById/{venueId}")
     public Result deleteById(@PathVariable(value = "venueId") Long venueId){

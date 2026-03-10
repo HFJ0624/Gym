@@ -2,6 +2,8 @@ package com.sau.gym.admin.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.RoleService;
+import com.sau.gym.common.log.annotation.Log;
+import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.role.RoleDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
@@ -30,6 +32,7 @@ public class RoleController {
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "角色添加",businessType = 1,operatorType = OperatorType.MANAGE)
     //角色添加
     @PostMapping(value = "/saveSysRole")
     public Result saveRole(@RequestBody Role role){
@@ -37,6 +40,7 @@ public class RoleController {
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "修改角色",businessType = 2,operatorType = OperatorType.MANAGE)
     //角色修改
     @PutMapping(value = "/updateSysRole")
     public Result updateRole(@RequestBody Role role){
@@ -44,6 +48,7 @@ public class RoleController {
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
+    @Log(title = "删除角色",businessType = 3,operatorType = OperatorType.MANAGE)
     //角色删除
     @DeleteMapping(value = "/deleteById/{roleId}")
     public Result deleteById(@PathVariable(value = "roleId") Long roleId){
