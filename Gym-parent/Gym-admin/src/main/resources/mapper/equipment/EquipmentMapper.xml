@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.EquipmentMapper">
+
+
+    <!--  映射查询到的字段 -->
+    <resultMap id="equipmentMap" type="com.sau.gym.model.entity.equipment.Equipment" autoMapping="true"></resultMap>
+
+
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+        id,gym_name gymName,name,brand,price,quantity,status,description,image_url imageUrl,purchase_date purchaseDate,create_time
+    </sql>
+
+    <sql id="findPageWhere">
+        <where>
+            <if test="gymName != null and gymName != ''">
+                and gymName like CONCAT('%',#{gym_name},'%')
+            </if>
+            <if test="name != null and name != ''">
+                and name like CONCAT('%',#{name},'%')
+            </if>
+            <if test="brand != null and brand != ''">
+                and brand like CONCAT('%',#{brand},'%')
+            </if>
+            and is_deleted = 0
+        </where>
+    </sql>
+
+    <!--  器械列表查询方法  -->
+    <select id="findByPage" resultMap="equipmentMap">
+        select <include refid="columns" />
+        from equipment
+        <include refid="findPageWhere"/>
+        order by id
+    </select>
+
+    <!-- 新增器械 -->
+    <insert id="saveEquipment">
+        insert into equipment (
+            id,
+            gym_name,
+            name,
+            brand,
+            price,
+            quantity,
+            description,
+            image_rul,
+            purchase_date
+        ) values (
+                     #{id},
+                     #{gymName},
+                     #{name},
+                     #{brand},
+                     #{price},
+                     #{quantity},
+                     #{description},
+                     #{imageRul},
+                     #{purchaseDate}
+                 )
+    </insert>
+
+    <!-- 修改器械 -->
+    <update id="updateEquipment">
+        update equipment set
+        <if test="gymName != null and gymName != ''">
+            gym_name = #{gymName},
+        </if>
+        <if test="name != null and name != ''">
+            name = #{name},
+        </if>
+        <if test="brand != null and brand != ''">
+            brand = #{brand},
+        </if>
+        <if test="price != null and price != ''">
+            price = #{price},
+        </if>
+        <if test="quantity != null and quantity != ''">
+            quantity = #{quantity},
+        </if>
+        <if test="description != null and description != ''">
+            description = #{description},
+        </if>
+        <if test="imageUrl != null and imageUrl != ''">
+            image_rul = #{imageUrl},
+        </if>
+        <if test="purchaseDate != null">
+            purchase_date = #{purchaseDate},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
+
+    <!-- 根据id器械信息 -->
+    <update id="deleteById">
+        update equipment set is_deleted = 1 where id = #{equipmentId}
+    </update>
+
+
+
+</mapper>

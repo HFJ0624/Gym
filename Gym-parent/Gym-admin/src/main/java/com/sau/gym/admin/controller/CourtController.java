@@ -8,7 +8,6 @@ import com.sau.gym.model.dto.venue.CourtDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.venue.Court;
-import com.sau.gym.model.entity.venue.Venue;
 import com.sau.gym.model.vo.court.CourtVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
