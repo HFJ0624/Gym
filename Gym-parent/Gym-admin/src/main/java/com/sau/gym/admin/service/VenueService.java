@@ -4,6 +4,8 @@ import com.github.pagehelper.PageInfo;
 import com.sau.gym.model.dto.venue.VenueDto;
 import com.sau.gym.model.entity.venue.Venue;
 
+import java.util.Map;
+
 public interface VenueService {
 
     //场馆列表查询方法
@@ -17,4 +19,7 @@ public interface VenueService {
 
     //删除场馆
     void deleteById(Long venueId);
+
+    //查找所有场馆
+    Map<String, Object> findAllVenue();
 }

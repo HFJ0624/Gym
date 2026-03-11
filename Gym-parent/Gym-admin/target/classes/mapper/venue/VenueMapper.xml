@@ -97,6 +97,12 @@
         update venue set is_deleted = 1 where id = #{venueId}
     </update>
 
+    <!-- 查询所有的角色数据 -->
+    <select id="findAllVenue" resultMap="venueMap">
+        select id,venue_name
+        from venue where is_deleted = 0
+    </select>
+
 
 
 </mapper>

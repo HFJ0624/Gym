@@ -36,4 +36,22 @@ public class CourtServiceImpl implements CourtService {
         PageInfo<CourtVO> pageInfo = new PageInfo<>(list);
         return pageInfo;
     }
+
+    //添加场地
+    @Override
+    public void saveCourt(Court court) {
+        courtMapper.saveCourt(court);
+    }
+
+    //修改场地
+    @Override
+    public void updateCourt(Court court) {
+        courtMapper.updateCourt(court);
+    }
+
+    //删除场地
+    @Override
+    public void deleteById(Long courtId) {
+        courtMapper.deleteById(courtId);
+    }
 }

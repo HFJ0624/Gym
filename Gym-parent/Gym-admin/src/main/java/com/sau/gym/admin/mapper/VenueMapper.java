@@ -20,4 +20,7 @@ public interface VenueMapper {
 
     //删除场馆
     void deleteById(Long venueId);
+
+    //查找所有场馆
+    List<Venue> findAllVenue();
 }

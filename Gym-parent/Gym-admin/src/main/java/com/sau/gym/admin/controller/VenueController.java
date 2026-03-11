@@ -11,6 +11,8 @@ import com.sau.gym.model.entity.venue.Venue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 作者:hfj
  * 功能:场馆增删改查功能
@@ -53,6 +55,13 @@ public class VenueController {
     public Result deleteById(@PathVariable(value = "venueId") Long venueId){
         venueService.deleteById(venueId);
         return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //查找所有场馆
+    @GetMapping("/findAllVenue")
+    public Result<Map<String,Object>> findAllVenue(){
+        Map<String, Object> resultMap = venueService.findAllVenue();
+        return Result.build(resultMap,ResultCodeEnum.SUCCESS);
     }
 
 }

@@ -12,4 +12,13 @@ public interface CourtMapper {
 
     //场地查询方法
     List<CourtVO> findByPage(CourtDto courtDto);
+
+    //添加场地
+    void saveCourt(Court court);
+
+    //修改场地
+    void updateCourt(Court court);
+
+    //删除场地
+    void deleteById(Long courtId);
 }

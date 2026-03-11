@@ -40,4 +40,51 @@
         order by c.id
     </select>
 
+    <!-- 新增角色 -->
+    <insert id="saveCourt">
+        insert into court (
+            id,
+            venue_id,
+            name,
+            type,
+            capacity,
+            price
+        ) values (
+                     #{id},
+                     #{venueId},
+                     #{name},
+                     #{type},
+                     #{capacity},
+                     #{price}
+                 )
+    </insert>
+
+    <!-- 修改场馆 -->
+    <update id="updateCourt">
+        update court set
+        <if test="venueId != null and venueId != ''">
+            venue_id = #{venueId},
+        </if>
+        <if test="name != null and name != ''">
+            name = #{name},
+        </if>
+        <if test="type != null and type != ''">
+            type = #{type},
+        </if>
+        <if test="capacity != null and capacity != ''">
+            capacity = #{capacity},
+        </if>
+        <if test="price != null and price != ''">
+            price = #{price},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
+
+    <!-- 根据id删除场地信息 -->
+    <update id="deleteById">
+        update court set is_deleted = 1 where id = #{courtId}
+    </update>
+
 </mapper>

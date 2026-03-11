@@ -9,7 +9,9 @@ import com.sau.gym.model.entity.venue.Venue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作者:hfj
@@ -53,5 +55,18 @@ public class VenueServiceImpl implements VenueService {
     @Override
     public void deleteById(Long venueId) {
         venueMapper.deleteById(venueId);
+    }
+
+    //查找所有场馆
+    @Override
+    public Map<String, Object> findAllVenue() {
+        //查询所有场馆
+        List<Venue> allVenue = venueMapper.findAllVenue();
+
+        //构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+
+        resultMap.put("allVenue",allVenue);
+        return resultMap;
     }
 }
