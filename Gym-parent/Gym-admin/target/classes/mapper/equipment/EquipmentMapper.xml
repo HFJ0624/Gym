@@ -45,7 +45,7 @@
             price,
             quantity,
             description,
-            image_rul,
+            image_url,
             purchase_date
         ) values (
                      #{id},
@@ -55,7 +55,7 @@
                      #{price},
                      #{quantity},
                      #{description},
-                     #{imageRul},
+                     #{imageUrl},
                      #{purchaseDate}
                  )
     </insert>
@@ -82,7 +82,7 @@
             description = #{description},
         </if>
         <if test="imageUrl != null and imageUrl != ''">
-            image_rul = #{imageUrl},
+            image_url = #{imageUrl},
         </if>
         <if test="purchaseDate != null">
             purchase_date = #{purchaseDate},

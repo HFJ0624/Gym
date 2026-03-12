@@ -53,8 +53,8 @@
             <if test="type != null and type != ''">
                 and type like CONCAT('%',#{business_type},'%')
             </if>
-            <if test="method != null and method != ''">
-                and method like CONCAT('%',#{method},'%')
+            <if test="requestMethod != null and requestMethod != ''">
+                and request_method like CONCAT('%',#{requestMethod},'%')
             </if>
             and is_deleted = 0
         </where>
@@ -65,7 +65,7 @@
         select <include refid="columns" />
         from oper_log
         <include refid="findPageWhere"/>
-        order by id
+        order by id desc
     </select>
 
 </mapper>

@@ -24,7 +24,7 @@ public class EquipmentController {
     private EquipmentService equipmentService;
 
     //器械查询列表
-    @GetMapping(value = "/findByPage/{pageNum}/{pageSize}")
+    @PostMapping(value = "/findByPage/{pageNum}/{pageSize}")
     public Result<PageInfo<Equipment>> findByPage(@PathVariable(value = "pageNum") Integer pageNum , @PathVariable(value = "pageSize") Integer pageSize,@RequestBody EquipmentDto equipmentDto){
         PageInfo<Equipment> pageInfo = equipmentService.findByPage(pageNum,pageSize,equipmentDto);
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);

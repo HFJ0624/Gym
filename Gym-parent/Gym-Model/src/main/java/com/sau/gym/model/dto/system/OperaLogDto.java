@@ -22,5 +22,5 @@ public class OperaLogDto {
     private String type;
 
     @Schema(description = "请求方式")
-    private String method;
+    private String requestMethod;
 }
