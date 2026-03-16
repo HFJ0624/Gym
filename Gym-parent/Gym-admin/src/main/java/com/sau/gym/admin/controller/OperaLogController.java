@@ -28,4 +28,11 @@ public class OperaLogController {
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
 
+    //删除操作日志记录
+    @DeleteMapping(value = "/deleteById/{id}")
+    public Result deleteById(@PathVariable(value = "id") Long id){
+        operaLogService.deleteById(id);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
 }

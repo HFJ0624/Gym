@@ -37,4 +37,10 @@ public class CourtBookingServiceImpl implements CourtBookingService {
         PageInfo<CourtBookVO> pageInfo = new PageInfo<>(list);
         return pageInfo;
     }
+
+    //删除预约场地
+    @Override
+    public void deleteById(Long id) {
+        courtBookingMapper.deleteById(id);
+    }
 }

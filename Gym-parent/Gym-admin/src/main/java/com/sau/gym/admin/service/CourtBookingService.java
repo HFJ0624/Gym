@@ -8,4 +8,7 @@ public interface CourtBookingService {
 
     //场地预约的查询功能
     PageInfo<CourtBookVO> findByPage(Integer current, Integer limit, CourtBookDto courtBookDto);
+
+    //删除预约场地
+    void deleteById(Long id);
 }

@@ -37,4 +37,10 @@ public class OperaLogServiceImpl implements OperaLogService {
         PageInfo<OperaLog> pageInfo = new PageInfo<>(list);
         return pageInfo;
     }
+
+    //删除操作日志记录
+    @Override
+    public void deleteById(Long id) {
+        operaLogMapper.deleteById(id);
+    }
 }

@@ -41,4 +41,8 @@
         order by c.id
     </select>
 
+    <update id="deleteById">
+        update court_booking set is_deleted = 1 where id = #{id}
+    </update>
+
 </mapper>

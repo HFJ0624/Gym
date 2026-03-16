@@ -2,6 +2,8 @@ package com.sau.gym.admin.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.CourtBookingService;
+import com.sau.gym.common.log.annotation.Log;
+import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
@@ -26,5 +28,13 @@ public class CourtBookingController {
     public Result<PageInfo<CourtBookVO>> findByPage(@PathVariable(value = "current") Integer current, @PathVariable(value = "limit") Integer limit, @RequestBody CourtBookDto courtBookDto){
         PageInfo<CourtBookVO> pageInfo = courtBookingService.findByPage(current,limit,courtBookDto);
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
+    }
+
+    //删除预约场地
+    @Log(title = "删除预约场地",businessType = 3,operatorType = OperatorType.MANAGE)
+    @DeleteMapping(value = "/deleteById/{id}")
+    public Result deleteById(@PathVariable(value = "id") Long id){
+        courtBookingService.deleteById(id);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }

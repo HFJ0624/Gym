@@ -14,4 +14,7 @@ public interface OperaLogMapper {
 
     //操作日志列表查询
     List<OperaLog> findByPage(OperaLogDto operaLogDto);
+
+    //删除操作日志记录
+    void deleteById(Long id);
 }

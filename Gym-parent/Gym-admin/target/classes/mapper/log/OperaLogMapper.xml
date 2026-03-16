@@ -60,12 +60,15 @@
         </where>
     </sql>
 
-    <!--  角色列表查询方法  -->
     <select id="findByPage" resultMap="operaLogMap">
         select <include refid="columns" />
         from oper_log
         <include refid="findPageWhere"/>
         order by id desc
     </select>
+
+    <update id="deleteById">
+        update oper_log set is_deleted = 1 where id = #{id}
+    </update>
 
 </mapper>
