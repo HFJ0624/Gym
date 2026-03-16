@@ -3,6 +3,7 @@ package com.sau.gym.common.log.utils;
 import com.alibaba.fastjson.JSON;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.model.entity.system.OperaLog;
+import com.sau.gym.model.entity.user.User;
 import com.sau.gym.utils.AuthContextUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -62,6 +63,12 @@ public class LogUtil {
                 operaLog.setOperaParam(params);
             }
         }
-        operaLog.setOperaName(AuthContextUtil.get().getUsername());
+        User user = AuthContextUtil.get();
+        if (user != null){
+            //登录用户：记录用户名
+            operaLog.setOperaName(AuthContextUtil.get().getUsername());
+        }else {
+            operaLog.setOperaName("注册ing");
+        }
     }
 }

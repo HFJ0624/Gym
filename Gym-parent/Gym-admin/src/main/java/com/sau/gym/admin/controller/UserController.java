@@ -10,8 +10,11 @@ import com.sau.gym.model.dto.user.UserStatusDTO;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.user.User;
+import com.sau.gym.model.vo.user.UserVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 作者:hfj
@@ -81,4 +84,12 @@ public class UserController {
         userService.register(user);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
+
+    //统计用户的男女比例数量
+    @PostMapping(value = "/findGender")
+    public Result<UserVo> findGender(){
+        List<UserVo> list = userService.findGender();
+        return Result.build(list,ResultCodeEnum.SUCCESS);
+    }
+
 }

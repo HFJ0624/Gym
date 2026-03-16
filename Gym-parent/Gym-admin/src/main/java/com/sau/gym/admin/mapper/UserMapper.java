@@ -3,6 +3,7 @@ package com.sau.gym.admin.mapper;
 
 import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.user.User;
+import com.sau.gym.model.vo.user.UserVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -30,4 +31,7 @@ public interface UserMapper {
 
     //注册用户
     void register(User user);
+
+    //统计用户的男女比例数量
+    List<UserVo> findGender();
 }

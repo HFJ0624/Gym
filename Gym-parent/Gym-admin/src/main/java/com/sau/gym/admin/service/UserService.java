@@ -6,6 +6,9 @@ import com.sau.gym.model.dto.system.LoginDto;
 import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
+import com.sau.gym.model.vo.user.UserVo;
+
+import java.util.List;
 
 public interface UserService {
 
@@ -38,4 +41,7 @@ public interface UserService {
 
     //注册用户
     void register(User user);
+
+    //统计用户的男女比例数量
+    List<UserVo> findGender();
 }

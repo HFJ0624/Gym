@@ -121,4 +121,10 @@
                  )
     </insert>
 
+    <select id="findGender" resultType="com.sau.gym.model.vo.user.UserVo" >
+        select sex,count(*) as number
+        from user
+        group by sex
+    </select>
+
 </mapper>
