@@ -16,6 +16,7 @@ public enum ResultCodeEnum {
     DATA_ERROR(204, "数据异常"),
     ACCOUNT_STOP( 216, "账号已停用"),
     STOCK_LESS( 219, "库存不足"),
+    VENUE_NAME_EXIST(220,"场馆名称已经存在"),
     ;
 
     //业务状态码

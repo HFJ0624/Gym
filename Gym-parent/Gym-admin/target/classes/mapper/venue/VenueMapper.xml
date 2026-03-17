@@ -103,6 +103,10 @@
         from venue where is_deleted = 0
     </select>
 
+    <select id="selectOne" resultType="com.sau.gym.model.entity.venue.Venue">
+        select <include refid="columns" /> from venue where venue_name = #{venueName} and is_deleted = 0
+    </select>
+
 
 
 </mapper>

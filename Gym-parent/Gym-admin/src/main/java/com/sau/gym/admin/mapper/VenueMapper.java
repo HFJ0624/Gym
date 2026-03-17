@@ -23,4 +23,7 @@ public interface VenueMapper {
 
     //查找所有场馆
     List<Venue> findAllVenue();
+
+    //命名重复判断
+    Venue selectOne(String venueName);
 }

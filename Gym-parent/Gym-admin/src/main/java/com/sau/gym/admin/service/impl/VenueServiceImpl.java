@@ -4,7 +4,9 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.VenueMapper;
 import com.sau.gym.admin.service.VenueService;
+import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.venue.VenueDto;
+import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.venue.Venue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +44,15 @@ public class VenueServiceImpl implements VenueService {
     //添加场馆
     @Override
     public void saveVenue(Venue venue) {
+        String venueName = venue.getVenueName();
+
+        //命名重复判断
+        Venue dbVenue = venueMapper.selectOne(venueName);
+        if (dbVenue != null){
+            throw new SauException(ResultCodeEnum.VENUE_NAME_EXIST);
+        }
+
+        //保存到数据库
         venueMapper.saveVenue(venue);
     }
 
