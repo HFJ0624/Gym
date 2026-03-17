@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sau.gym.admin.mapper.VenueBookingMapper">
+
+    <resultMap id="VenueBookMap" type="com.sau.gym.model.entity.venue.VenueBooking" autoMapping="true"></resultMap>
+
+    <!-- 保留你原有基础结构，只修改SQL和返回字段 -->
+    <sql id="columns">
+        vb.id,
+        vb.order_no as orderNo,
+        u.username as userName,
+        u.real_name as realName,
+        v.venue_name as venueName,
+        vb.booking_date as bookingDate,
+        vb.remark,
+        v.location,
+        vb.person_num as personNum,
+        v.venue_type as venueType,
+        vb.create_time
+    </sql>
+
+    <sql id="findPageWhere">
+        <where>
+            <if test="userName != null and userName != ''">
+                and u.username like CONCAT('%',#{userName},'%')
+            </if>
+            <if test="realName != null and realName != ''">
+                and u.real_name like CONCAT('%',#{realName},'%')
+            </if>
+            <if test="venueName != null and venueName != ''">
+                and v.venue_name like CONCAT('%',#{venueName},'%')
+            </if>
+            <if test="location != null and location != ''">
+                and v.location like CONCAT('%',#{location},'%')
+            </if>
+            and vb.is_deleted = 0
+        </where>
+    </sql>
+
+    <!-- 直接返回结果，无需复杂ResultMap（autoMapping会自动映射别名到实体/Map） -->
+    <select id="findByPage" resultType="com.sau.gym.model.vo.venue.VenueBookVO">
+        select <include refid="columns" />
+        from venue_booking vb
+        left join venue v on v.id = vb.venue_id
+        left join user u on u.id = vb.user_id
+        <include refid="findPageWhere"/>
+        order by vb.id
+    </select>
+
+    <update id="deleteById">
+        update venue_booking set is_deleted = 1 where id = #{id}
+    </update>
+
+</mapper>
