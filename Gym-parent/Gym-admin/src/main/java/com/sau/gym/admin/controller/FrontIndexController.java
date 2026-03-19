@@ -1,6 +1,5 @@
 package com.sau.gym.admin.controller;
 
-import com.sau.gym.admin.service.MenuService;
 import com.sau.gym.admin.service.UserService;
 import com.sau.gym.admin.service.ValidateCodeService;
 import com.sau.gym.common.log.annotation.Log;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:前台用户的登录功能
  * 日期: 2026/3/17 17:16
  */
 @RestController
@@ -51,5 +50,13 @@ public class FrontIndexController {
     @GetMapping("/getUserInfo")
     public Result<User> getUserInfo(){
         return Result.build(AuthContextUtil.get(),ResultCodeEnum.SUCCESS);
+    }
+
+    //注册用户
+    @Log(title = "前台注册用户",businessType = 0,operatorType = OperatorType.MANAGE)
+    @PostMapping(value = "/register")
+    public Result register(@RequestBody User user){
+        userService.register(user);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }

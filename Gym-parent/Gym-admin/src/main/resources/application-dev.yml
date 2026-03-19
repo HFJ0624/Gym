@@ -32,6 +32,7 @@ gym:
       - /admin/system/user/register
       - /admin/system/fileUpload
       - /front/login
+      - /front/register
       - /front/generateValidateCode
   minio:
     endpointUrl: http://192.168.10.100:9001
