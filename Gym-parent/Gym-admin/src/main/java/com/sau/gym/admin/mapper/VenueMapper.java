@@ -26,4 +26,7 @@ public interface VenueMapper {
 
     //命名重复判断
     Venue selectOne(String venueName);
+
+    //查找所有场馆(前台)
+    List<Venue> getAllVenue();
 }

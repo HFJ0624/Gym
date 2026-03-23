@@ -80,4 +80,17 @@ public class VenueServiceImpl implements VenueService {
         resultMap.put("allVenue",allVenue);
         return resultMap;
     }
+
+    //查找所有场馆(前台)
+    @Override
+    public Map<String, Object> getAllVenue() {
+        //查询所有场馆
+        List<Venue> allVenue = venueMapper.getAllVenue();
+
+        //构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+
+        resultMap.put("allVenue",allVenue);
+        return resultMap;
+    }
 }

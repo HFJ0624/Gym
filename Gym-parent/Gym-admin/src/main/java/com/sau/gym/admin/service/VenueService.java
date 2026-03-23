@@ -22,4 +22,7 @@ public interface VenueService {
 
     //查找所有场馆
     Map<String, Object> findAllVenue();
+
+    //查找所有场馆(前台)
+    Map<String, Object> getAllVenue();
 }

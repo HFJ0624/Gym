@@ -2,6 +2,7 @@ package com.sau.gym.admin.controller;
 
 import com.sau.gym.admin.service.UserService;
 import com.sau.gym.admin.service.ValidateCodeService;
+import com.sau.gym.admin.service.VenueService;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.system.LoginDto;
@@ -15,6 +16,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 作者:hfj
  * 功能:前台用户的登录功能
@@ -26,6 +29,9 @@ public class FrontIndexController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private VenueService venueService;
 
     @Autowired
     private ValidateCodeService validateCodeService;
@@ -58,5 +64,12 @@ public class FrontIndexController {
     public Result register(@RequestBody User user){
         userService.register(user);
         return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //查找所有场馆
+    @GetMapping("/venues")
+    public Result<Map<String,Object>> getAllVenue(){
+        Map<String, Object> resultMap = venueService.getAllVenue();
+        return Result.build(resultMap,ResultCodeEnum.SUCCESS);
     }
 }

@@ -44,6 +44,9 @@ public class Venue extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date closeTime;
 
+    @Schema(description = "场馆图片")
+    private String avatar;
+
     @Schema(description = "状态：1为正常，0为禁止")
     private Integer status;
 }

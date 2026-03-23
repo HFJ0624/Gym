@@ -33,24 +33,24 @@ public class VenueController {
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
 
-    @Log(title = "添加场馆",businessType = 1,operatorType = OperatorType.MANAGE)
     //添加场馆
+    @Log(title = "添加场馆",businessType = 1,operatorType = OperatorType.MANAGE)
     @PostMapping(value = "/saveVenue")
     public Result saveVenue(@RequestBody Venue venue){
         venueService.saveVenue(venue);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
-    @Log(title = "修改场馆",businessType = 2,operatorType = OperatorType.MANAGE)
     //修改场馆
+    @Log(title = "修改场馆",businessType = 2,operatorType = OperatorType.MANAGE)
     @PutMapping(value = "/updateVenue")
     public Result updateVenue(@RequestBody Venue venue){
         venueService.updateVenue(venue);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
-    @Log(title = "删除场馆",businessType = 3,operatorType = OperatorType.MANAGE)
     //删除场馆
+    @Log(title = "删除场馆",businessType = 3,operatorType = OperatorType.MANAGE)
     @DeleteMapping(value = "/deleteById/{venueId}")
     public Result deleteById(@PathVariable(value = "venueId") Long venueId){
         venueService.deleteById(venueId);
