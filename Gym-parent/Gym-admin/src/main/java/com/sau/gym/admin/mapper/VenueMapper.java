@@ -28,5 +28,5 @@ public interface VenueMapper {
     Venue selectOne(String venueName);
 
     //查找所有场馆(前台)
-    List<Venue> getAllVenue();
+    List<Venue> getAllVenue(VenueDto venueDto);
 }

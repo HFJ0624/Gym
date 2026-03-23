@@ -6,6 +6,7 @@ import com.sau.gym.admin.service.VenueService;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.system.LoginDto;
+import com.sau.gym.model.dto.venue.VenueDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.user.User;
@@ -67,9 +68,9 @@ public class FrontIndexController {
     }
 
     //查找所有场馆
-    @GetMapping("/venues")
-    public Result<Map<String,Object>> getAllVenue(){
-        Map<String, Object> resultMap = venueService.getAllVenue();
+    @PostMapping("/venues")
+    public Result<Map<String,Object>> getAllVenue(@RequestBody VenueDto venueDto){
+        Map<String, Object> resultMap = venueService.getAllVenue(venueDto);
         return Result.build(resultMap,ResultCodeEnum.SUCCESS);
     }
 }

@@ -83,9 +83,9 @@ public class VenueServiceImpl implements VenueService {
 
     //查找所有场馆(前台)
     @Override
-    public Map<String, Object> getAllVenue() {
+    public Map<String, Object> getAllVenue(VenueDto venueDto) {
         //查询所有场馆
-        List<Venue> allVenue = venueMapper.getAllVenue();
+        List<Venue> allVenue = venueMapper.getAllVenue(venueDto);
 
         //构建返回对象
         HashMap<String, Object> resultMap = new HashMap<>();

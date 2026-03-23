@@ -112,13 +112,23 @@
         select <include refid="columns" /> from venue where venue_name = #{venueName} and is_deleted = 0
     </select>
 
+    <sql id="get">
+        <where>
+            <if test="venueName != null and venueName != ''">
+                and venue_name like CONCAT('%',#{venueName},'%')
+            </if>
+            <if test="venueType != null and venueType != ''">
+                and venue_type like CONCAT('%',#{venueType},'%')
+            </if>
+            and is_deleted = 0 and status = 1
+        </where>
+    </sql>
+
     <!-- 查询所有的角色数据 -->
     <select id="getAllVenue" resultMap="venueMap">
         select <include refid="columns" />
-        from venue where is_deleted = 0
-        and status = 1
+        from venue
+        <include refid="get"/>
     </select>
-
-
 
 </mapper>

@@ -24,5 +24,5 @@ public interface VenueService {
     Map<String, Object> findAllVenue();
 
     //查找所有场馆(前台)
-    Map<String, Object> getAllVenue();
+    Map<String, Object> getAllVenue(VenueDto venueDto);
 }
