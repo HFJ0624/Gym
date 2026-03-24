@@ -23,4 +23,7 @@ public interface CourtService {
 
     //查询场馆对应的场地
     Map<String, Object> getAllCourt(Long venueId);
+
+    //查询一个场地的所有信息
+    Map<String, Object> getCourt(Long courtId,Long venueId);
 }

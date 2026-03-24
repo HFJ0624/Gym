@@ -1,6 +1,7 @@
 package com.sau.gym.admin.mapper;
 
 import com.sau.gym.model.dto.venue.CourtBookDto;
+import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -15,4 +16,7 @@ public interface CourtBookingMapper {
 
     //删除预约场地
     void deleteById(Long id);
+
+    //插入预约数据
+    void saveCourtBook(CourtBooking courtBooking);
 }

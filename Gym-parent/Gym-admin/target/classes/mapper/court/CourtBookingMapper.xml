@@ -45,4 +45,29 @@
         update court_booking set is_deleted = 1 where id = #{id}
     </update>
 
+    <!-- 插入预约场地 -->
+    <insert id="saveCourtBook">
+        insert into court_booking (
+            id,
+            order_no,
+            user_id,
+            court_id,
+            booking_date,
+            total_price,
+            status,
+            remark
+        ) values (
+                     #{id},
+                     #{orderNo},
+                     #{userId},
+                     #{courtId},
+                     #{bookingDate},
+                     #{totalPrice},
+                     #{status},
+                     #{remark}
+                 )
+    </insert>
+
+
+
 </mapper>

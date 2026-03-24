@@ -97,4 +97,12 @@
         order by c.id
     </select>
 
+    <!-- 查询场馆对应的场地(前台) -->
+    <select id="getCourt" resultType="com.sau.gym.model.vo.court.CourtVO">
+        select <include refid="columns" />
+        from court c
+        left join venue v on c.venue_id = v.id
+        where v.id = #{venueId} and c.id = #{courtId}
+    </select>
+
 </mapper>

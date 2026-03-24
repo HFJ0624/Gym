@@ -4,12 +4,16 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.CourtBookingMapper;
 import com.sau.gym.admin.service.CourtBookingService;
+import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.dto.venue.CourtBookDto;
+import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
 import com.sau.gym.model.vo.court.CourtVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.List;
 
 /**
@@ -42,5 +46,39 @@ public class CourtBookingServiceImpl implements CourtBookingService {
     @Override
     public void deleteById(Long id) {
         courtBookingMapper.deleteById(id);
+    }
+
+    //添加预约场地
+    @Transactional
+    @Override
+    public void saveCourtBook(BookingDto bookingDto) {
+        CourtBooking courtBooking = new CourtBooking();
+
+        //生成订单编码
+        courtBooking.setOrderNo(getSecure32RandomNumber());
+
+        courtBooking.setUserId(bookingDto.getUserId());
+        courtBooking.setCourtId(bookingDto.getCourtId());
+        courtBooking.setBookingDate(bookingDto.getBookingDate());
+        courtBooking.setTotalPrice(bookingDto.getTotalPrice());
+        courtBooking.setStatus(0);
+        courtBooking.setRemark(bookingDto.getRemark());
+
+        //保存到数据库
+        courtBookingMapper.saveCourtBook(courtBooking);
+    }
+
+    /***
+     *
+     * @return 生成32位订单编码
+     */
+    public static String getSecure32RandomNumber() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(32);
+
+        for (int i = 0; i < 32; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return sb.toString();
     }
 }

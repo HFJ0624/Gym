@@ -70,4 +70,17 @@ public class CourtServiceImpl implements CourtService {
         resultMap.put("allCourt",allCourt);
         return resultMap;
     }
+
+    //查询一个场地的所有信息
+    @Override
+    public Map<String, Object> getCourt(Long courtId,Long venueId) {
+        //查询场地信息
+        List<CourtVO> court = courtMapper.getCourt(courtId,venueId);
+
+        //构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+
+        resultMap.put("court",court);
+        return resultMap;
+    }
 }
