@@ -5,6 +5,8 @@ import com.sau.gym.model.dto.venue.CourtDto;
 import com.sau.gym.model.entity.venue.Court;
 import com.sau.gym.model.vo.court.CourtVO;
 
+import java.util.Map;
+
 public interface CourtService {
 
     //场地查询方法
@@ -18,4 +20,7 @@ public interface CourtService {
 
     //删除场地
     void deleteById(Long courtId);
+
+    //查询场馆对应的场地
+    Map<String, Object> getAllCourt(Long venueId);
 }

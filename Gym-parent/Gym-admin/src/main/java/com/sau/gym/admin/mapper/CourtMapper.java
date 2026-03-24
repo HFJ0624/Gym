@@ -21,4 +21,7 @@ public interface CourtMapper {
 
     //删除场地
     void deleteById(Long courtId);
+
+    //查询场馆对应的场地(前台)
+    List<CourtVO> getAllCourt(Long venueId);
 }

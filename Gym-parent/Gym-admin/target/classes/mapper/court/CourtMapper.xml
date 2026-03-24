@@ -16,7 +16,8 @@
         c.create_time,
         v.venue_name as venueName,
         v.location,
-        v.phone as phone
+        v.phone as phone,
+        v.avatar as avatar
     </sql>
 
     <sql id="findPageWhere">
@@ -86,5 +87,14 @@
     <update id="deleteById">
         update court set is_deleted = 1 where id = #{courtId}
     </update>
+
+    <!-- 查询场馆对应的场地(前台) -->
+    <select id="getAllCourt" resultType="com.sau.gym.model.vo.court.CourtVO">
+        select <include refid="columns" />
+        from court c
+        left join venue v on c.venue_id = v.id
+        where v.id = #{venueId}
+        order by c.id
+    </select>
 
 </mapper>

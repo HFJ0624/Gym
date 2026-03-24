@@ -29,6 +29,8 @@ public class CourtVO {
 
     private BigDecimal price;
 
+    private String avatar;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 

@@ -6,11 +6,14 @@ import com.sau.gym.admin.mapper.CourtMapper;
 import com.sau.gym.admin.service.CourtService;
 import com.sau.gym.model.dto.venue.CourtDto;
 import com.sau.gym.model.entity.venue.Court;
+import com.sau.gym.model.entity.venue.Venue;
 import com.sau.gym.model.vo.court.CourtVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作者:hfj
@@ -53,5 +56,18 @@ public class CourtServiceImpl implements CourtService {
     @Override
     public void deleteById(Long courtId) {
         courtMapper.deleteById(courtId);
+    }
+
+    //查询场馆对应的场地(前台)
+    @Override
+    public Map<String, Object> getAllCourt(Long venueId) {
+        //查询对应场馆的所有场地
+        List<CourtVO> allCourt = courtMapper.getAllCourt(venueId);
+
+        //构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+
+        resultMap.put("allCourt",allCourt);
+        return resultMap;
     }
 }
