@@ -5,6 +5,8 @@ import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.vo.court.CourtBookVO;
 
+import java.util.Map;
+
 public interface CourtBookingService {
 
     //场地预约的查询功能
@@ -15,4 +17,7 @@ public interface CourtBookingService {
 
     //添加预约场地
     void saveCourtBook(BookingDto bookingDto);
+
+    //查询所有预约记录
+    Map<String, Object> getCourtOrder(Long userId);
 }

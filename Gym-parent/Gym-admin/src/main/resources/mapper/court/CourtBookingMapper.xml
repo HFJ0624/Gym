@@ -68,6 +68,25 @@
                  )
     </insert>
 
+    <!-- 查询该用户所有的预约场地信息 -->
+    <select id="getCourtOrder" resultType="com.sau.gym.model.vo.court.CourtBookVO">
+        select
+        c.id,
+        c.order_no as orderNo,
+        co.name as courtName,
+        c.booking_date as bookingDate,
+        c.remark,
+        c.total_price as totalPrice,
+        co.type,
+        c.status,
+        c.create_time
+        from court_booking c
+        left join court co on co.id = c.court_id
+        where c.user_id = #{userId}
+        order by c.id
+    </select>
+
+
 
 
 </mapper>

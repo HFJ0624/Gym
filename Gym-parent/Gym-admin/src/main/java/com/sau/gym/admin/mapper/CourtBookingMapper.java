@@ -19,4 +19,7 @@ public interface CourtBookingMapper {
 
     //插入预约数据
     void saveCourtBook(CourtBooking courtBooking);
+
+    //查询该用户所有的预约场地信息
+    List<CourtBookVO> getCourtOrder(Long userId);
 }

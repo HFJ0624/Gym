@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作者:hfj
@@ -66,6 +68,20 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
         //保存到数据库
         courtBookingMapper.saveCourtBook(courtBooking);
+    }
+
+
+    //查询所有预约记录
+    @Override
+    public Map<String, Object> getCourtOrder(Long userId) {
+        //查询该用户所有的预约场地信息
+        List<CourtBookVO> orders = courtBookingMapper.getCourtOrder(userId);
+
+        //构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+
+        resultMap.put("orders",orders);
+        return resultMap;
     }
 
     /***
