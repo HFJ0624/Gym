@@ -1,0 +1,54 @@
+package com.sau.gym.admin.service.impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.sau.gym.admin.mapper.NoticeMapper;
+import com.sau.gym.admin.service.NoticeService;
+import com.sau.gym.model.dto.notice.NoticeDto;
+import com.sau.gym.model.entity.notice.Notice;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * 作者:hfj
+ * 功能:
+ * 日期: 2026/3/24 17:29
+ */
+@Service
+public class NoticeServiceImpl implements NoticeService {
+
+    @Autowired
+    private NoticeMapper noticeMapper;
+
+    //体育场馆公告查询方法
+    @Override
+    public PageInfo<Notice> findByPage(Integer current, Integer limit, NoticeDto noticeDto) {
+
+        PageHelper.startPage(current,limit);
+
+        List<Notice> list = noticeMapper.findByPage(noticeDto);
+
+        PageInfo<Notice> pageInfo = new PageInfo<>(list);
+        return pageInfo;
+    }
+
+    //添加公告
+    @Override
+    public void saveNotice(Notice notice) {
+        noticeMapper.saveNotice(notice);
+    }
+
+    //修改公告
+    @Override
+    public void updateNotice(Notice notice) {
+        noticeMapper.updateNotice(notice);
+    }
+
+    //删除公告
+    @Override
+    public void deleteById(Long noticeId) {
+        noticeMapper.deleteById(noticeId);
+    }
+}

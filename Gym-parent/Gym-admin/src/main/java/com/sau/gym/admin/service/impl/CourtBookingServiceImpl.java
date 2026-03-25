@@ -8,7 +8,6 @@ import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
-import com.sau.gym.model.vo.court.CourtVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.NoticeMapper">
+
+    <!--  映射查询到的字段 -->
+    <resultMap id="NoticeMap" type="com.sau.gym.model.entity.notice.Notice" autoMapping="true"></resultMap>
+
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+        id,create_id,title,content,nums,notice_type,status,create_time
+    </sql>
+
+    <sql id="findPageWhere">
+        <where>
+            <if test="title != null and title != ''">
+                and title like CONCAT('%',#{title},'%')
+            </if>
+            <if test="content != null and content != ''">
+                and content like CONCAT('%',#{content},'%')
+            </if>
+            <if test="noticeType != null and noticeType != ''">
+                and notice_type like CONCAT('%',#{noticeType},'%')
+            </if>
+            and is_deleted = 0
+        </where>
+    </sql>
+
+    <select id="findByPage" resultMap="NoticeMap">
+        select <include refid="columns" />
+        from notice
+        <include refid="findPageWhere"/>
+        order by id desc
+    </select>
+
+    <!-- 添加公告 -->
+    <insert id="saveNotice">
+        insert into notice (
+            id,
+            create_id,
+            title,
+            content,
+            nums,
+            notice_type,
+            status
+        ) values (
+                     #{id},
+                     #{createId},
+                     #{title},
+                     #{content},
+                     #{nums},
+                     #{noticeType},
+                     #{status}
+                 )
+    </insert>
+
+    <!-- 修改公告 -->
+    <update id="updateNotice">
+        update notice set
+        <if test="title != null and title != ''">
+            title = #{title},
+        </if>
+        <if test="content != null and content != ''">
+            content = #{content},
+        </if>
+        <if test="noticeType != null and noticeType != ''">
+            notice_type = #{noticeType},
+        </if>
+        <if test="status != null and status != ''">
+            status = #{status},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
+
+    <!-- 根据id删除公告 -->
+    <update id="deleteById">
+        update notice set is_deleted = 1 where id=#{noticeId}
+    </update>
+
+</mapper>
