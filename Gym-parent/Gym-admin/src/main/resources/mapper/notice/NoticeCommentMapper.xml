@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.NoticeCommentMapper">
+
+    <!--  映射查询到的字段 -->
+    <resultMap id="NoticeCommentMap" type="com.sau.gym.model.entity.notice.NoticeComment" autoMapping="true"></resultMap>
+
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+        nc.id,u.username,u.avatar,n.title,nc.content,nc.esteem,nc.status,nc.create_time
+    </sql>
+
+    <sql id="findPageWhere">
+        <where>
+            <if test="username != null and username != ''">
+                and u.username like CONCAT('%',#{username},'%')
+            </if>
+            <if test="content != null and content != ''">
+                and nc.content like CONCAT('%',#{content},'%')
+            </if>
+            and nc.is_deleted = 0 and n.is_deleted = 0
+        </where>
+    </sql>
+
+    <select id="findByPage" resultType="com.sau.gym.model.vo.notice.NoticeCommentVO">
+        select <include refid="columns" />
+        from notice_comment nc
+        left join user u on u.id = nc.user_id
+        left join notice n on n.id = nc.notice_id
+        <include refid="findPageWhere"/>
+        order by nc.id desc
+    </select>
+
+    <!-- 添加公告评论 -->
+    <insert id="saveNoticeComment">
+        insert into notice_comment (
+            id,
+            notice_id,
+            user_id,
+            content,
+            esteem,
+            status
+        ) values (
+                     #{id},
+                     #{noticeId},
+                     #{userId},
+                     #{content},
+                     #{esteem},
+                     #{status}
+                 )
+    </insert>
+
+    <!-- 修改公告评论 -->
+    <update id="updateNoticeComment">
+        update notice_comment set
+        <if test="content != null and content != ''">
+            content = #{content},
+        </if>
+        <if test="esteem != null and esteem != ''">
+            esteem = #{esteem},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
+
+    <!-- 根据id删除公告评论 -->
+    <update id="deleteById">
+        update notice_comment set is_deleted = 1 where id = #{id}
+    </update>
+
+</mapper>

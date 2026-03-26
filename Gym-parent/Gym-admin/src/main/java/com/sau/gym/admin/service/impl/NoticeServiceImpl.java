@@ -6,6 +6,7 @@ import com.sau.gym.admin.mapper.NoticeMapper;
 import com.sau.gym.admin.service.NoticeService;
 import com.sau.gym.model.dto.notice.NoticeDto;
 import com.sau.gym.model.entity.notice.Notice;
+import com.sau.gym.model.vo.notice.NoticeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +25,13 @@ public class NoticeServiceImpl implements NoticeService {
 
     //体育场馆公告查询方法
     @Override
-    public PageInfo<Notice> findByPage(Integer current, Integer limit, NoticeDto noticeDto) {
+    public PageInfo<NoticeVO> findByPage(Integer current, Integer limit, NoticeDto noticeDto) {
 
         PageHelper.startPage(current,limit);
 
-        List<Notice> list = noticeMapper.findByPage(noticeDto);
+        List<NoticeVO> list = noticeMapper.findByPage(noticeDto);
 
-        PageInfo<Notice> pageInfo = new PageInfo<>(list);
+        PageInfo<NoticeVO> pageInfo = new PageInfo<>(list);
         return pageInfo;
     }
 

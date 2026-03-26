@@ -7,29 +7,30 @@
 
     <!-- 用于select查询公用抽取的列 -->
     <sql id="columns">
-        id,create_id,title,content,nums,notice_type,status,create_time
+        n.id,u.username,u.avatar,n.title,n.content,n.nums,n.notice_type,n.status,n.create_time
     </sql>
 
     <sql id="findPageWhere">
         <where>
             <if test="title != null and title != ''">
-                and title like CONCAT('%',#{title},'%')
+                and n.title like CONCAT('%',#{title},'%')
             </if>
             <if test="content != null and content != ''">
-                and content like CONCAT('%',#{content},'%')
+                and n.content like CONCAT('%',#{content},'%')
             </if>
             <if test="noticeType != null and noticeType != ''">
-                and notice_type like CONCAT('%',#{noticeType},'%')
+                and n.notice_type like CONCAT('%',#{noticeType},'%')
             </if>
-            and is_deleted = 0
+            and n.is_deleted = 0
         </where>
     </sql>
 
-    <select id="findByPage" resultMap="NoticeMap">
+    <select id="findByPage" resultType="com.sau.gym.model.vo.notice.NoticeVO">
         select <include refid="columns" />
-        from notice
+        from notice n
+        left join user u on u.id = n.create_id
         <include refid="findPageWhere"/>
-        order by id desc
+        order by n.id desc
     </select>
 
     <!-- 添加公告 -->

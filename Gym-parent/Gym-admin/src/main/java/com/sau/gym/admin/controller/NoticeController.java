@@ -8,6 +8,7 @@ import com.sau.gym.model.dto.notice.NoticeDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.notice.Notice;
+import com.sau.gym.model.vo.notice.NoticeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,8 +27,8 @@ public class NoticeController {
     //体育场馆公告查询方法
     //current:当前页 limit:每页显示的数量
     @PostMapping(value = "/findByPage/{current}/{limit}")
-    public Result<PageInfo<Notice>> findByPage(@PathVariable(value = "current") Integer current, @PathVariable(value = "limit") Integer limit, @RequestBody NoticeDto noticeDto){
-        PageInfo<Notice> pageInfo = noticeService.findByPage(current,limit,noticeDto);
+    public Result<PageInfo<NoticeVO>> findByPage(@PathVariable(value = "current") Integer current, @PathVariable(value = "limit") Integer limit, @RequestBody NoticeDto noticeDto){
+        PageInfo<NoticeVO> pageInfo = noticeService.findByPage(current,limit,noticeDto);
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
 
