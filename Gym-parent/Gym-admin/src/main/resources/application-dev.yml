@@ -34,6 +34,16 @@ gym:
       - /front/login
       - /front/register
       - /front/generateValidateCode
+      - /admin/system/index/sendCode/**      # 新增
+      # 新增 Swagger 相关路径
+      - /swagger-ui.html
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /v2/api-docs/**          # 如果使用 Swagger2
+      - /swagger-resources/**
+      - /webjars/**
+      - /doc.html                # 如果使用 Knife4j
+      - /error                   # 可选，避免错误页面被拦截
   minio:
     endpointUrl: http://192.168.10.100:9001
     accessKey: admin
