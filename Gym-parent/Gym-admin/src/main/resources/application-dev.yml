@@ -34,7 +34,7 @@ gym:
       - /front/login
       - /front/register
       - /front/generateValidateCode
-      - /admin/system/index/sendCode/**      # 新增
+      - /admin/system/index/sendCode/**
       # 新增 Swagger 相关路径
       - /swagger-ui.html
       - /swagger-ui/**

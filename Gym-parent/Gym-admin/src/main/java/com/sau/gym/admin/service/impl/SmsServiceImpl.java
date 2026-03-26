@@ -27,10 +27,9 @@ public class SmsServiceImpl implements SmsService {
     //1.先发送短信验证码
     @Override
     public void sendValidateCode(String phone) {
-        //1.生成验证码
+        //1.先从redis获取验证码,有验证码不发送,代表验证码还没过期
         String code = redisTemplate.opsForValue().get("phone:code:" + phone);
 
-        System.out.println(phone);
         if(StringUtils.hasText(code)) {
             return;
         }

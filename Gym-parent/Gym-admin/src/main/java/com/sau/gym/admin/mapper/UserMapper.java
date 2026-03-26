@@ -34,4 +34,7 @@ public interface UserMapper {
 
     //统计用户的男女比例数量
     List<UserVo> findGender();
+
+    //根据用户电话查询用户
+    User selectByUserPhone(String phone);
 }

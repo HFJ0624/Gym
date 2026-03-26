@@ -11,6 +11,10 @@
         select <include refid="columns" /> from user where username = #{userName} and is_deleted = 0
     </select>
 
+    <select id="selectByUserPhone" resultType="com.sau.gym.model.entity.user.User">
+        select <include refid="columns" /> from user where phone = #{phone} and is_deleted = 0
+    </select>
+
     <sql id="findPageWhere">
         <where>
             <if test="keyword != null and keyword != ''">

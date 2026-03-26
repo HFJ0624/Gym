@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -46,37 +47,65 @@ public class UserServiceImpl implements UserService {
     //登录接口
     @Override
     public LoginVo login(LoginDto loginDto) {
-        //1.根据用户名查询用户
-        User user = userMapper.selectByUserName(loginDto.getUserName());
+        User user = null;
+        if (loginDto.getPhone() != null && loginDto.getPhoneCode() != null){
+            //短信验证码登录逻辑
+            //1.根据用户电话查询用户
+            user = userMapper.selectByUserPhone(loginDto.getPhone());
 
-        if (user == null){
-            throw new SauException(ResultCodeEnum.LOGIN_ERROR);
+            if (user == null){
+                throw new SauException(ResultCodeEnum.PHONE_ERROR);
+            }
+
+            //用户为禁用状态禁止登录
+            if (user.getStatus() == 0){
+                throw new SauException(ResultCodeEnum.LOGIN_PROHIBIT);
+            }
+
+           //2.校验正码是否正确
+            String phoneCode = loginDto.getPhoneCode();
+            String phone = loginDto.getPhone();
+            String redisCode = redisTemplate.opsForValue().get("phone:code:" + phone);
+            if(StrUtil.isEmpty(redisCode) || !StrUtil.equals(redisCode , phoneCode)) {
+                throw new SauException(ResultCodeEnum.VALIDATECODE_ERROR);
+            }
+
+            // 验证通过删除redis中的验证码
+            redisTemplate.delete("phone:code:" + phone);
+        }else {
+            //验证码登录逻辑
+            //1.根据用户名查询用户
+            user = userMapper.selectByUserName(loginDto.getUserName());
+
+            if (user == null){
+                throw new SauException(ResultCodeEnum.LOGIN_ERROR);
+            }
+
+            //用户为禁用状态禁止登录
+            if (user.getStatus() == 0){
+                throw new SauException(ResultCodeEnum.LOGIN_PROHIBIT);
+            }
+
+            //2.验证密码是否正确
+            String inputPassword = loginDto.getPassword();
+            String md5InputPassword = DigestUtils.md5DigestAsHex(inputPassword.getBytes());
+            if(!md5InputPassword.equals(user.getPassword())) {
+                throw new RuntimeException("用户名或者密码错误") ;
+            }
+
+            //3.校验验证码是否正确
+            String captcha = loginDto.getCaptcha();//用户输入的验证码
+            String codeKey = loginDto.getCodeKey();//redis中验证码的数据key
+
+            //从Redis中获取验证码
+            String redisCode = redisTemplate.opsForValue().get("user:login:CAPTCHA:" + codeKey);
+            if(StrUtil.isEmpty(redisCode) || !StrUtil.equalsIgnoreCase(redisCode , captcha)) {
+                throw new SauException(ResultCodeEnum.VALIDATECODE_ERROR);
+            }
+
+            // 验证通过删除redis中的验证码
+            redisTemplate.delete("user:login:CAPTCHA:" + codeKey);
         }
-
-        //用户为禁用状态禁止登录
-        if (user.getStatus() == 0){
-            throw new SauException(ResultCodeEnum.LOGIN_PROHIBIT);
-        }
-
-        //2.验证密码是否正确
-        String inputPassword = loginDto.getPassword();
-        String md5InputPassword = DigestUtils.md5DigestAsHex(inputPassword.getBytes());
-        if(!md5InputPassword.equals(user.getPassword())) {
-            throw new RuntimeException("用户名或者密码错误") ;
-        }
-
-        //3.校验验证码是否正确
-        String captcha = loginDto.getCaptcha();//用户输入的验证码
-        String codeKey = loginDto.getCodeKey();//redis中验证码的数据key
-
-        //从Redis中获取验证码
-        String redisCode = redisTemplate.opsForValue().get("user:login:CAPTCHA:" + codeKey);
-        if(StrUtil.isEmpty(redisCode) || !StrUtil.equalsIgnoreCase(redisCode , captcha)) {
-            throw new SauException(ResultCodeEnum.VALIDATECODE_ERROR);
-        }
-
-        // 验证通过删除redis中的验证码
-        redisTemplate.delete("user:login:CAPTCHA:" + codeKey);
 
         //3.生成令牌，保存数据到Redis中
         String token = UUID.randomUUID().toString().replace("-", "");

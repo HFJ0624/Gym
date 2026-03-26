@@ -24,4 +24,10 @@ public class LoginDto {
     @Schema(description = "验证码key")
     private String codeKey;
 
+    @Schema(description = "用户手机号码")
+    private String phone;
+
+    @Schema(description = "手机验证码")
+    private String phoneCode;
+
 }
