@@ -3,12 +3,10 @@ package com.sau.gym.admin.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.NoticeCommentMapper;
-import com.sau.gym.admin.mapper.NoticeMapper;
 import com.sau.gym.admin.service.NoticeCommentService;
 import com.sau.gym.model.dto.notice.NoticeCommentDto;
 import com.sau.gym.model.entity.notice.NoticeComment;
 import com.sau.gym.model.vo.notice.NoticeCommentVO;
-import com.sau.gym.model.vo.notice.NoticeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

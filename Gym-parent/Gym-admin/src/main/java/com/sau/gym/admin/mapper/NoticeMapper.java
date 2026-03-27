@@ -24,4 +24,7 @@ public interface NoticeMapper {
 
     //查找所有公告标题
     List<Notice> findAllNotice();
+
+    //查找所有公告(前台)
+    List<Notice> getNotices();
 }

@@ -78,4 +78,19 @@ public class NoticeServiceImpl implements NoticeService {
 
         return resultMap;
     }
+
+    //查询所有发表公告
+    @Override
+    public Map<String, Object> getNotices() {
+
+        //查找所有公告(前台)
+        List<Notice> allNotices = noticeMapper.getNotices();
+
+        //构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+
+        resultMap.put("allNotices",allNotices);
+
+        return resultMap;
+    }
 }

@@ -23,4 +23,7 @@ public interface NoticeService {
 
     //查找所有公告标题
     Map<String, Object> findAllNotice();
+
+    //查询所有发表公告
+    Map<String, Object> getNotices();
 }

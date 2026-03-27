@@ -1,9 +1,6 @@
 package com.sau.gym.admin.controller;
 
-import com.sau.gym.admin.service.CourtBookingService;
-import com.sau.gym.admin.service.UserService;
-import com.sau.gym.admin.service.ValidateCodeService;
-import com.sau.gym.admin.service.VenueService;
+import com.sau.gym.admin.service.*;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.system.LoginDto;
@@ -40,6 +37,9 @@ public class FrontIndexController {
 
     @Autowired
     private CourtBookingService courtBookingService;
+
+    @Autowired
+    private NoticeService noticeService;
 
     //前台登录后台
     @Log(title = "前台登录",businessType = 0,operatorType = OperatorType.MANAGE)
@@ -82,6 +82,13 @@ public class FrontIndexController {
     @GetMapping(value = "/order")
     public Result<Map<String,Object>> getCourtOrder(@RequestParam Long userId){
         Map<String, Object> resultMap = courtBookingService.getCourtOrder(userId);
+        return Result.build(resultMap, ResultCodeEnum.SUCCESS);
+    }
+
+    //查询所有发表公告
+    @GetMapping(value = "/notice")
+    public Result<Map<String,Object>> getNotices(){
+        Map<String, Object> resultMap = noticeService.getNotices();
         return Result.build(resultMap, ResultCodeEnum.SUCCESS);
     }
 }
