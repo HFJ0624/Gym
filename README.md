@@ -16,6 +16,7 @@
 node版本为16.19.0
 
 SpringBoot为2.6.13版本以及java17、redis7、mysql8、maven版本为3.8.3
+
 # Vue3-Element-Admin 要求 Node.js 版本 >= 12 ，推荐Node.js  16.x版本
 git clone 该项目
 
