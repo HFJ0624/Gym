@@ -8,6 +8,7 @@ import com.sau.gym.admin.service.NoticeService;
 import com.sau.gym.model.dto.notice.NoticeDto;
 import com.sau.gym.model.entity.notice.Notice;
 import com.sau.gym.model.entity.venue.Venue;
+import com.sau.gym.model.vo.notice.NoticeCommentVO;
 import com.sau.gym.model.vo.notice.NoticeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,6 +92,22 @@ public class NoticeServiceImpl implements NoticeService {
 
         resultMap.put("allNotices",allNotices);
 
+        return resultMap;
+    }
+
+    //查询一个公告对应的所有评论和信息
+    @Override
+    public Map<String, Object> getNoticeById(Long noticeId) {
+        //1.先查询这个公告的详情信息
+        Notice notice = noticeMapper.getNoticeById(noticeId);
+
+        //2.在查询该公告的所有评论
+        List<NoticeCommentVO> allComments = noticeCommentMapper.getAllCommentById(noticeId);
+
+        //3.构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("allComments",allComments);
+        resultMap.put("notice",notice);
         return resultMap;
     }
 }

@@ -91,4 +91,11 @@
         where is_deleted = 0
     </select>
 
+    <!-- 查询所有的角色数据 -->
+    <select id="getNoticeById" resultMap="NoticeMap">
+        select id,title,content,notice_type,status,create_time
+        from notice
+        where is_deleted = 0 and id = #{noticeId}
+    </select>
+
 </mapper>

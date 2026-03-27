@@ -26,4 +26,7 @@ public interface NoticeService {
 
     //查询所有发表公告
     Map<String, Object> getNotices();
+
+    //查询一个公告对应的所有评论和信息
+    Map<String, Object> getNoticeById(Long noticeId);
 }

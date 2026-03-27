@@ -74,4 +74,13 @@
         update notice_comment set is_deleted = 1 where notice_id = #{noticeId}
     </update>
 
+    <select id="getAllCommentById" resultType="com.sau.gym.model.vo.notice.NoticeCommentVO">
+        select nc.id,u.username,u.avatar,nc.content,nc.esteem,nc.create_time
+        from notice_comment nc
+        left join user u on u.id = nc.user_id
+        left join notice n on n.id = nc.notice_id
+        where nc.notice_id = #{noticeId} and nc.status = 1 and nc.is_deleted = 0
+        order by nc.id desc
+    </select>
+
 </mapper>

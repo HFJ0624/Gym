@@ -27,4 +27,7 @@ public interface NoticeMapper {
 
     //查找所有公告(前台)
     List<Notice> getNotices();
+
+    //1.先查询这个公告的详情信息
+    Notice getNoticeById(Long noticeId);
 }
