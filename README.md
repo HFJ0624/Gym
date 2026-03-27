@@ -13,8 +13,8 @@
 ## 三、环境需求
 
 node版本为16.19.0
+<img width="409" height="156" alt="image" src="https://github.com/user-attachments/assets/e37cb8c6-e48c-41ae-99dd-749154e7f42c" />
 
-![image-20260326140624684](C:\Users\86138\AppData\Roaming\Typora\typora-user-images\image-20260326140624684.png)
 
 SpringBoot为2.6.13版本以及java17、redis7、mysql8、maven版本为3.8.3
 
