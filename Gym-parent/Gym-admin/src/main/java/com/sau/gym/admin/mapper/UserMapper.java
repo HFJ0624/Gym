@@ -37,4 +37,7 @@ public interface UserMapper {
 
     //根据用户电话查询用户
     User selectByUserPhone(String phone);
+
+    //先查数据库的用户
+    User selectById(Long id);
 }

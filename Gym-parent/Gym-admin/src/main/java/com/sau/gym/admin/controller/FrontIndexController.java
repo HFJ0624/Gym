@@ -4,6 +4,7 @@ import com.sau.gym.admin.service.*;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.system.LoginDto;
+import com.sau.gym.model.dto.user.FrontUserDto;
 import com.sau.gym.model.dto.venue.VenueDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
@@ -90,5 +91,13 @@ public class FrontIndexController {
     public Result<Map<String,Object>> getNotices(){
         Map<String, Object> resultMap = noticeService.getNotices();
         return Result.build(resultMap, ResultCodeEnum.SUCCESS);
+    }
+
+    //用户修改个人信息
+    @Log(title = "用户修改个人信息",businessType = 2,operatorType = OperatorType.MANAGE)
+    @PostMapping(value = "/updateProfile")
+    public Result updateProfile(@RequestBody FrontUserDto frontUserDto){
+        userService.updateProfile(frontUserDto);
+        return Result.build(null, ResultCodeEnum.SUCCESS);
     }
 }

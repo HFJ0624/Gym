@@ -11,6 +11,7 @@ import com.sau.gym.admin.service.UserService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.role.AssignRoleDto;
 import com.sau.gym.model.dto.system.LoginDto;
+import com.sau.gym.model.dto.user.FrontUserDto;
 import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.user.User;
@@ -225,5 +226,42 @@ public class UserServiceImpl implements UserService {
     public List<UserVo> findGender() {
         List<UserVo> list = userMapper.findGender();
         return list;
+    }
+
+    //用户修改个人信息
+    @Override
+    public void updateProfile(FrontUserDto frontUserDto) {
+        User user = null;
+        //1.先查数据库的用户
+        User dbUser = userMapper.selectById(frontUserDto.getId());
+
+        //如果有传密码才去修改密码,否则不修改密码
+        if (StrUtil.isNotBlank(frontUserDto.getOldPassword()) && StrUtil.isNotBlank(frontUserDto.getNewPassword())){
+            user = new User();
+            String dbUserPassword = dbUser.getPassword();
+            String md5Password = DigestUtils.md5DigestAsHex(frontUserDto.getOldPassword().getBytes());
+
+            if (!StrUtil.equals(dbUserPassword , md5Password)){
+                throw new SauException(ResultCodeEnum.PASSWORD_NOT_EQ);
+            }
+            //存入新密码
+            String newPassword = DigestUtils.md5DigestAsHex(frontUserDto.getNewPassword().getBytes());
+            user.setPassword(newPassword);
+            user.setId(frontUserDto.getId());
+            System.out.println(newPassword);
+        }else {
+            user = new User();
+            user.setId(frontUserDto.getId());
+        }
+
+        //存入其他数据
+        user.setRealName(frontUserDto.getRealName());
+        user.setPhone(frontUserDto.getPhone());
+        user.setSex(frontUserDto.getSex());
+        user.setEmail(frontUserDto.getEmail());
+        user.setAvatar(frontUserDto.getAvatar());
+
+        //保存用户信息
+        userMapper.updateUser(user);
     }
 }

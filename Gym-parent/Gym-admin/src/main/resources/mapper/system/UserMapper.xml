@@ -131,4 +131,9 @@
         group by sex
     </select>
 
+    <select id="selectById" resultType="com.sau.gym.model.entity.user.User">
+        select <include refid="columns" /> from user
+        where id = #{id} and is_deleted = 0
+    </select>
+
 </mapper>

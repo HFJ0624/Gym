@@ -3,6 +3,7 @@ package com.sau.gym.admin.service;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.model.dto.role.AssignRoleDto;
 import com.sau.gym.model.dto.system.LoginDto;
+import com.sau.gym.model.dto.user.FrontUserDto;
 import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
@@ -44,4 +45,7 @@ public interface UserService {
 
     //统计用户的男女比例数量
     List<UserVo> findGender();
+
+    //用户修改个人信息
+    void updateProfile(FrontUserDto frontUserDto);
 }
