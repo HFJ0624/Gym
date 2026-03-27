@@ -17,6 +17,7 @@ node版本为16.19.0
 
 SpringBoot为2.6.13版本以及java17、redis7、mysql8、maven版本为3.8.3
 
+```shell
 # Vue3-Element-Admin 要求 Node.js 版本 >= 12 ，推荐Node.js  16.x版本
 git clone 该项目
 
@@ -30,6 +31,7 @@ npm install --registry=https://registry.npm.taobao.org
 npm start
 
 # 后端点击AdminApplication启动类启动 启动在localhost:9601/
+```
 
 ## 四、后端框架结构
 <img width="1331" height="747" alt="image" src="https://github.com/user-attachments/assets/e27a1cdc-7ff5-4514-99b0-27efb3ca3d68" />
