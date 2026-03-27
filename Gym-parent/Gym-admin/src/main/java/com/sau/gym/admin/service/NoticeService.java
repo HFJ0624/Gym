@@ -5,6 +5,8 @@ import com.sau.gym.model.dto.notice.NoticeDto;
 import com.sau.gym.model.entity.notice.Notice;
 import com.sau.gym.model.vo.notice.NoticeVO;
 
+import java.util.Map;
+
 public interface NoticeService {
 
     //体育场馆公告查询方法
@@ -18,4 +20,7 @@ public interface NoticeService {
 
     //删除公告
     void deleteById(Long noticeId);
+
+    //查找所有公告标题
+    Map<String, Object> findAllNotice();
 }

@@ -38,6 +38,7 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
     //添加公告评论
     @Override
     public void saveNoticeComment(NoticeComment noticeComment) {
+        noticeComment.setStatus(1);
         noticeCommentMapper.saveNoticeComment(noticeComment);
     }
 

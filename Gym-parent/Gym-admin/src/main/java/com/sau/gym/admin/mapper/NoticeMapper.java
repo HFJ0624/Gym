@@ -21,4 +21,7 @@ public interface NoticeMapper {
 
     //删除公告
     void deleteById(Long noticeId);
+
+    //查找所有公告标题
+    List<Notice> findAllNotice();
 }

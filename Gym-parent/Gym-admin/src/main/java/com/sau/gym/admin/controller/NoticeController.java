@@ -12,6 +12,8 @@ import com.sau.gym.model.vo.notice.NoticeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 作者:hfj
  * 功能:体育场馆公告的基本功能
@@ -54,5 +56,12 @@ public class NoticeController {
     public Result deleteById(@PathVariable(value = "noticeId") Long noticeId){
         noticeService.deleteById(noticeId);
         return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //查找所有公告标题
+    @GetMapping("/findAllNotice")
+    public Result<Map<String,Object>> findAllNotice(){
+        Map<String, Object> resultMap = noticeService.findAllNotice();
+        return Result.build(resultMap,ResultCodeEnum.SUCCESS);
     }
 }
