@@ -11,11 +11,24 @@
 
 后端技术:Java+SprinBoot+Mybatis+Mysql+redis+minio+docker+短信验证服务(现在需要公司认证)
 
-## 三、环境需求
+## 三、环境需求及部署
 
 node版本为16.19.0
 
 SpringBoot为2.6.13版本以及java17、redis7、mysql8、maven版本为3.8.3
+# Vue3-Element-Admin 要求 Node.js 版本 >= 12 ，推荐Node.js  16.x版本
+git clone 该项目
+
+# 建议不要直接使用 cnpm 安装依赖，会有各种诡异的 bug。可以通过如下操作解决 npm 下载速度慢的问题
+# 前台系统 启动在localhost:3002/
+npm install --registry=https://registry.npm.taobao.org
+npm run dev
+
+# 管理员系统 启动在localhost:3001/
+npm install --registry=https://registry.npm.taobao.org
+npm start
+
+# 后端点击AdminApplication启动类启动 启动在localhost:9601/
 
 ## 四、后端框架结构
 <img width="1331" height="747" alt="image" src="https://github.com/user-attachments/assets/e27a1cdc-7ff5-4514-99b0-27efb3ca3d68" />
