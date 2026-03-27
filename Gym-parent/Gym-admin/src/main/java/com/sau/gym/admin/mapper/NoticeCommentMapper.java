@@ -21,4 +21,7 @@ public interface NoticeCommentMapper {
 
     //删除公告评论
     void deleteById(Long id);
+
+    //删除对应公告评论
+    void deleteAllComment(Long noticeId);
 }

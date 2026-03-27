@@ -69,4 +69,9 @@
         update notice_comment set is_deleted = 1 where id = #{id}
     </update>
 
+    <!-- 根据公告id删除公告所有评论 -->
+    <update id="deleteAllComment">
+        update notice_comment set is_deleted = 1 where notice_id = #{noticeId}
+    </update>
+
 </mapper>

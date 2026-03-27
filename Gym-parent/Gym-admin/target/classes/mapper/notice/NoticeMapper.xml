@@ -40,7 +40,6 @@
             create_id,
             title,
             content,
-            nums,
             notice_type,
             status
         ) values (
@@ -48,7 +47,6 @@
                      #{createId},
                      #{title},
                      #{content},
-                     #{nums},
                      #{noticeType},
                      #{status}
                  )

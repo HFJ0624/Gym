@@ -2,6 +2,7 @@ package com.sau.gym.admin.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.sau.gym.admin.mapper.NoticeCommentMapper;
 import com.sau.gym.admin.mapper.NoticeMapper;
 import com.sau.gym.admin.service.NoticeService;
 import com.sau.gym.model.dto.notice.NoticeDto;
@@ -25,6 +26,9 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Autowired
     private NoticeMapper noticeMapper;
+
+    @Autowired
+    private NoticeCommentMapper noticeCommentMapper;
 
     //体育场馆公告查询方法
     @Override
@@ -53,7 +57,11 @@ public class NoticeServiceImpl implements NoticeService {
     //删除公告
     @Override
     public void deleteById(Long noticeId) {
+        //删除公告后,也需要把对公告的评论都删除
         noticeMapper.deleteById(noticeId);
+
+        //删除对应公告评论
+        noticeCommentMapper.deleteAllComment(noticeId);
     }
 
     //查找所有公告标题
