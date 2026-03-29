@@ -2,4 +2,4 @@ spring:
   application:
     name: gym-admin
   profiles:
-    active: dev
+    active: dev,local
