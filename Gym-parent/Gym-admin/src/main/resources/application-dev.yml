@@ -17,23 +17,6 @@ spring:
         host: 192.168.10.100
         port: 6379
   #  password: 1234
-  mail:
-    host: smtp.qq.com # 指定邮件服务器的主机名，这里默认是smtp.qq.com，表示使用的是腾讯的SMTP服务器。
-    port: 465 # 456也行
-    username: "342586916@qq.com" # xxxx@qq.com  这里是发送者
-    password: "hsgisvcnnkxbbijh"  # 这里就是我前面提到的授权码了
-    properties:
-      mail:
-        smtp:
-          auth: true
-          ssl: true           # 开启SSL
-          starttls: false     # 必须关闭！和SSL冲突
-          socketFactory:
-            port: 465
-            class: javax.net.ssl.SSLSocketFactory
-            fallback: false
-    default-encoding: UTF-8 # 设置邮件内容的默认编码格式为UTF-8 默认就是UTF-8
-    protocol: smtp
 
 # mybatis的配置
 mybatis:
