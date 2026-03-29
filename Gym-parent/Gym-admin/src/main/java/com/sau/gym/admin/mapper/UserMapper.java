@@ -40,4 +40,7 @@ public interface UserMapper {
 
     //先查数据库的用户
     User selectById(Long id);
+
+    //根据用户邮箱查询用户(假设邮箱唯一)
+    User selectByUserEmail(String email);
 }

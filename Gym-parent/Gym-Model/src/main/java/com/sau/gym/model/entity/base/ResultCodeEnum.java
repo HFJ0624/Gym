@@ -19,6 +19,7 @@ public enum ResultCodeEnum {
     VENUE_NAME_EXIST(220,"场馆名称已经存在"),
     PHONE_ERROR(221,"电话错误或不存在"),
     PASSWORD_NOT_EQ(222,"新密码和旧密码不相等"),
+    EMAIL_NOT_EXIST(223,"邮箱不存在"),
     ;
 
     //业务状态码

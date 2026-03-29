@@ -8,12 +8,14 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.MailException;
 
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -24,17 +26,20 @@ import java.util.Random;
 
 @Tag(name = "邮件接口")
 @RestController
-@RequestMapping(value = "/admin/system/email")
+@RequestMapping(value = "/admin/system/index")
 public class EmailController {
 
     @Autowired
     private JavaMailSender javaMailSender;
 
+    @Autowired
+    private RedisTemplate<String,String> redisTemplate;
+
     //读取yml文件中username的值并赋值给form
     @Value("${spring.mail.username}")
     private String from;
 
-    @RequestMapping("/sendEmail")
+    @GetMapping("/sendEmail")
     public Result sendSimpleMail(@RequestParam(value = "emailReceiver") String emailReceiver) throws MessagingException {
         EmailEngine emailEngine = new EmailEngine();
 
@@ -57,9 +62,15 @@ public class EmailController {
         }
         String text = emailEngine.buildContent(code.toString());
         helper.setText(text,true);
+
         // 发送邮件
         try {
             javaMailSender.send(message);
+
+            String codeString = code.toString();
+            //存入redis里面
+            redisTemplate.opsForValue().set("email:" + emailReceiver,codeString,5, TimeUnit.MINUTES);
+
             return Result.build(code.toString(), ResultCodeEnum.SUCCESS);
         } catch (MailException e) {
             e.printStackTrace();

@@ -73,6 +73,30 @@ public class UserServiceImpl implements UserService {
 
             // 验证通过删除redis中的验证码
             redisTemplate.delete("phone:code:" + phone);
+        }else if (loginDto.getEmail() != null && loginDto.getEmailCode() != null){
+            //邮箱验证码登录逻辑
+            //1.根据用户邮箱查询用户(假设邮箱唯一)
+            user = userMapper.selectByUserEmail(loginDto.getEmail());
+
+            if (user == null){
+                throw new SauException(ResultCodeEnum.EMAIL_NOT_EXIST);
+            }
+
+            //用户为禁用状态禁止登录
+            if (user.getStatus() == 0){
+                throw new SauException(ResultCodeEnum.LOGIN_PROHIBIT);
+            }
+
+            //2.校验正码是否正确
+            String emailCode = loginDto.getEmailCode();
+            String email = loginDto.getEmail();
+            String redisCode = redisTemplate.opsForValue().get("email:" + email);
+            if(StrUtil.isEmpty(redisCode) || !StrUtil.equals(redisCode , emailCode)) {
+                throw new SauException(ResultCodeEnum.VALIDATECODE_ERROR);
+            }
+
+            // 验证通过删除redis中的验证码
+            redisTemplate.delete("email:" + email);
         }else {
             //验证码登录逻辑
             //1.根据用户名查询用户

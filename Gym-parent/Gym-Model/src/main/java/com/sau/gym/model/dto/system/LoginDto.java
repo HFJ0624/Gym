@@ -30,4 +30,10 @@ public class LoginDto {
     @Schema(description = "手机验证码")
     private String phoneCode;
 
+    @Schema(description = "邮箱")
+    private String email;
+
+    @Schema(description = "邮箱验证码")
+    private String emailCode;
+
 }
