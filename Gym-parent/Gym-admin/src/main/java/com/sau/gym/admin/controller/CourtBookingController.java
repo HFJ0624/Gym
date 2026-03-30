@@ -7,9 +7,12 @@ import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
+import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 作者:hfj
@@ -36,5 +39,12 @@ public class CourtBookingController {
     public Result deleteById(@PathVariable(value = "id") Long id){
         courtBookingService.deleteById(id);
         return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //统计所有预约总数
+    @GetMapping(value = "/countAllBook")
+    public Result countAllBook(){
+        List<CourtBooking> list = courtBookingService.countAllBook();
+        return Result.build(list,ResultCodeEnum.SUCCESS);
     }
 }

@@ -86,6 +86,11 @@
         order by c.id
     </select>
 
+    <!--统计所有预约总数-->
+    <select id="countAllBook" resultMap="CourtBookMap">
+        select id
+        from court_booking
+    </select>
 
 
 

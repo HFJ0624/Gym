@@ -27,4 +27,7 @@ public interface NoticeCommentMapper {
 
     //2.在查询该公告的所有评论
     List<NoticeCommentVO> getAllCommentById(Long noticeId);
+
+    //查询最新的五条评论
+    List<NoticeCommentVO> getRecentComment();
 }

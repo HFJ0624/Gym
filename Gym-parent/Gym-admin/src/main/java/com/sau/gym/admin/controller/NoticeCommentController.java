@@ -12,6 +12,8 @@ import com.sau.gym.model.vo.notice.NoticeCommentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 作者:hfj
  * 功能:体育场馆公告评论的基本功能
@@ -54,5 +56,12 @@ public class NoticeCommentController {
     public Result deleteById(@PathVariable(value = "id") Long id){
         noticeCommentService.deleteById(id);
         return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //获取最新的五条公告评论
+    @GetMapping(value = "/getRecentComment")
+    public Result<Map<String,Object>> getRecentComment(){
+        Map<String, Object> resultMap = noticeCommentService.getRecentComment();
+        return Result.build(resultMap,ResultCodeEnum.SUCCESS);
     }
 }

@@ -10,7 +10,9 @@ import com.sau.gym.model.vo.notice.NoticeCommentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作者:hfj
@@ -53,5 +55,19 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
     public void deleteById(Long id) {
         //删除完公告评论,公告的评论数量要减一(已在SQL触发器实现,notice_comment表,触发器:trg_after_update_delete_comment)
         noticeCommentMapper.deleteById(id);
+    }
+
+    //获取最新的五条公告评论
+    @Override
+    public Map<String, Object> getRecentComment() {
+
+        //查询最新的五条评论
+        List<NoticeCommentVO> recentComment = noticeCommentMapper.getRecentComment();
+
+        //构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("recentComment",recentComment);
+
+        return resultMap;
     }
 }

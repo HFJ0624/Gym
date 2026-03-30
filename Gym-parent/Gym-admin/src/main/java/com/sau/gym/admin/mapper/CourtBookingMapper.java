@@ -22,4 +22,7 @@ public interface CourtBookingMapper {
 
     //查询该用户所有的预约场地信息
     List<CourtBookVO> getCourtOrder(Long userId);
+
+    //统计所有预约总数
+    List<CourtBooking> countAllBook();
 }

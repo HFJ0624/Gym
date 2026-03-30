@@ -83,4 +83,12 @@
         order by nc.id desc
     </select>
 
+    <select id="getRecentComment" resultType="com.sau.gym.model.vo.notice.NoticeCommentVO">
+        select nc.id,u.username,u.avatar,nc.content,nc.esteem,nc.create_time
+        from notice_comment nc
+        left join user u on u.id = nc.user_id
+        order by nc.update_time desc
+        limit 5
+    </select>
+
 </mapper>

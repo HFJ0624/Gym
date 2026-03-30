@@ -77,9 +77,9 @@
         update notice set is_deleted = 1 where id=#{noticeId}
     </update>
 
-    <!-- 查询所有的角色数据 -->
+    <!-- 查询所有公告 -->
     <select id="findAllNotice" resultMap="NoticeMap">
-        select id,create_id,title
+        select id,create_id,title,create_time
         from notice
         where is_deleted = 0
     </select>

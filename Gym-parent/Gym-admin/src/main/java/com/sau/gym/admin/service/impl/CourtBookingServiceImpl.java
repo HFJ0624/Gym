@@ -83,6 +83,13 @@ public class CourtBookingServiceImpl implements CourtBookingService {
         return resultMap;
     }
 
+    //统计所有预约总数
+    @Override
+    public List<CourtBooking> countAllBook() {
+        List<CourtBooking> list = courtBookingMapper.countAllBook();
+        return list;
+    }
+
     /***
      *
      * @return 生成32位订单编码
