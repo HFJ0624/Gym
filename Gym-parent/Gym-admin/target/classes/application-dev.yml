@@ -36,6 +36,7 @@ gym:
       - /front/generateValidateCode
       - /admin/system/index/sendCode/**
       - /admin/system/index/sendEmail
+      - /front/agent/chat
       # 新增 Swagger 相关路径
       - /swagger-ui.html
       - /swagger-ui/**
