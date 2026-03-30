@@ -38,15 +38,13 @@
             venue_id,
             user_id,
             content,
-            esteem,
-            status
+            esteem
         ) values (
                      #{id},
                      #{venueId},
                      #{userId},
                      #{content},
-                     #{esteem},
-                     #{status}
+                     #{esteem}
                  )
     </insert>
 
