@@ -4,12 +4,12 @@ import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.CourtBookingService;
 import com.sau.gym.admin.service.CourtService;
 import com.sau.gym.admin.service.VenueCommentService;
+import com.sau.gym.admin.service.VenueVisitService;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
-import com.sau.gym.model.entity.venue.Venue;
 import com.sau.gym.model.entity.venue.VenueComment;
 import com.sau.gym.model.vo.venue.VenueCommentVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +34,9 @@ public class FrontVenueController {
 
     @Autowired
     private VenueCommentService venueCommentService;
+
+    @Autowired
+    private VenueVisitService venueVisitService;
 
     //查询场馆对应的场地
     @GetMapping(value = "/court/{venueId}")
@@ -70,6 +73,13 @@ public class FrontVenueController {
     @PostMapping(value = "/saveVenueComment")
     public Result saveVenueComment(@RequestBody VenueComment venueComment){
         venueCommentService.saveVenueComment(venueComment);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //点击就增加一个访问量
+    @PostMapping(value = "/visit/{venueId}")
+    public Result recordVenueVisit(@PathVariable(value = "venueId") Long venueId){
+        venueVisitService.addVisit(venueId);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }

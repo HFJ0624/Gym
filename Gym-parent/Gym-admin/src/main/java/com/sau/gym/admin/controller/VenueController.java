@@ -2,6 +2,7 @@ package com.sau.gym.admin.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.VenueService;
+import com.sau.gym.admin.service.VenueVisitService;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.venue.VenueDto;
@@ -25,6 +26,9 @@ public class VenueController {
     @Autowired
     private VenueService venueService;
 
+    @Autowired
+    private VenueVisitService venueVisitService;
+
     //场馆列表查询方法
     //current:当前页 limit:每页显示的数量 venueDto:条件角色名称对象
     @PostMapping(value = "/findByPage/{current}/{limit}")
@@ -38,6 +42,8 @@ public class VenueController {
     @PostMapping(value = "/saveVenue")
     public Result saveVenue(@RequestBody Venue venue){
         venueService.saveVenue(venue);
+        //创建场馆的访问记录
+        venueVisitService.addOne(venue.getId());
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
