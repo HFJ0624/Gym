@@ -3,18 +3,18 @@ package com.sau.gym.admin.service.impl;
 import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.sau.gym.admin.mapper.CourtBookingMapper;
-import com.sau.gym.admin.mapper.NoticeMapper;
-import com.sau.gym.admin.mapper.UserMapper;
-import com.sau.gym.admin.mapper.VenueMapper;
+import com.sau.gym.admin.mapper.*;
 import com.sau.gym.admin.service.AgentService;
 import com.sau.gym.model.entity.notice.Notice;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.entity.venue.Venue;
+import com.sau.gym.model.vo.venue.VenueCommentVO;
+import org.eclipse.jetty.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -38,6 +38,9 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private VenueCommentMapper venueCommentMapper;
+
     @Value("${doubao.api-key}")
     private String API_KEY;
 
@@ -53,6 +56,26 @@ public class AgentServiceImpl implements AgentService {
             List<Venue> venueList = venueMapper.findAllVenue();
             List<CourtBooking> courtBookingList = courtBookingMapper.countAllBook();
             List<User> userList = userMapper.findByPage(null);
+            List<VenueCommentVO> venueCommentVOList = venueCommentMapper.findByPage(null);
+
+            // ===================== 核心：按场馆名称统计好评 =====================
+            Map<String, Integer> totalCommentMap = new HashMap<>();  // 场馆名 -> 总评论数
+            Map<String, Integer> goodCommentMap = new HashMap<>();   // 场馆名 -> 好评数(5分)
+
+            for (VenueCommentVO vo : venueCommentVOList) {
+                String venueName = vo.getVenueName();
+                Integer esteem = vo.getEsteem();
+                // 跳过空数据
+                if (venueName == null || StringUtil.isBlank(venueName)) continue;
+
+                // 总评论数 +1
+                totalCommentMap.put(venueName, totalCommentMap.getOrDefault(venueName, 0) + 1);
+
+                //
+                if (esteem != null && esteem >= 4) {
+                    goodCommentMap.put(venueName, goodCommentMap.getOrDefault(venueName, 0) + 1);
+                }
+            }
 
             // 2. 构建健身房知识库
             StringBuilder knowledge = new StringBuilder();
@@ -66,9 +89,18 @@ public class AgentServiceImpl implements AgentService {
                 knowledge.append("- ").append(n.getTitle()).append("\n");
             }
 
-            knowledge.append("\n场馆列表：\n");
+            // 场馆 + 好评率（AI参考依据）
+            knowledge.append("\n=== 场馆信息（含好评率）===\n");
             for (Venue v : venueList) {
-                knowledge.append("- ").append(v.getVenueName()).append("\n");
+                String name = v.getVenueName();
+                int total = totalCommentMap.getOrDefault(name, 0);
+                int good = goodCommentMap.getOrDefault(name, 0);
+                double rate = total == 0 ? 0 : (good * 100.0 / total);
+
+                knowledge.append("- ").append(name)
+                        .append(" | 好评率：").append(String.format("%.1f", rate)).append("%")
+                        .append(total == 0 ? "（暂无评价）" : "")
+                        .append("\n");
             }
 
             // 3. 系统提示词
