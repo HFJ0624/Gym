@@ -67,18 +67,13 @@
         update venue_comment set is_deleted = 1 where id = #{id}
     </update>
 
-<!--    &lt;!&ndash; 根据公告id删除公告所有评论 &ndash;&gt;-->
-<!--    <update id="deleteAllComment">-->
-<!--        update notice_comment set is_deleted = 1 where notice_id = #{noticeId}-->
-<!--    </update>-->
-
-<!--    <select id="getAllCommentById" resultType="com.sau.gym.model.vo.notice.NoticeCommentVO">-->
-<!--        select nc.id,u.username,u.avatar,nc.content,nc.esteem,nc.create_time-->
-<!--        from notice_comment nc-->
-<!--                 left join user u on u.id = nc.user_id-->
-<!--                 left join notice n on n.id = nc.notice_id-->
-<!--        where nc.notice_id = #{noticeId} and nc.status = 1 and nc.is_deleted = 0-->
-<!--        order by nc.id desc-->
-<!--    </select>-->
+    <select id="findByPageComment" resultType="com.sau.gym.model.vo.venue.VenueCommentVO">
+        select vc.id,u.username,u.avatar,vc.content,vc.esteem,vc.create_time
+        from venue_comment vc
+        left join user u on u.id = vc.user_id
+        left join venue v on v.id = vc.venue_id
+        where vc.venue_id = #{venueId}
+        order by vc.id desc
+    </select>
 
 </mapper>

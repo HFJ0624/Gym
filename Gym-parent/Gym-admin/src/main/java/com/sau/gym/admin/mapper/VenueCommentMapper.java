@@ -21,4 +21,7 @@ public interface VenueCommentMapper {
 
     //删除场馆评论
     void deleteById(Long id);
+
+    //场馆评论查询方法(前台)
+    List<VenueCommentVO> findByPageComment(Integer venueId);
 }

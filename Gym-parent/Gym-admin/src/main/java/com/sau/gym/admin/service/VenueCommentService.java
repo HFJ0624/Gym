@@ -18,4 +18,7 @@ public interface VenueCommentService {
 
     //删除场馆评论
     void deleteById(Long id);
+
+    //场馆评论查询方法(前台)
+    PageInfo<VenueCommentVO> findByPageComment(Integer current, Integer limit, Integer venueId);
 }

@@ -1,14 +1,17 @@
 package com.sau.gym.admin.controller;
 
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.CourtBookingService;
 import com.sau.gym.admin.service.CourtService;
+import com.sau.gym.admin.service.VenueCommentService;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.venue.Venue;
-import com.sau.gym.utils.AuthContextUtil;
+import com.sau.gym.model.entity.venue.VenueComment;
+import com.sau.gym.model.vo.venue.VenueCommentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +32,9 @@ public class FrontVenueController {
     @Autowired
     private CourtBookingService courtBookingService;
 
+    @Autowired
+    private VenueCommentService venueCommentService;
+
     //查询场馆对应的场地
     @GetMapping(value = "/court/{venueId}")
     public Result<Map<String,Object>> getCourtById(@PathVariable(value = "venueId") Long venueId){
@@ -48,6 +54,22 @@ public class FrontVenueController {
     @PostMapping(value = "/book")
     public Result saveVenue(@RequestBody BookingDto bookingDto){
         courtBookingService.saveCourtBook(bookingDto);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //场馆评论查询方法(前台)
+    //current:当前页 limit:每页显示的数量
+    @PostMapping(value = "/findByPageComment/{venueId}/{current}/{limit}")
+    public Result<PageInfo<VenueCommentVO>> findByPageComment(@PathVariable(value = "venueId") Integer venueId, @PathVariable(value = "current") Integer current, @PathVariable(value = "limit") Integer limit){
+        PageInfo<VenueCommentVO> pageInfo = venueCommentService.findByPageComment(current,limit,venueId);
+        return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
+    }
+
+    //添加体育场馆评论(前台)
+    @Log(title = "添加体育场馆评论(前台)",businessType = 1,operatorType = OperatorType.MANAGE)
+    @PostMapping(value = "/saveVenueComment")
+    public Result saveVenueComment(@RequestBody VenueComment venueComment){
+        venueCommentService.saveVenueComment(venueComment);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }

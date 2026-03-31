@@ -52,4 +52,16 @@ public class VenueCommentServiceImpl implements VenueCommentService {
     public void deleteById(Long id) {
         venueCommentMapper.deleteById(id);
     }
+
+    //场馆评论查询方法(前台)
+    @Override
+    public PageInfo<VenueCommentVO> findByPageComment(Integer current, Integer limit, Integer venueId) {
+        //构建分页对象
+        PageHelper.startPage(current,limit);
+
+        //场馆评论查询方法(前台)
+        List<VenueCommentVO> list = venueCommentMapper.findByPageComment(venueId);
+        PageInfo<VenueCommentVO> pageInfo = new PageInfo<>(list);
+        return pageInfo;
+    }
 }
