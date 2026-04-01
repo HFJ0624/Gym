@@ -1,6 +1,7 @@
 package com.sau.gym.admin.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -16,13 +17,19 @@ import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
+import com.sau.gym.model.vo.user.UserExcelVO;
 import com.sau.gym.model.vo.user.UserVo;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -287,5 +294,37 @@ public class UserServiceImpl implements UserService {
 
         //保存用户信息
         userMapper.updateUser(user);
+    }
+
+    //导出用户数据功能
+    @Override
+    public void exportData(HttpServletResponse response) {
+
+        try {
+            // 设置响应结果类型
+            response.setContentType("application/vnd.ms-excel");
+            response.setCharacterEncoding("utf-8");
+
+            // 这里URLEncoder.encode可以防止中文乱码 当然和easyexcel没有关系
+            String fileName = URLEncoder.encode("用户数据", "UTF-8");
+            response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+
+            // 查询数据库中的数据
+            List<User> userList = userMapper.findByPage(null);
+            List<UserExcelVO> userExcelVOList = new ArrayList<>(userList.size());
+
+            // 将从数据库中查询到的Category对象转换成CategoryExcelVo对象
+            for(User user : userList) {
+                UserExcelVO categoryExcelVo = new UserExcelVO();
+                BeanUtils.copyProperties(user, categoryExcelVo, UserExcelVO.class);
+                userExcelVOList.add(categoryExcelVo);
+            }
+
+            // 写出数据到浏览器端
+            EasyExcel.write(response.getOutputStream(), UserExcelVO.class).sheet("用户数据").doWrite(userExcelVOList);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

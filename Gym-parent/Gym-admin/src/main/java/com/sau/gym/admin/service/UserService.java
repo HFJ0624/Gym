@@ -8,6 +8,7 @@ import com.sau.gym.model.dto.user.UserDto;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
 import com.sau.gym.model.vo.user.UserVo;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
@@ -48,4 +49,7 @@ public interface UserService {
 
     //用户修改个人信息
     void updateProfile(FrontUserDto frontUserDto);
+
+    //导出用户数据功能
+    void exportData(HttpServletResponse response);
 }

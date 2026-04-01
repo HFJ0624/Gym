@@ -11,6 +11,7 @@ import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.user.UserVo;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -90,6 +91,13 @@ public class UserController {
     public Result<UserVo> findGender(){
         List<UserVo> list = userService.findGender();
         return Result.build(list,ResultCodeEnum.SUCCESS);
+    }
+
+    //导出用户数据功能
+    @Log(title = "导出用户数据",businessType = 0,operatorType = OperatorType.MANAGE)
+    @GetMapping(value = "/exportData")
+    public void exportData(HttpServletResponse response) {
+        userService.exportData(response);
     }
 
 }
