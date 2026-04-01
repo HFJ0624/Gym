@@ -17,21 +17,27 @@ public class UserExcelVO {
     @ExcelProperty(value = "用户名称" ,index = 1)
     private String username;
 
-    @ExcelProperty(value = "真实姓名" ,index = 2)
+    @ExcelProperty(value = "用户密码" ,index = 2)
+    private String password;
+
+    @ExcelProperty(value = "真实姓名" ,index = 3)
     private String realName;
 
-    @ExcelProperty(value = "性别" ,index = 3)
+    @ExcelProperty(value = "性别" ,index = 4)
     private String sex;
 
-    @ExcelProperty(value = "电话" ,index = 4)
+    @ExcelProperty(value = "电话" ,index = 5)
     private String phone;
 
-    @ExcelProperty(value = "邮件" ,index = 5)
+    @ExcelProperty(value = "邮件" ,index = 6)
     private String email;
 
-    @ExcelProperty(value = "头像" ,index = 6)
+    @ExcelProperty(value = "角色" ,index = 7)
+    private String role;
+
+    @ExcelProperty(value = "头像" ,index = 8)
     private String avatar;
 
-    @ExcelProperty(value = "状态" ,index = 7)
+    @ExcelProperty(value = "状态" ,index = 9)
     private Integer status;
 }

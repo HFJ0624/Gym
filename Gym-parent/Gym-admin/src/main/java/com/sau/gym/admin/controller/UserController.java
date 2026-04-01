@@ -14,6 +14,7 @@ import com.sau.gym.model.vo.user.UserVo;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -98,6 +99,14 @@ public class UserController {
     @GetMapping(value = "/exportData")
     public void exportData(HttpServletResponse response) {
         userService.exportData(response);
+    }
+
+    //导入用户数据功能
+    @Log(title = "导入用户数据功能",businessType = 0,operatorType = OperatorType.MANAGE)
+    @PostMapping("/importData")
+    public Result importData(MultipartFile file) {
+        userService.importData(file);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 
 }

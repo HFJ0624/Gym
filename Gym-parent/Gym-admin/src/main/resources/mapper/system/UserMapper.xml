@@ -140,4 +140,40 @@
         where id = #{id} and is_deleted = 0
     </select>
 
+    <!--  密码统一为123456  -->
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        insert into user (
+        id,
+        username,
+        password,
+        real_name,
+        sex,
+        phone,
+        email,
+        role,
+        avatar,
+        status,
+        create_time ,
+        update_time ,
+        is_deleted
+        ) values
+        <foreach collection="userList" item="item" separator="," >
+            (
+            #{item.id},
+            #{item.username},
+            "e10adc3949ba59abbe56e057f20f883e",
+            #{item.realName},
+            #{item.sex},
+            #{item.phone},
+            #{item.email},
+            #{item.role},
+            #{item.avatar},
+            1,
+            now(),
+            now(),
+            0
+            )
+        </foreach>
+    </insert>
+
 </mapper>

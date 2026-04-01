@@ -5,6 +5,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.sau.gym.admin.listener.ExcelListener;
 import com.sau.gym.admin.mapper.RoleMapper;
 import com.sau.gym.admin.mapper.RoleUserMapper;
 import com.sau.gym.admin.mapper.UserMapper;
@@ -26,6 +27,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -325,6 +327,21 @@ public class UserServiceImpl implements UserService {
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    //导入用户数据功能
+    @Override
+    public void importData(MultipartFile file) {
+        try {
+            //创建监听器对象，传递mapper对象
+            ExcelListener<UserExcelVO> excelListener = new ExcelListener<>(userMapper);
+            //调用read方法读取excel数据
+            EasyExcel.read(file.getInputStream(),
+                    UserExcelVO.class,
+                    excelListener).sheet().doRead();
+        } catch (IOException e) {
+            throw new SauException(ResultCodeEnum.DATA_ERROR);
         }
     }
 }

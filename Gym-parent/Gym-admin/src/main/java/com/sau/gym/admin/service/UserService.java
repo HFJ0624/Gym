@@ -9,6 +9,7 @@ import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.system.LoginVo;
 import com.sau.gym.model.vo.user.UserVo;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -52,4 +53,7 @@ public interface UserService {
 
     //导出用户数据功能
     void exportData(HttpServletResponse response);
+
+    //导入用户数据功能
+    void importData(MultipartFile file);
 }

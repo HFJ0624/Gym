@@ -43,4 +43,7 @@ public interface UserMapper {
 
     //根据用户邮箱查询用户(假设邮箱唯一)
     User selectByUserEmail(String email);
+
+    //批量插入数据
+    void batchInsert(List<User> userList);
 }
