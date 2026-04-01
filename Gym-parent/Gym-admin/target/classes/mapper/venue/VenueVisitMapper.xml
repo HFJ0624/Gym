@@ -12,4 +12,11 @@
         values(#{id})
     </insert>
 
+    <select id="selectALL" resultType="com.sau.gym.model.vo.venue.VenueVisitVO">
+        select vv.id,v.venue_name as venueName,vv.nums,vv.create_time
+        from venue_visit vv
+        left join venue v on v.id = vv.venue_id
+        order by vv.nums desc
+    </select>
+
 </mapper>

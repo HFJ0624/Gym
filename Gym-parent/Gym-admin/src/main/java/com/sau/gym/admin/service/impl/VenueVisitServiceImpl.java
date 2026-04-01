@@ -1,9 +1,15 @@
 package com.sau.gym.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.VenueVisitMapper;
 import com.sau.gym.admin.service.VenueVisitService;
+import com.sau.gym.model.entity.venue.VenueVisit;
+import com.sau.gym.model.vo.venue.VenueVisitVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 作者:hfj
@@ -26,5 +32,17 @@ public class VenueVisitServiceImpl implements VenueVisitService {
     @Override
     public void addOne(Long id) {
         venueVisitMapper.addOne(id);
+    }
+
+    //场馆访问量分页查询
+    @Override
+    public PageInfo<VenueVisitVO> findByPage(Integer current, Integer limit) {
+        PageHelper.startPage(current,limit);
+
+        //查询所有访问量
+        List<VenueVisitVO> list = venueVisitMapper.selectALL();
+
+        PageInfo<VenueVisitVO> pageInfo = new PageInfo<>(list);
+        return pageInfo;
     }
 }
