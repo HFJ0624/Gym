@@ -45,4 +45,10 @@ public class VenueVisitServiceImpl implements VenueVisitService {
         PageInfo<VenueVisitVO> pageInfo = new PageInfo<>(list);
         return pageInfo;
     }
+
+    //核心：缓存为空时，只查一次全量，初始化缓存
+    @Override
+    public List<VenueVisitVO> findAll() {
+        return venueVisitMapper.selectALL();
+    }
 }

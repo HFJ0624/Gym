@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 作者:hfj
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.sau.gym"})
 @EnableConfigurationProperties(value = {UserAuthProperties.class, MinioProperties.class}) //自定义配置类的注解
+@EnableScheduling //开启定时任务注解
 public class AdminApplication {
 
     public static void main(String[] args) {

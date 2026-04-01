@@ -43,4 +43,9 @@ public class OperaLogServiceImpl implements OperaLogService {
     public void deleteById(Long id) {
         operaLogMapper.deleteById(id);
     }
+
+    @Override
+    public List<OperaLog> findAll() {
+        return operaLogMapper.selectALL();
+    }
 }

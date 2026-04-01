@@ -71,4 +71,11 @@
         update oper_log set is_deleted = 1 where id = #{id}
     </update>
 
+    <select id="selectALL" resultMap="operaLogMap">
+        select <include refid="columns" />
+        from oper_log
+        <include refid="findPageWhere"/>
+        order by id desc
+    </select>
+
 </mapper>
