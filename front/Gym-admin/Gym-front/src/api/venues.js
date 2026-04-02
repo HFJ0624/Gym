@@ -17,6 +17,29 @@ export const RecordVenueVisit = (venueId) => {
   })
 }
 
+// 获取当前用户收藏的场馆列表
+export const GetUserCollectedVenues = () => {
+  return request({
+    url: `/front/venues/collect/list`,
+    method: 'get'
+  })
+}
+
+// 收藏场馆
+export const CollectVenue = (venueId) => {
+  return request({
+    url: `/front/venues/collect/${venueId}`,
+    method: 'post'
+  })
+}
+
+// 取消收藏场馆
+export const UncollectVenue = (venueId) => {
+  return request({
+    url: `/front/venues/unCollect/${venueId}`,
+    method: 'delete'
+  })
+}
 
 
 

@@ -2,8 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sau.gym.admin.mapper.VenueCollectMapper">
 
-<!--    &lt;!&ndash;  映射查询到的字段 &ndash;&gt;-->
-<!--    <resultMap id="VenueCommentMap" type="com.sau.gym.model.entity.venue.VenueComment" autoMapping="true"></resultMap>-->
+    <!--  映射查询到的字段 -->
+    <resultMap id="VenueCommentMap" type="com.sau.gym.model.entity.venue.VenueCollect" autoMapping="true"></resultMap>
 
     <!-- 用于select查询公用抽取的列 -->
     <sql id="columns">
@@ -31,54 +31,34 @@
         order by vc.id desc
     </select>
 
-<!--    &lt;!&ndash; 添加场馆评论 &ndash;&gt;-->
-<!--    <insert id="saveVenueComment">-->
-<!--        insert into venue_comment (-->
-<!--            id,-->
-<!--            venue_id,-->
-<!--            user_id,-->
-<!--            content,-->
-<!--            esteem-->
-<!--        ) values (-->
-<!--                     #{id},-->
-<!--                     #{venueId},-->
-<!--                     #{userId},-->
-<!--                     #{content},-->
-<!--                     #{esteem}-->
-<!--                 )-->
-<!--    </insert>-->
 
-<!--    &lt;!&ndash; 修改场馆评论 &ndash;&gt;-->
-<!--    <update id="updateVenueComment">-->
-<!--        update venue_comment set-->
-<!--        <if test="content != null and content != ''">-->
-<!--            content = #{content},-->
-<!--        </if>-->
-<!--        <if test="esteem != null and esteem != ''">-->
-<!--            esteem = #{esteem},-->
-<!--        </if>-->
-<!--        update_time =  now()-->
-<!--        where-->
-<!--        id = #{id}-->
-<!--    </update>-->
+    <select id="selectAllVenuesByUserId" resultMap="VenueCommentMap">
+        select *
+        from venue_collect
+        where user_id = #{id}
+        and collect = 1 and is_deleted = 0
+    </select>
 
-<!--    &lt;!&ndash; 根据id删除场馆评论 &ndash;&gt;-->
-<!--    <update id="deleteById">-->
-<!--        update venue_comment set is_deleted = 1 where id = #{id}-->
-<!--    </update>-->
+    <insert id="CollectVenue">
+        insert into venue_collect(
+            venue_id,
+            user_id,
+            collect,
+            create_time,
+            update_time,
+            is_deleted
+        )values (
+            #{venueId},
+            #{id},
+            1,
+            now(),
+            now(),
+            0        )
+    </insert>
 
-    <!--    &lt;!&ndash; 根据公告id删除公告所有评论 &ndash;&gt;-->
-    <!--    <update id="deleteAllComment">-->
-    <!--        update notice_comment set is_deleted = 1 where notice_id = #{noticeId}-->
-    <!--    </update>-->
-
-    <!--    <select id="getAllCommentById" resultType="com.sau.gym.model.vo.notice.NoticeCommentVO">-->
-    <!--        select nc.id,u.username,u.avatar,nc.content,nc.esteem,nc.create_time-->
-    <!--        from notice_comment nc-->
-    <!--                 left join user u on u.id = nc.user_id-->
-    <!--                 left join notice n on n.id = nc.notice_id-->
-    <!--        where nc.notice_id = #{noticeId} and nc.status = 1 and nc.is_deleted = 0-->
-    <!--        order by nc.id desc-->
-    <!--    </select>-->
+    <delete id="UnCollectVenue">
+        delete from venue_collect
+        where user_id = #{id} and venue_id = #{venueId}
+    </delete>
 
 </mapper>

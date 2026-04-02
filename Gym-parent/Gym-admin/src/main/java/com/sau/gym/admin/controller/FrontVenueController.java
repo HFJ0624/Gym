@@ -1,17 +1,16 @@
 package com.sau.gym.admin.controller;
 
 import com.github.pagehelper.PageInfo;
-import com.sau.gym.admin.service.CourtBookingService;
-import com.sau.gym.admin.service.CourtService;
-import com.sau.gym.admin.service.VenueCommentService;
-import com.sau.gym.admin.service.VenueVisitService;
+import com.sau.gym.admin.service.*;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
+import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.venue.VenueComment;
 import com.sau.gym.model.vo.venue.VenueCommentVO;
+import com.sau.gym.utils.AuthContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,6 +36,9 @@ public class FrontVenueController {
 
     @Autowired
     private VenueVisitService venueVisitService;
+
+    @Autowired
+    private VenueCollectService venueCollectService;
 
     //查询场馆对应的场地
     @GetMapping(value = "/court/{venueId}")
@@ -80,6 +82,32 @@ public class FrontVenueController {
     @PostMapping(value = "/visit/{venueId}")
     public Result recordVenueVisit(@PathVariable(value = "venueId") Long venueId){
         venueVisitService.addVisit(venueId);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //获取当前用户收藏的场馆列表
+    @GetMapping(value = "/collect/list")
+    public Result<Map<String,Object>> GetUserCollectedVenues(){
+        User user = AuthContextUtil.get();
+        Map<String,Object> map = venueCollectService.selectAllVenuesByUserId(user.getId());
+        return Result.build(map,ResultCodeEnum.SUCCESS);
+    }
+
+    //用户收藏场馆
+    @Log(title = "用户收藏场馆",businessType = 1,operatorType = OperatorType.MANAGE)
+    @PostMapping(value = "/collect/{venueId}")
+    public Result CollectVenue(@PathVariable(value = "venueId") Long venueId){
+        User user = AuthContextUtil.get();
+        venueCollectService.CollectVenue(user.getId(),venueId);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
+    }
+
+    //用户取消收藏场馆
+    @Log(title = "用户取消收藏场馆",businessType = 1,operatorType = OperatorType.MANAGE)
+    @DeleteMapping(value = "/unCollect/{venueId}")
+    public Result UnCollectVenue(@PathVariable(value = "venueId") Long venueId){
+        User user = AuthContextUtil.get();
+        venueCollectService.UnCollectVenue(user.getId(),venueId);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }
