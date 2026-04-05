@@ -113,60 +113,72 @@ onMounted(() => {
 
 <style scoped>
 .page {
-  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+
+:deep(.el-breadcrumb__inner) {
+  color: #666;
+}
+
+:deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .hero {
   display: flex;
-  margin-bottom: 30px;
+  margin: 32px 0;
   background: #fff;
-  border-radius: 8px;
+  border: 1px solid #e5e5e5;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .hero .cover {
   width: 400px;
-  height: 250px;
+  height: 280px;
   object-fit: cover;
+  filter: grayscale(20%);
 }
 
 .hero .info {
   flex: 1;
-  padding: 20px;
+  padding: 32px;
 }
 
 .hero .top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .hero .name {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
 }
 
 .hero .price {
-  color: #f56c6c;
-  font-weight: bold;
+  color: #1a1a1a;
+  font-weight: 700;
 }
 
 .hero .meta {
   display: flex;
-  gap: 20px;
-  margin-bottom: 15px;
+  gap: 24px;
+  margin-bottom: 16px;
   color: #666;
+  font-size: 14px;
 }
 
 .hero .meta .tag {
-  background: #e6f7ff;
-  color: #1890ff;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 14px;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  padding: 6px 14px;
+  font-weight: 500;
 }
 
 .hero .addr {
@@ -176,71 +188,73 @@ onMounted(() => {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
 }
 
 .card {
   background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  padding: 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  border-color: #1a1a1a;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
 .card .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .card .name {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .card .status {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: bold;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid;
 }
 
 .card .status.available {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
 }
 
 .card .status.occupied {
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: #fff;
+  color: #1a1a1a;
+  border-color: #1a1a1a;
 }
 
 .card .status.maintenance {
-  background-color: #fff3e0;
-  color: #ef6c00;
+  background-color: #f5f5f5;
+  color: #666;
+  border-color: #e5e5e5;
 }
 
 .card .meta {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .card .meta span {
-  background: #f0f2f5;
+  background: #f5f5f5;
   color: #666;
-  padding: 4px 12px;
-  border-radius: 4px;
+  padding: 6px 14px;
   font-size: 14px;
 }
 </style>

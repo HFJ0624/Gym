@@ -123,7 +123,7 @@ onMounted(load)
 .toolbar {
   display: flex;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 32px;
   align-items: center;
 }
 .kw {
@@ -132,40 +132,53 @@ onMounted(load)
 .type {
   width: 180px;
 }
+:deep(.el-input__wrapper) {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px #1a1a1a inset;
+}
+:deep(.el-button--default) {
+  border-color: #1a1a1a;
+  color: #1a1a1a;
+  border-radius: 0;
+}
+:deep(.el-select .el-input__wrapper) {
+  border-radius: 0;
+}
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 20px;
 }
 .card {
   background: #fff;
-  border-radius: 14px;
+  border: 1px solid #e5e5e5;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.25s ease;
   position: relative;
 }
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border-color: #1a1a1a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 .cover-container {
   position: relative;
 }
 .cover {
   width: 100%;
-  height: 170px;
+  height: 200px;
   object-fit: cover;
+  filter: grayscale(20%);
 }
 .star-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  top: 12px;
+  right: 12px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,18 +186,17 @@ onMounted(load)
   transition: all 0.2s;
   z-index: 10;
   &:hover {
-    transform: scale(1.1);
-    background: rgba(255, 255, 255, 1);
+    border-color: #1a1a1a;
   }
 }
 .star-icon {
-  color: #c0c4cc;
+  color: #ccc;
   &.collected {
     color: #f7ba2a;
   }
 }
 .body {
-  padding: 12px 12px 14px;
+  padding: 20px;
 }
 .row {
   display: flex;
@@ -193,31 +205,31 @@ onMounted(load)
   align-items: baseline;
 }
 .name {
-  font-size: 16px;
-  font-weight: 800;
-  color: #1f2d3d;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 .price {
-  color: #f56c6c;
-  font-weight: 900;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 .meta {
-  margin-top: 8px;
+  margin-top: 12px;
   display: flex;
-  gap: 10px;
-  color: #909399;
-  font-size: 12px;
+  gap: 12px;
+  color: #666;
+  font-size: 13px;
 }
 .tag {
-  background: #ecf5ff;
-  color: #409eff;
-  padding: 1px 8px;
-  border-radius: 999px;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  padding: 4px 10px;
+  font-weight: 500;
 }
 .addr {
-  margin-top: 8px;
-  color: #606266;
-  font-size: 12px;
+  margin-top: 12px;
+  color: #888;
+  font-size: 13px;
 }
 .tags {
   margin-top: 10px;

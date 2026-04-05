@@ -150,56 +150,85 @@ onMounted(() => {
 
 <style scoped>
 .page {
-  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+
+:deep(.el-breadcrumb__inner) {
+  color: #666;
+}
+
+:deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+:deep(.el-button--primary) {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  border-radius: 0;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 0;
+}
+
+:deep(.el-date-editor) {
+  border-radius: 0;
 }
 
 .detail-container {
   background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  padding: 32px;
+  margin-top: 32px;
 }
 
 .info-section h2 {
   margin-top: 0;
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #333;
+  margin-bottom: 28px;
+  font-size: 32px;
+  color: #1a1a1a;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .basic-info {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  padding: 15px;
-  background: #f5f7fa;
-  border-radius: 8px;
+  padding: 18px;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
 }
 
 .info-item label {
-  font-weight: bold;
+  font-weight: 600;
   color: #666;
-  margin-right: 10px;
+  margin-right: 12px;
   min-width: 100px;
+  font-size: 14px;
 }
 
 .info-item span {
-  color: #333;
+  color: #1a1a1a;
+  font-weight: 500;
 }
 
 .booking-form {
-  margin-top: 30px;
-  padding: 20px;
-  background: #f5f7fa;
-  border-radius: 8px;
+  margin-top: 36px;
+  padding: 28px;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
 }
 
 .booking-form .el-form-item {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 </style>

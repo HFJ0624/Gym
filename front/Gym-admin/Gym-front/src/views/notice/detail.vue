@@ -210,131 +210,151 @@ onMounted(() => {
 
 <style scoped>
 .notice-detail-container {
-  max-width: 1000px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0 18px;
+}
+
+:deep(.el-button--primary) {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  border-radius: 0;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 0;
+}
+
+:deep(.el-textarea__inner) {
+  border-radius: 0;
 }
 
 .notice-detail {
   background: #fff;
-  border-radius: 8px;
-  padding: 30px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  padding: 40px;
+  margin-top: 32px;
 }
 
 .notice-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
-  line-height: 1.4;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
 }
 
 .notice-meta {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .notice-type {
   padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   margin-right: 15px;
+  border: 1px solid #1a1a1a;
+  color: #1a1a1a;
 }
 
 .type-system {
-  background: #ecf5ff;
-  color: #409eff;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  border-color: #1a1a1a;
 }
 
 .type-activity {
-  background: #f0f9eb;
-  color: #67c23a;
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
 }
 
 .type-news {
-  background: #fdf6ec;
-  color: #e6a23c;
+  background: #fff;
+  color: #1a1a1a;
+  border-color: #1a1a1a;
 }
 
 .notice-time {
   font-size: 14px;
-  color: #999;
+  color: #888;
 }
 
 .notice-body {
   font-size: 16px;
-  line-height: 1.8;
-  color: #333;
-  margin-bottom: 30px;
+  line-height: 1.9;
+  color: #1a1a1a;
+  margin-bottom: 32px;
   white-space: pre-wrap;
 }
 
 .notice-actions {
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 /* 评论区样式 */
 .comment-section {
-  margin-top: 40px;
+  margin-top: 48px;
 }
 
 .comment-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 24px;
 }
 
 .comment-input {
-  background: #f9f9f9;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 30px;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  padding: 24px;
+  margin-bottom: 32px;
 }
 
 .comment-rating-input {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .rating-label {
   font-size: 14px;
-  color: #606266;
-  margin-right: 10px;
+  color: #666;
+  margin-right: 12px;
 }
 
 .comment-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 15px;
+  margin-top: 16px;
 }
 
 .comment-list {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .comment-item {
   display: flex;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .comment-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 0;
   overflow: hidden;
-  margin-right: 15px;
+  margin-right: 16px;
   flex-shrink: 0;
+  filter: grayscale(20%);
 }
 
 .comment-avatar img {
@@ -351,55 +371,55 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .comment-author {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .comment-time {
-  font-size: 12px;
-  color: #999;
+  font-size: 13px;
+  color: #888;
 }
 
 .comment-rating {
-  margin: 8px 0;
+  margin: 10px 0;
 }
 
 .comment-body {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.7;
   color: #666;
 }
 
 .empty-comments {
   text-align: center;
-  padding: 40px 0;
+  padding: 48px 0;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
   .notice-detail-container {
-    padding: 10px;
+    padding: 0 18px;
   }
   
   .notice-detail {
-    padding: 20px;
+    padding: 24px;
   }
   
   .notice-title {
-    font-size: 20px;
+    font-size: 24px;
   }
   
   .notice-body {
-    font-size: 14px;
+    font-size: 15px;
   }
   
   .comment-input {
-    padding: 15px;
+    padding: 20px;
   }
 }
 </style>

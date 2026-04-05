@@ -109,22 +109,23 @@ onMounted(() => {
 
 <style scoped>
 .notice-container {
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0 18px;
 }
 
 .notice-header {
   text-align: center;
-  margin-bottom: 40px;
-  padding-top: 20px;
+  margin-bottom: 48px;
+  padding-top: 32px;
 }
 
 .notice-header h1 {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
@@ -133,35 +134,36 @@ onMounted(() => {
 }
 
 .notice-list {
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .notice-item {
   background: #fff;
-  border-radius: 8px;
-  padding: 20px;
+  border: 1px solid #e5e5e5;
+  padding: 28px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
 
 .notice-item:hover {
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  border-color: #1a1a1a;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
 .notice-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 12px;
 }
 
 .notice-text {
-  font-size: 14px;
+  font-size: 15px;
   color: #666;
-  line-height: 1.6;
-  margin-bottom: 15px;
+  line-height: 1.7;
+  margin-bottom: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -173,30 +175,34 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
-  color: #999;
+  font-size: 13px;
+  color: #888;
 }
 
 .notice-type {
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #1a1a1a;
+  color: #1a1a1a;
 }
 
 .type-system {
-  background: #ecf5ff;
-  color: #409eff;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  border-color: #1a1a1a;
 }
 
 .type-activity {
-  background: #f0f9eb;
-  color: #67c23a;
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
 }
 
 .type-news {
-  background: #fdf6ec;
-  color: #e6a23c;
+  background: #fff;
+  color: #1a1a1a;
+  border-color: #1a1a1a;
 }
 
 .empty-notice {
@@ -213,19 +219,19 @@ onMounted(() => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .notice-container {
-    padding: 10px;
+    padding: 0 18px;
   }
   
   .notice-header h1 {
-    font-size: 24px;
+    font-size: 26px;
   }
   
   .notice-item {
-    padding: 15px;
+    padding: 20px;
   }
   
   .notice-title {
-    font-size: 16px;
+    font-size: 18px;
   }
 }
 </style>

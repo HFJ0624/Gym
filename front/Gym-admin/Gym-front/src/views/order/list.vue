@@ -131,69 +131,105 @@ onMounted(load)
   margin: 0 auto;
   padding: 0 18px;
 }
+:deep(.el-card) {
+  border: 1px solid #e5e5e5;
+  border-radius: 0;
+  margin-bottom: 16px;
+}
+:deep(.el-button--danger) {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  border-radius: 0;
+  color: #fff;
+}
+:deep(.el-button--info) {
+  border-radius: 0;
+}
+:deep(.el-button--default) {
+  border-color: #1a1a1a;
+  color: #1a1a1a;
+  border-radius: 0;
+}
+:deep(.el-button--primary) {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  border-radius: 0;
+}
 .head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
 }
 .title {
   margin: 0;
-  font-size: 18px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
 }
 .card {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 .row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 14px;
+  gap: 20px;
   align-items: start;
 }
 .name {
-  font-size: 16px;
-  font-weight: 800;
-  color: #1f2d3d;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 .sub {
-  margin-top: 6px;
+  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  color: #606266;
-  font-size: 13px;
+  gap: 12px;
+  color: #666;
+  font-size: 14px;
 }
 .price {
-  color: #f56c6c;
-  font-weight: 900;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 .addr {
-  margin-top: 6px;
-  color: #606266;
-  font-size: 12px;
+  margin-top: 10px;
+  color: #666;
+  font-size: 14px;
 }
 .contact,
 .remark,
 .time {
-  margin-top: 6px;
-  color: #909399;
-  font-size: 12px;
+  margin-top: 8px;
+  color: #888;
+  font-size: 13px;
 }
 .badge {
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  border: 1px solid transparent;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid;
+}
+.badge.warning {
+  background: #fef0f0;
+  color: #f56c6c;
+  border-color: #fde2e2;
 }
 .badge.ok {
   background: #f0f9eb;
   color: #67c23a;
   border-color: #e1f3d8;
 }
+.badge.success {
+  background: #f0f9eb;
+  color: #67c23a;
+  border-color: #e1f3d8;
+}
 .badge.cancel {
-  background: #fef0f0;
-  color: #f56c6c;
-  border-color: #fde2e2;
+  background: #fff;
+  color: #1a1a1a;
+  border-color: #1a1a1a;
 }
 </style>
 

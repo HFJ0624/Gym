@@ -5,7 +5,7 @@
         <h1 class="h1">在线预约体育场馆</h1>
         <div class="p">选择场馆与时间段，几步即可完成预约。</div>
         <div class="actions">
-          <el-button type="primary" size="large" @click="go('/venues')">立即预约</el-button>
+          <el-button class="green-btn" type="primary" size="large" @click="go('/venues')">立即预约</el-button>
           <el-button size="large" @click="go('/order')">查看我的预约</el-button>
         </div>
       </div>
@@ -102,72 +102,141 @@ const bannerVenues = computed(() => (venues.value || []).slice(0, 5))
 }
 .hero {
   background: #fff;
-  border-radius: 14px;
-  padding: 18px;
+  border: 1px solid #e5e5e5;
+  padding: 40px;
   display: grid;
   grid-template-columns: 1.2fr 1fr;
-  gap: 18px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .h1 {
   margin: 0;
-  font-size: 28px;
-  font-weight: 900;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: #1a1a1a;
+  line-height: 1.2;
 }
 .p {
-  margin-top: 10px;
-  color: #606266;
+  margin-top: 16px;
+  color: #666;
+  font-size: 16px;
+  line-height: 1.6;
 }
 .actions {
-  margin-top: 16px;
+  margin-top: 28px;
   display: flex;
   gap: 12px;
+}
+:deep(.el-button--primary) {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+
+  &:hover {
+    background: #333 !important;
+    border-color: #333 !important;
+  }
+}
+
+:deep(.green-btn) {
+  background: #52c41a !important;
+  border-color: #52c41a !important;
+
+  &:hover {
+    background: #73d13d !important;
+    border-color: #73d13d !important;
+  }
+}
+:deep(.el-button--default) {
+  border-color: #1a1a1a;
+  color: #1a1a1a;
+
+  &:hover {
+    background: #1a1a1a !important;
+    border-color: #1a1a1a !important;
+    color: #fff !important;
+  }
+}
+.right {
+  border: 1px solid #e5e5e5;
 }
 .img {
   width: 100%;
   height: 100%;
-  border-radius: 12px;
   object-fit: cover;
+  filter: grayscale(20%);
+}
+.img-placeholder {
+  width: 100%;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  background: #f5f5f5;
 }
 .section {
-  margin-top: 16px;
+  margin-bottom: 40px;
 }
 .section-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2px;
+  padding: 0;
+  margin-bottom: 24px;
+}
+.section-head h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
 }
 .more {
   text-decoration: none;
-  color: #409eff;
-  font-size: 13px;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border: 1px solid #e5e5e5;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #1a1a1a;
+    border-color: #1a1a1a;
+  }
 }
 .grid {
-  margin-top: 10px;
+  margin-top: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 20px;
 }
 .card {
   background: #fff;
-  border-radius: 14px;
+  border: 1px solid #e5e5e5;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.25s ease;
 }
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border-color: #1a1a1a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 .cover {
   width: 100%;
-  height: 170px;
+  height: 200px;
   object-fit: cover;
+  filter: grayscale(20%);
 }
 .body {
-  padding: 12px 12px 14px;
+  padding: 20px;
 }
 .row {
   display: flex;
@@ -176,31 +245,32 @@ const bannerVenues = computed(() => (venues.value || []).slice(0, 5))
   align-items: baseline;
 }
 .name {
-  font-size: 16px;
-  font-weight: 800;
-  color: #1f2d3d;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 .price {
-  color: #f56c6c;
-  font-weight: 900;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 14px;
 }
 .meta {
-  margin-top: 8px;
+  margin-top: 12px;
   display: flex;
-  gap: 10px;
-  color: #909399;
-  font-size: 12px;
+  gap: 12px;
+  color: #666;
+  font-size: 13px;
 }
 .type {
-  background: #ecf5ff;
-  color: #409eff;
-  padding: 1px 8px;
-  border-radius: 999px;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  padding: 4px 10px;
+  font-weight: 500;
 }
 .addr {
-  margin-top: 8px;
-  color: #606266;
-  font-size: 12px;
+  margin-top: 12px;
+  color: #888;
+  font-size: 13px;
 }
 </style>
 

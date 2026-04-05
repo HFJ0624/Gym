@@ -291,6 +291,13 @@ onMounted(() => {
   margin: 0 auto;
   padding: 0 18px;
 }
+:deep(.el-card) {
+  border: 1px solid #e5e5e5;
+  border-radius: 0;
+}
+:deep(.el-card__header) {
+  border-bottom: 1px solid #e5e5e5;
+}
 .header-content {
   display: flex;
   justify-content: space-between;
@@ -303,18 +310,18 @@ onMounted(() => {
 }
 .info .name {
   font-size: 18px;
-  font-weight: 900;
-  color: #1f2d3d;
+  font-weight: 700;
+  color: #1a1a1a;
 }
 .info .sub {
   margin-top: 6px;
-  color: #606266;
+  color: #666;
   font-size: 13px;
 }
 .hint {
   margin-top: 12px;
   font-size: 12px;
-  color: #909399;
+  color: #888;
   line-height: 1.6;
 }
 .drawer-footer {
@@ -326,10 +333,11 @@ onMounted(() => {
   width: 178px;
   height: 178px;
   display: block;
+  filter: grayscale(10%);
 }
 .avatar-uploader .el-upload {
-  border: 1px dashed var(--el-border-color);
-  border-radius: 6px;
+  border: 1px dashed #1a1a1a;
+  border-radius: 0;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -337,15 +345,38 @@ onMounted(() => {
 }
 
 .avatar-uploader .el-upload:hover {
-  border-color: var(--el-color-primary);
+  border-color: #1a1a1a;
+  background: #f5f5f5;
 }
 
 .el-icon.avatar-uploader-icon {
   font-size: 28px;
-  color: #8c939d;
+  color: #666;
   width: 178px;
   height: 178px;
   text-align: center;
+}
+
+:deep(.el-button--primary) {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  border-radius: 0;
+}
+:deep(.el-button--default) {
+  border-color: #1a1a1a;
+  border-radius: 0;
+}
+:deep(.el-input__wrapper) {
+  border-radius: 0;
+}
+:deep(.el-select .el-input__wrapper) {
+  border-radius: 0;
+}
+:deep(.el-radio__label) {
+  color: #1a1a1a;
+}
+:deep(.el-switch__label) {
+  color: #1a1a1a;
 }
 
 .collected-card {
@@ -363,59 +394,60 @@ onMounted(() => {
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 .venue-card {
   background: #fff;
-  border-radius: 12px;
+  border: 1px solid #e5e5e5;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.25s ease;
 }
 
 .venue-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border-color: #1a1a1a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
 .venue-card .cover {
   width: 100%;
-  height: 160px;
+  height: 180px;
   object-fit: cover;
+  filter: grayscale(20%);
 }
 
 .venue-card .body {
-  padding: 12px 12px 14px;
+  padding: 20px;
 }
 
 .venue-card .name {
-  font-size: 16px;
-  font-weight: 800;
-  color: #1f2d3d;
-  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 10px;
 }
 
 .venue-card .meta {
   display: flex;
-  gap: 10px;
-  color: #909399;
-  font-size: 12px;
-  margin-bottom: 6px;
+  gap: 12px;
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
 .venue-card .meta .tag {
-  background: #ecf5ff;
-  color: #409eff;
-  padding: 1px 8px;
-  border-radius: 999px;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  padding: 4px 10px;
+  font-weight: 500;
 }
 
 .venue-card .addr {
-  color: #606266;
-  font-size: 12px;
+  color: #666;
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

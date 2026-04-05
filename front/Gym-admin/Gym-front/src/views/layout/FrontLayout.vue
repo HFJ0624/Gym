@@ -66,63 +66,71 @@ const logout = () => {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  background: #fafafa;
 }
 .header {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: #409eff;
-  color: #fff;
+  background: #fff;
+  color: #1a1a1a;
+  border-bottom: 1px solid #e5e5e5;
 }
 .inner {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 18px;
-  height: 56px;
+  height: 64px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 16px;
   align-items: center;
 }
 .logo {
-  font-weight: 900;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.5px;
   cursor: pointer;
 }
 .nav {
   display: flex;
-  gap: 14px;
+  gap: 8px;
 }
 .item {
-  color: #fff;
+  color: #666;
   text-decoration: none;
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border-radius: 4px;
   font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 .item.active,
 .item:hover {
-  background: rgba(255, 255, 255, 0.18);
+  color: #1a1a1a;
+  background: #f5f5f5;
 }
 .right .user {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   cursor: pointer;
 }
 .name {
-  font-size: 13px;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 500;
 }
 .main {
   flex: 1;
-  padding: 18px 0 30px;
+  padding: 24px 0 40px;
 }
 .footer {
-  background: #fff;
-  border-top: 1px solid #eee;
-  color: #909399;
+  background: #1a1a1a;
+  color: #888;
   text-align: center;
-  padding: 16px 0;
-  font-size: 12px;
+  padding: 24px 0;
+  font-size: 13px;
 }
 </style>
 
