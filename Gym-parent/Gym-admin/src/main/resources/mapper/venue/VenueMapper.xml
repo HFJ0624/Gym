@@ -131,4 +131,13 @@
         <include refid="get"/>
     </select>
 
+    <select id="selectByUserId" resultMap="venueMap">
+        select v.id,v.venue_name,v.venue_type,v.location,v.phone,v.capacity,v.description,v.status,
+               v.open_time,v.close_time,v.create_time,v.update_time,v.status,v.avatar
+        from venue v
+        left join venue_collect vc on vc.venue_id = v.id
+        where vc.user_id = #{id}
+        and v.is_deleted = 0
+    </select>
+
 </mapper>

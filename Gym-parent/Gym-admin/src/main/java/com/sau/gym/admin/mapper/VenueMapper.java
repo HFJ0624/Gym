@@ -29,4 +29,7 @@ public interface VenueMapper {
 
     //查找所有场馆(前台)
     List<Venue> getAllVenue(VenueDto venueDto);
+
+    //在前台个人中心获取收藏的场馆详情
+    List<Venue> selectByUserId(Long id);
 }

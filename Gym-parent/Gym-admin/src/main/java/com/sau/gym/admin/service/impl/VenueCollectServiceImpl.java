@@ -3,8 +3,10 @@ package com.sau.gym.admin.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.VenueCollectMapper;
+import com.sau.gym.admin.mapper.VenueMapper;
 import com.sau.gym.admin.service.VenueCollectService;
 import com.sau.gym.model.dto.venue.VenueCollectDto;
+import com.sau.gym.model.entity.venue.Venue;
 import com.sau.gym.model.entity.venue.VenueCollect;
 import com.sau.gym.model.vo.venue.VenueCollectVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ public class VenueCollectServiceImpl implements VenueCollectService {
     @Autowired
     private VenueCollectMapper venueCollectMapper;
 
+    @Autowired
+    private VenueMapper venueMapper;
+
     //场馆收藏分页查询
     @Override
     public PageInfo<VenueCollectVO> findByPage(Integer current, Integer limit, VenueCollectDto venueCollectDto) {
@@ -41,9 +46,13 @@ public class VenueCollectServiceImpl implements VenueCollectService {
         //获取当前用户收藏的场馆列表
         List<VenueCollect> venueCollectList = venueCollectMapper.selectAllVenuesByUserId(id);
 
+        //在前台个人中心获取收藏的场馆详情
+        List<Venue> venueList = venueMapper.selectByUserId(id);
+
         //构建返回对象
         HashMap<String, Object> resultMap = new HashMap<>();
         resultMap.put("venueCollectList",venueCollectList);
+        resultMap.put("venueList",venueList);
         return resultMap;
     }
 

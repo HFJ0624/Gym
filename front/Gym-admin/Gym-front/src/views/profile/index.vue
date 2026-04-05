@@ -26,6 +26,38 @@
       </el-descriptions>
     </el-card>
 
+    <el-card shadow="never" class="collected-card">
+      <template #header>
+        <div class="header-content">
+          <span>我的收藏</span>
+        </div>
+      </template>
+
+      <div class="collected-venues" v-loading="collectedLoading">
+        <div v-if="collectedVenues.length === 0" class="empty-tip">
+          <el-empty description="暂无收藏的场馆" />
+        </div>
+        <div v-else class="grid">
+          <div 
+            v-for="venue in collectedVenues" 
+            :key="venue.venueId || venue.id" 
+            class="venue-card"
+            @click="goToVenue(venue.venueId || venue.id)"
+          >
+            <img class="cover" :src="venue.avatar" :alt="venue.venueName" />
+            <div class="body">
+              <div class="name">{{ venue.venueName }}</div>
+              <div class="meta">
+                <span class="tag">{{ venue.venueType }}</span>
+                <span>容量：{{ venue.capacity }}人</span>
+              </div>
+              <div class="addr">{{ venue.location }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </el-card>
+
     <el-drawer
       v-model="drawerVisible"
       title="编辑个人信息"
@@ -86,13 +118,16 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import { useAuth } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/frontRequest'
 import { UpdateUser } from '@/api/profile'
+import { GetUserCollectedVenues } from '@/api/venues'
 
 const auth = useAuth()
+const router = useRouter()
 
 const realName = computed(() => auth.user?.realName)
 const phone = computed(() => auth.user?.phone)
@@ -103,6 +138,27 @@ const avatar = computed(() => auth.user?.avatar)
 const drawerVisible = ref(false)
 const formRef = ref(null)
 const submitting = ref(false)
+
+const collectedVenues = ref([])
+const collectedLoading = ref(false)
+
+const loadCollectedVenues = async () => {
+  collectedLoading.value = true
+  try {
+    const res = await GetUserCollectedVenues()
+    if (res.data && res.data.venueList) {
+      collectedVenues.value = res.data.venueList
+    }
+  } catch (error) {
+    console.error('获取收藏列表失败:', error)
+  } finally {
+    collectedLoading.value = false
+  }
+}
+
+const goToVenue = (venueId) => {
+  router.push(`/venues/court/${venueId}`)
+}
 
 const form = reactive({
   realName: '',
@@ -223,6 +279,10 @@ const beforeAvatarUpload = (file) => {
   }
   return true;
 };
+
+onMounted(() => {
+  loadCollectedVenues()
+})
 </script>
 
 <style scoped lang="scss">
@@ -286,6 +346,79 @@ const beforeAvatarUpload = (file) => {
   width: 178px;
   height: 178px;
   text-align: center;
+}
+
+.collected-card {
+  margin-top: 20px;
+}
+
+.collected-venues {
+  min-height: 100px;
+}
+
+.empty-tip {
+  padding: 40px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.venue-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.venue-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.venue-card .cover {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.venue-card .body {
+  padding: 12px 12px 14px;
+}
+
+.venue-card .name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1f2d3d;
+  margin-bottom: 8px;
+}
+
+.venue-card .meta {
+  display: flex;
+  gap: 10px;
+  color: #909399;
+  font-size: 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.venue-card .meta .tag {
+  background: #ecf5ff;
+  color: #409eff;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.venue-card .addr {
+  color: #606266;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
 
