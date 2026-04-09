@@ -23,6 +23,10 @@
         <el-descriptions-item label="默认联系人">{{ realName }}</el-descriptions-item>
         <el-descriptions-item label="默认手机号">{{ phone }}</el-descriptions-item>
         <el-descriptions-item label="电子邮件">{{ email }}</el-descriptions-item>
+        <el-descriptions-item label="账户余额">
+          <span class="balance-amount">¥{{ balance }}</span>
+          <el-button type="primary" size="small" @click="openRechargeDialog" style="margin-left: 12px;">充值</el-button>
+        </el-descriptions-item>
       </el-descriptions>
     </el-card>
 
@@ -57,6 +61,47 @@
         </div>
       </div>
     </el-card>
+
+    <el-dialog v-model="rechargeDialogVisible" title="账户充值" width="450px">
+      <div class="recharge-content">
+        <div class="recharge-tip">请选择充值金额</div>
+        <div class="amount-options">
+          <div
+            v-for="amount in [100, 200, 500, 1000]"
+            :key="amount"
+            class="amount-option"
+            :class="{ active: selectedAmount === amount }"
+            @click="selectAmount(amount)"
+          >
+            ¥{{ amount }}
+          </div>
+          <div class="amount-option custom" :class="{ active: selectedAmount === 'custom' }" @click="selectAmount('custom')">
+            <el-input-number
+              v-if="selectedAmount === 'custom'"
+              v-model="customAmount"
+              :min="1"
+              :max="99999"
+              :step="10"
+              size="small"
+              controls-position="right"
+              style="width: 100px;"
+              @click.stop
+            />
+            <span v-else>自定义</span>
+          </div>
+        </div>
+        <div class="recharge-summary">
+          <span>充值金额：</span>
+          <span class="total-amount">¥{{ finalAmount }}</span>
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="rechargeDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="recharging" @click="handleRecharge">确认充值</el-button>
+        </div>
+      </template>
+    </el-dialog>
 
     <el-drawer
       v-model="drawerVisible"
@@ -122,8 +167,7 @@ import { computed, ref, reactive, onMounted } from 'vue'
 import { useAuth } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import request from '@/utils/frontRequest'
-import { UpdateUser } from '@/api/profile'
+import { UpdateUser, GetBalance, Recharge } from '@/api/profile'
 import { GetUserCollectedVenues } from '@/api/venues'
 
 const auth = useAuth()
@@ -134,13 +178,78 @@ const phone = computed(() => auth.user?.phone)
 const sex = computed(() => auth.user?.sex)
 const email = computed(() => auth.user?.email)
 const avatar = computed(() => auth.user?.avatar)
+const balance = ref(0)
 
 const drawerVisible = ref(false)
 const formRef = ref(null)
 const submitting = ref(false)
 
+const rechargeDialogVisible = ref(false)
+const selectedAmount = ref(100)
+const customAmount = ref(100)
+const recharging = ref(false)
+
 const collectedVenues = ref([])
 const collectedLoading = ref(false)
+
+const finalAmount = computed(() => {
+  if (selectedAmount.value === 'custom') {
+    return customAmount.value || 0
+  }
+  return selectedAmount.value
+})
+
+const loadBalance = async () => {
+  try {
+    const userId = auth.user?.id
+    if (!userId) return
+    const res = await GetBalance(userId)
+    if (res.code === 200 && res.data && res.data.balance) {
+      balance.value = res.data.balance.balance || 0
+    }
+  } catch (error) {
+    console.error('获取余额失败:', error)
+  }
+}
+
+const openRechargeDialog = () => {
+  selectedAmount.value = 100
+  customAmount.value = 100
+  rechargeDialogVisible.value = true
+}
+
+const selectAmount = (amount) => {
+  selectedAmount.value = amount
+}
+
+const handleRecharge = async () => {
+  const amount = finalAmount.value
+  if (!amount || amount <= 0) {
+    ElMessage.warning('请选择充值金额')
+    return
+  }
+
+  try {
+    recharging.value = true
+    const res = await Recharge({ 
+      userId: auth.user?.id,
+      amount: amount 
+    })
+
+    if (res.code === 200) {
+      ElMessage.success('充值成功')
+      await loadBalance()
+      rechargeDialogVisible.value = false
+    } else {
+      ElMessage.error(res.message || '充值失败')
+    }
+  } catch (error) {
+    console.error('充值失败:', error)
+    ElMessage.error('充值失败，请稍后重试')
+  } finally {
+    recharging.value = false
+  }
+}
 
 const loadCollectedVenues = async () => {
   collectedLoading.value = true
@@ -282,6 +391,7 @@ const beforeAvatarUpload = (file) => {
 
 onMounted(() => {
   loadCollectedVenues()
+  loadBalance()
 })
 </script>
 
@@ -290,6 +400,79 @@ onMounted(() => {
   max-width: 900px;
   margin: 0 auto;
   padding: 0 18px;
+}
+
+.balance-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f7ba2a;
+}
+
+.recharge-content {
+  padding: 10px 0;
+}
+
+.recharge-tip {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.amount-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.amount-option {
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #1a1a1a;
+
+  &:hover {
+    border-color: #1a1a1a;
+  }
+
+  &.active {
+    border-color: #f7ba2a;
+    background: #fffbe6;
+    color: #f7ba2a;
+  }
+
+  &.custom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.recharge-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  font-size: 14px;
+
+  .total-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f7ba2a;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 :deep(.el-card) {
   border: 1px solid #e5e5e5;

@@ -8,3 +8,21 @@ export const UpdateUser = (queryDto) => {
         data: queryDto
     })
 }
+
+// 获取用户余额
+export const GetBalance = (id) => {
+    return request({
+        url: `/front/getBalance`,
+        method: 'get',
+        params: { id }
+    })
+}
+
+// 用户充值
+export const Recharge = (data) => {
+    return request({
+        url: `/front/recharge`,
+        method: 'post',
+        data: data
+    })
+}

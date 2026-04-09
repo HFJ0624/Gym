@@ -5,6 +5,7 @@ import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.system.LoginDto;
 import com.sau.gym.model.dto.user.FrontUserDto;
+import com.sau.gym.model.dto.user.UserBalanceDto;
 import com.sau.gym.model.dto.venue.VenueDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
@@ -41,6 +42,9 @@ public class FrontIndexController {
 
     @Autowired
     private NoticeService noticeService;
+
+    @Autowired
+    private UserBalanceService userBalanceService;
 
     //前台登录后台
     @Log(title = "前台登录",businessType = 0,operatorType = OperatorType.MANAGE)
@@ -98,6 +102,21 @@ public class FrontIndexController {
     @PostMapping(value = "/updateProfile")
     public Result updateProfile(@RequestBody FrontUserDto frontUserDto){
         userService.updateProfile(frontUserDto);
+        return Result.build(null, ResultCodeEnum.SUCCESS);
+    }
+
+    //前台查询用户余额
+    @GetMapping(value = "/getBalance")
+    public Result<Map<String,Object>> GetBalance(){
+        User user = AuthContextUtil.get();
+        Map<String, Object> resultMap = userBalanceService.GetBalance(user.getId());
+        return Result.build(resultMap, ResultCodeEnum.SUCCESS);
+    }
+
+    //前台用户充值余额
+    @PostMapping(value = "/recharge")
+    public Result<Map<String,Object>> Recharge(@RequestBody UserBalanceDto userBalanceDto){
+        userBalanceService.Recharge(userBalanceDto);
         return Result.build(null, ResultCodeEnum.SUCCESS);
     }
 }
