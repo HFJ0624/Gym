@@ -35,6 +35,8 @@ npm start
 
 ## 四、后端框架结构
 <img width="1331" height="747" alt="image" src="https://github.com/user-attachments/assets/e27a1cdc-7ff5-4514-99b0-27efb3ca3d68" />
+<img width="728" height="1197" alt="6424472ce06d13eb7d2fda9754268fbf" src="https://github.com/user-attachments/assets/2fdd92cd-2655-4687-95dc-6768a0e40c68" />
+
 
 ## 五、开发心得
 
