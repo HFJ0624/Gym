@@ -20,6 +20,7 @@ public enum ResultCodeEnum {
     PHONE_ERROR(221,"电话错误或不存在"),
     PASSWORD_NOT_EQ(222,"新密码和旧密码不相等"),
     EMAIL_NOT_EXIST(223,"邮箱不存在"),
+    BALANCE_NOT_ENOUGH(224,"用户余额不足,请你充值"),
     ;
 
     //业务状态码

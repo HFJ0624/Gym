@@ -122,6 +122,8 @@ const submitBooking = async() => {
       ElMessage.success('预约成功')
       // 预约成功后跳转到我的预约页面
       router.push('/order')
+    }else if(code == 224){
+      ElMessage.error('余额不足，请充值充值')
     }
   } catch (error) {
     ElMessage.error('预约失败，请稍后重试')

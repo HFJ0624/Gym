@@ -18,7 +18,7 @@ public interface CourtBookingService {
     void deleteById(Long id);
 
     //添加预约场地
-    void saveCourtBook(BookingDto bookingDto);
+    boolean saveCourtBook(BookingDto bookingDto);
 
     //查询所有预约记录
     Map<String, Object> getCourtOrder(Long userId);

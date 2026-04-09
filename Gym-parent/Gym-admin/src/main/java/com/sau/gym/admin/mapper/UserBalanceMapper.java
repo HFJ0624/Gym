@@ -4,6 +4,8 @@ import com.sau.gym.model.dto.user.UserBalanceDto;
 import com.sau.gym.model.entity.user.UserBalance;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.math.BigDecimal;
+
 @Mapper
 public interface UserBalanceMapper {
 
@@ -15,4 +17,7 @@ public interface UserBalanceMapper {
 
     //前台用户充值余额
     void Recharge(UserBalanceDto userBalanceDto);
+
+    //更新用户余额
+    void updateBalance(Long userId, BigDecimal surplus);
 }

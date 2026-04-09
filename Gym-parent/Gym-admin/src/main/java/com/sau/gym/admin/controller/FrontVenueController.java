@@ -54,12 +54,15 @@ public class FrontVenueController {
         return Result.build(resultMap, ResultCodeEnum.SUCCESS);
     }
 
-    //添加预约场地
+    //添加预约场地并扣除余额,如果余额不足则显示预约失败
     @Log(title = "预约场地",businessType = 1,operatorType = OperatorType.MANAGE)
     @PostMapping(value = "/book")
     public Result saveVenue(@RequestBody BookingDto bookingDto){
-        courtBookingService.saveCourtBook(bookingDto);
-        return Result.build(null,ResultCodeEnum.SUCCESS);
+        boolean is_success = courtBookingService.saveCourtBook(bookingDto);
+        if (is_success){
+            return Result.build(null,ResultCodeEnum.SUCCESS);
+        }
+        return Result.build(null,ResultCodeEnum.BALANCE_NOT_ENOUGH);
     }
 
     //场馆评论查询方法(前台)

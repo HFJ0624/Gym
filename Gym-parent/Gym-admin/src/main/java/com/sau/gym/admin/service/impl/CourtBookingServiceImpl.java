@@ -3,15 +3,18 @@ package com.sau.gym.admin.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.CourtBookingMapper;
+import com.sau.gym.admin.mapper.UserBalanceMapper;
 import com.sau.gym.admin.service.CourtBookingService;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.dto.venue.CourtBookDto;
+import com.sau.gym.model.entity.user.UserBalance;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +30,9 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
     @Autowired
     private CourtBookingMapper courtBookingMapper;
+
+    @Autowired
+    private UserBalanceMapper userBalanceMapper;
 
     //场地预约的查询功能
     @Override
@@ -52,21 +58,31 @@ public class CourtBookingServiceImpl implements CourtBookingService {
     //添加预约场地
     @Transactional
     @Override
-    public void saveCourtBook(BookingDto bookingDto) {
+    public boolean saveCourtBook(BookingDto bookingDto) {
         CourtBooking courtBooking = new CourtBooking();
 
-        //生成订单编码
-        courtBooking.setOrderNo(getSecure32RandomNumber());
+        //1.先查询该用户的余额是否充足
+        UserBalance userBalance = userBalanceMapper.GetBalanceById(bookingDto.getUserId());
+        if (userBalance.getBalance().compareTo(bookingDto.getTotalPrice()) >= 0){
+            //生成订单编码
+            courtBooking.setOrderNo(getSecure32RandomNumber());
 
-        courtBooking.setUserId(bookingDto.getUserId());
-        courtBooking.setCourtId(bookingDto.getCourtId());
-        courtBooking.setBookingDate(bookingDto.getBookingDate());
-        courtBooking.setTotalPrice(bookingDto.getTotalPrice());
-        courtBooking.setStatus(0);
-        courtBooking.setRemark(bookingDto.getRemark());
+            courtBooking.setUserId(bookingDto.getUserId());
+            courtBooking.setCourtId(bookingDto.getCourtId());
+            courtBooking.setBookingDate(bookingDto.getBookingDate());
+            courtBooking.setTotalPrice(bookingDto.getTotalPrice());
+            courtBooking.setStatus(0);
+            courtBooking.setRemark(bookingDto.getRemark());
 
-        //保存到数据库
-        courtBookingMapper.saveCourtBook(courtBooking);
+            BigDecimal surplus = userBalance.getBalance().subtract(bookingDto.getTotalPrice());
+            //保存到数据库
+            courtBookingMapper.saveCourtBook(courtBooking);
+            //更新用户余额
+            userBalanceMapper.updateBalance(bookingDto.getUserId(),surplus);
+            return true;
+        }
+
+        return false;
     }
 
 

@@ -24,4 +24,11 @@
             update_time = now()
         where user_id = #{userId}
     </update>
+
+    <update id="updateBalance">
+        update user_balance
+        set balance = #{surplus},
+            update_time = now()
+        where user_id = #{userId}
+    </update>
 </mapper>
