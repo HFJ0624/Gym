@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.BeverageMapper">
+
+    <!--  映射查询到的字段 -->
+    <resultMap id="beverageMap" type="com.sau.gym.model.entity.shopping.Beverage" autoMapping="true"></resultMap>
+
+
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+        id,goods_name,category,price,cost,stock,image,status,remark,create_time,update_time
+    </sql>
+
+    <sql id="findPageWhere">
+        <where>
+            <if test="goodsName != null and goodsName != ''">
+                and goods_name like CONCAT('%',#{goodsName},'%')
+            </if>
+            <if test="category != null and category != ''">
+                and category like CONCAT('%',#{category},'%')
+            </if>
+            and is_deleted = 0
+        </where>
+    </sql>
+
+    <!--  零食饮品列表查询方法  -->
+    <select id="findByPage" resultMap="beverageMap">
+        select <include refid="columns" />
+        from beverage
+        <include refid="findPageWhere"/>
+        order by id
+    </select>
+
+    <!-- 新增零食饮料 -->
+    <insert id="saveBeverage">
+        insert into beverage (
+            id,
+            goods_name,
+            category,
+            price,
+            cost,
+            stock,
+            image,
+            remark
+        ) values (
+                     #{id},
+                     #{goodsName},
+                     #{category},
+                     #{price},
+                     #{cost},
+                     #{stock},
+                     #{image},
+                     #{remark}
+                 )
+    </insert>
+
+    <!-- 修改场馆 -->
+    <update id="updateBeverage">
+        update beverage set
+        <if test="goodsName != null and goodsName != ''">
+            goods_name = #{goodsName},
+        </if>
+        <if test="category != null and category != ''">
+            category = #{category},
+        </if>
+        <if test="price != null and price != ''">
+            price = #{price},
+        </if>
+        <if test="cost != null and cost != ''">
+            cost = #{cost},
+        </if>
+        <if test="stock != null and stock != ''">
+            stock = #{stock},
+        </if>
+        <if test="image != null and image != ''">
+            image = #{image},
+        </if>
+        <if test="status != null and status != ''">
+            status = #{status},
+        </if>
+        <if test="remark != null and remark != ''">
+            remark = #{remark},
+        </if>
+        update_time =  now()
+        where
+        id = #{id}
+    </update>
+
+    <update id="deleteById">
+        update beverage set is_deleted = 1 where id = #{beverageId}
+    </update>
+
+</mapper>
