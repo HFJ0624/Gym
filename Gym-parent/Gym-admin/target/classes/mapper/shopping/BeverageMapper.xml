@@ -90,4 +90,10 @@
         update beverage set is_deleted = 1 where id = #{beverageId}
     </update>
 
+    <select id="selectById" resultMap="beverageMap">
+        select *
+        from beverage
+        where id = #{id} and is_deleted = 0
+    </select>
+
 </mapper>

@@ -49,4 +49,11 @@ public class BeverageServiceImpl implements BeverageService {
     public void deleteById(Long beverageId) {
         beverageMapper.deleteById(beverageId);
     }
+
+    //前台查询商品的详情信息
+    @Override
+    public Beverage selectById(Long id) {
+        Beverage beverage = beverageMapper.selectById(id);
+        return beverage;
+    }
 }

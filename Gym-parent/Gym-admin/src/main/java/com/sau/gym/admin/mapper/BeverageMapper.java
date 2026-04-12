@@ -20,4 +20,7 @@ public interface BeverageMapper {
 
     //删除商品
     void deleteById(Long beverageId);
+
+    //前台查询商品的详情信息
+    Beverage selectById(Long id);
 }

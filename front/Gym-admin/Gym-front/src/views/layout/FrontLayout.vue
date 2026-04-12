@@ -6,12 +6,17 @@
         <nav class="nav">
           <router-link class="item" to="/index" :class="{ active: isActive('/index') }">首页</router-link>
           <router-link class="item" to="/venues" :class="{ active: isActive('/venues') }">场馆</router-link>
+          <router-link class="item" to="/shopping" :class="{ active: isActive('/shopping') }">商城</router-link>
           <router-link class="item" to="/venueComment" :class="{ active: isActive('/venueComment') }">场馆评论</router-link>
           <router-link class="item" to="/notice" :class="{ active: isActive('/notice') }">公告</router-link>
           <router-link class="item" to="/order" :class="{ active: isActive('/order') }">我的预约</router-link>
           <router-link class="item" to="/profile" :class="{ active: isActive('/profile') }">个人中心</router-link>
         </nav>
         <div class="right">
+          <div class="cart-btn" @click="go('/shopping/cart')">
+            <el-icon><ShoppingCart /></el-icon>
+            <span v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</span>
+          </div>
           <el-dropdown>
             <span class="user">
               <el-avatar size="small" :src="avatar" />
@@ -20,6 +25,7 @@
             <template #dropdown>
               <el-dropdown-item @click="go('/profile')">个人中心</el-dropdown-item>
               <el-dropdown-item @click="go('/order')">我的预约</el-dropdown-item>
+              <el-dropdown-item @click="go('/shopping/order')">我的订单</el-dropdown-item>
               <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
             </template>
           </el-dropdown>
@@ -36,22 +42,27 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/stores/auth'
+import { useCart } from '@/stores/cart'
+import { ShoppingCart } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuth()
+const cartStore = useCart()
 
 // 先用死数据（你后续可在登录后调用 /front/me 并 auth.setUser）
 const username = computed(() => auth.user?.username || '用户')
 const avatar = computed(() => auth.user?.avatar)
+const cartCount = computed(() => cartStore.totalQuantity)
 
 const go = path => router.push(path)
 
 const isActive = path => {
   if (path === '/venues') return route.path.startsWith('/venues')
+  if (path === '/shopping') return route.path.startsWith('/shopping')
   return route.path === path
 }
 
@@ -59,6 +70,10 @@ const logout = () => {
   auth.logout()
   router.replace({ name: 'login', query: { redirect: route.fullPath } })
 }
+
+onMounted(() => {
+  cartStore.loadCart()
+})
 </script>
 
 <style scoped lang="scss">
@@ -110,11 +125,44 @@ const logout = () => {
   color: #1a1a1a;
   background: #f5f5f5;
 }
-.right .user {
+.right {
   display: flex;
-  gap: 10px;
   align-items: center;
-  cursor: pointer;
+  gap: 15px;
+
+  .cart-btn {
+    position: relative;
+    padding: 8px;
+    cursor: pointer;
+    color: #666;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #1a1a1a;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      min-width: 18px;
+      height: 18px;
+      line-height: 18px;
+      padding: 0 5px;
+      background: #f7ba2a;
+      color: #fff;
+      border-radius: 9px;
+      font-size: 12px;
+      text-align: center;
+    }
+  }
+
+  .user {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    cursor: pointer;
+  }
 }
 .name {
   font-size: 14px;
