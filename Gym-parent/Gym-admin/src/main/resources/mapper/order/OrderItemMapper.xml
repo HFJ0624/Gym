@@ -2,26 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sau.gym.admin.mapper.OrderItemMapper">
 
-    <!--    &lt;!&ndash;  映射查询到的字段 &ndash;&gt;-->
-    <!--    <resultMap id="cartMap" type="com.sau.gym.model.entity.shopping.Cart" autoMapping="true"></resultMap>-->
-
-    <!--    <select id="GetCartList" resultType="com.sau.gym.model.vo.cart.CartItemVO">-->
-    <!--        select id,goods_id as goodsId,goods_name as goodsName,image,price,quantity-->
-    <!--        from cart-->
-    <!--        where user_id = #{id}-->
-    <!--    </select>-->
-
-    <!--    <select id="selectCartExist" resultMap="cartMap">-->
-    <!--        select *-->
-    <!--        from cart-->
-    <!--        where user_id = #{userId} and goods_id = #{goodsId}-->
-    <!--    </select>-->
-
-    <!--    <update id="addQuantity">-->
-    <!--        update cart-->
-    <!--        set quantity = quantity + #{quantity}-->
-    <!--        where id = #{id}-->
-    <!--    </update>-->
+    <!--  映射查询到的字段 -->
+    <resultMap id="orderItemMap" type="com.sau.gym.model.entity.order.OrderItem" autoMapping="true"></resultMap>
 
         <insert id="insertOrderItem">
             insert into order_item(
@@ -43,16 +25,10 @@
                    )
         </insert>
 
-    <!--    &lt;!&ndash;  购物车表的数据直接物理删除  &ndash;&gt;-->
-    <!--    <delete id="DeleteCartItem">-->
-    <!--        delete from cart-->
-    <!--        where id = #{id}-->
-    <!--    </delete>-->
-
-    <!--    <update id="UpdateCartItem">-->
-    <!--        update cart-->
-    <!--        set quantity = #{quantity}-->
-    <!--        where id = #{cartId}-->
-    <!--    </update>-->
+    <select id="getOrderById" resultMap="orderItemMap">
+        select *
+        from order_item
+        where order_id = #{id}
+    </select>
 
 </mapper>

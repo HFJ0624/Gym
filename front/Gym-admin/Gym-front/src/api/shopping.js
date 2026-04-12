@@ -76,8 +76,6 @@ export const ClearCart = () => {
 // ==================== 购物订单相关接口 ====================
 
 // 创建购物订单
-// 后端接口：POST /front/shoppingOrder/create
-// 参数：cartIds, addressId, remark
 export const CreateShoppingOrder = (data) => {
   return request({
     url: '/front/shoppingOrder/create',
@@ -87,8 +85,6 @@ export const CreateShoppingOrder = (data) => {
 }
 
 // 获取购物订单列表
-// 后端接口：GET /front/shoppingOrder/list
-// 参数：page, limit, status
 export const GetShoppingOrderList = (page, limit, status = '') => {
   return request({
     url: '/front/shoppingOrder/list',

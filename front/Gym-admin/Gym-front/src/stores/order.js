@@ -9,12 +9,12 @@ export const useOrder = defineStore('order', () => {
   const loadOrders = async (page = 1, pageSize = 10, status = '') => {
     loading.value = true
     try {
-      // TODO: 后端接口调用
-      // const res = await GetShoppingOrderList(page, pageSize, status)
-      // if (res.code === 200) {
-      //   orderList.value = res.data.list
-      //   return res.data
-      // }
+      //TODO: 后端接口调用
+      const res = await GetShoppingOrderList(page, pageSize, status)
+      if (res.code === 200) {
+        orderList.value = res.data.list
+        return res.data
+      }
 
       // 死数据演示
       return {

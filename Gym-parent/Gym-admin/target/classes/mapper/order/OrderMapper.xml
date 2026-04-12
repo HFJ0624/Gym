@@ -5,23 +5,22 @@
     <!--  映射查询到的字段 -->
     <resultMap id="orderMap" type="com.sau.gym.model.entity.order.Order" autoMapping="true"></resultMap>
 
-<!--    <select id="GetCartList" resultType="com.sau.gym.model.vo.cart.CartItemVO">-->
-<!--        select id,goods_id as goodsId,goods_name as goodsName,image,price,quantity-->
-<!--        from cart-->
-<!--        where user_id = #{id}-->
-<!--    </select>-->
+    <sql id="findPageWhere">
+        <where>
+            <if test="status != null and status != ''">
+                and status like CONCAT('%',#{status},'%')
+            </if>
+            and is_deleted = 0 and user_id = #{id}
+        </where>
+    </sql>
 
-<!--    <select id="selectCartExist" resultMap="cartMap">-->
-<!--        select *-->
-<!--        from cart-->
-<!--        where user_id = #{userId} and goods_id = #{goodsId}-->
-<!--    </select>-->
-
-<!--    <update id="addQuantity">-->
-<!--        update cart-->
-<!--        set quantity = quantity + #{quantity}-->
-<!--        where id = #{id}-->
-<!--    </update>-->
+    <!--  订单列表查询方法  -->
+    <select id="getOrderList" resultMap="orderMap">
+        select *
+        from `order`
+        <include refid="findPageWhere"/>
+        order by id
+    </select>
 
     <insert id="insertOrder" useGeneratedKeys="true" keyProperty="id">
         insert into `order`(
@@ -40,17 +39,5 @@
                    #{payTime}
                )
     </insert>
-
-<!--    &lt;!&ndash;  购物车表的数据直接物理删除  &ndash;&gt;-->
-<!--    <delete id="DeleteCartItem">-->
-<!--        delete from cart-->
-<!--        where id = #{id}-->
-<!--    </delete>-->
-
-<!--    <update id="UpdateCartItem">-->
-<!--        update cart-->
-<!--        set quantity = #{quantity}-->
-<!--        where id = #{cartId}-->
-<!--    </update>-->
 
 </mapper>

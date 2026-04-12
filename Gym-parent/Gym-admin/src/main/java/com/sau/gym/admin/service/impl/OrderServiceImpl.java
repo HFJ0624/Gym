@@ -1,7 +1,10 @@
 package com.sau.gym.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.*;
 import com.sau.gym.admin.service.OrderService;
+import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.order.OrderDto;
 import com.sau.gym.model.entity.order.Order;
 import com.sau.gym.model.entity.order.OrderItem;
@@ -9,6 +12,7 @@ import com.sau.gym.model.entity.shopping.Beverage;
 import com.sau.gym.model.entity.shopping.Cart;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.user.UserBalance;
+import com.sau.gym.model.vo.order.OrderDetailVO;
 import com.sau.gym.utils.AuthContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -128,6 +133,39 @@ public class OrderServiceImpl implements OrderService {
             cartMapper.DeleteCartItem(cartId);
         }
 
+    }
+
+    //获取购物订单列表
+    @Override
+    public PageInfo<OrderDetailVO> getOrderList(Integer page, Integer limit, Integer status) {
+        PageHelper.startPage(page,limit);
+        User user = AuthContextUtil.get();
+        //获取购物订单列表
+        List<Order> orderList = orderMapper.getOrderList(user.getId(),status);
+        if (orderList == null){
+            return null;
+        }
+
+        List<OrderDetailVO> orderDetailVOList = new ArrayList<>();
+        for (Order order :orderList){
+            int total = 0; //计算总数量
+            OrderDetailVO orderDetailVO = new OrderDetailVO();
+            orderDetailVO.setOrderNo(order.getOrderNo());
+            orderDetailVO.setStatus(order.getStatus());
+            orderDetailVO.setRemark(order.getRemark());
+            orderDetailVO.setTotalAmount(order.getTotalPrice());
+            orderDetailVO.setPayTime(order.getPayTime());
+            List<OrderItem> orderItemList = orderItemMapper.getOrderById(order.getId());
+            for (OrderItem orderItem : orderItemList) {
+                total += orderItem.getQuantity();
+            }
+            orderDetailVO.setTotalQuantity(total);
+            orderDetailVO.setItems(orderItemList);
+            orderDetailVOList.add(orderDetailVO);
+        }
+
+        PageInfo<OrderDetailVO> pageInfo = new PageInfo<>(orderDetailVOList);
+        return pageInfo;
     }
 
     /***

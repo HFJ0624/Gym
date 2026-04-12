@@ -191,11 +191,6 @@ const confirmCheckout = async () => {
     // 创建订单（传递备注）
     await orderStore.createOrder(selectedItems.value, remark.value)
 
-    // 清空购物车中已结算的商品
-    // for (const item of selectedItems.value) {
-    //   await cartStore.removeFromCart(item.id)
-    // }
-
     ElMessage.success('订单创建成功')
     dialogVisible.value = false
     router.push('/shopping/order')

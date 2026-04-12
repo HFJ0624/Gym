@@ -24,7 +24,7 @@
             <!-- 订单头部 -->
             <div class="order-header">
               <span class="order-no">订单号: {{ order.orderNo }}</span>
-              <span class="order-time">{{ order.createTime }}</span>
+              <span class="order-time">{{ order.payTime }}</span>
               <el-tag :type="getStatusType(order.status)">
                 {{ getStatusText(order.status) }}
               </el-tag>
@@ -118,19 +118,18 @@ const activeTab = ref('')
 
 const tabs = [
   { label: '全部', value: '' },
-  { label: '待支付', value: 1 },
-  { label: '已支付', value: 2 },
-  { label: '已完成', value: 3 },
-  { label: '已取消', value: 0 }
+  { label: '待支付', value: 0 },
+  { label: '已支付', value: 1 },
+  { label: '已取消', value: -1 }
 ]
 
 const getStatusText = (status) => {
-  const map = { 0: '已取消', 1: '待支付', 2: '已支付', 3: '已完成' }
+  const map = { '-1': '已取消', 0: '待支付', 1: '已支付'}
   return map[status] || status
 }
 
 const getStatusType = (status) => {
-  const map = { 0: 'info', 1: 'warning', 2: 'success', 3: 'success' }
+  const map = { '-1': 'danger', 0: 'info', 1: 'success'}
   return map[status] || 'info'
 }
 
