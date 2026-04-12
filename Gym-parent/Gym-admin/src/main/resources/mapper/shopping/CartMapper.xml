@@ -53,4 +53,10 @@
         where id = #{cartId}
     </update>
 
+    <select id="getByCartId" resultMap="cartMap">
+        select *
+        from cart
+        where id = #{cartId}
+    </select>
+
 </mapper>

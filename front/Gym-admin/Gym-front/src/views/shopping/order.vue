@@ -41,6 +41,12 @@
               </div>
             </div>
 
+            <!-- 订单备注 -->
+            <div v-if="order.remark" class="order-remark">
+              <span class="remark-label">备注：</span>
+              <span class="remark-text">{{ order.remark }}</span>
+            </div>
+
             <!-- 订单底部 -->
             <div class="order-footer">
               <span class="total">
@@ -91,15 +97,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { GetShoppingOrderList, CancelShoppingOrder, PayShoppingOrder } from '@/api/shopping'
+import { useOrder } from '@/stores/order'
 
 const router = useRouter()
+const orderStore = useOrder()
 
-const orderList = ref([])
-const loading = ref(false)
+const allOrderList = computed(() => orderStore.orderList)
+const orderList = computed(() => {
+  if (!activeTab.value) return allOrderList.value
+  return allOrderList.value.filter(order => order.status === activeTab.value)
+})
+const loading = computed(() => orderStore.loading)
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -126,72 +137,16 @@ const getStatusType = (status) => {
 const selectTab = (value) => {
   activeTab.value = value
   page.value = 1
-  loadOrders()
+  total.value = orderList.value.length
 }
 
 const loadOrders = async () => {
-  loading.value = true
   try {
-    // TODO: 后端接口调用
-    // const res = await GetShoppingOrderList(page.value, pageSize.value, activeTab.value)
-    // if (res.code === 200) {
-    //   orderList.value = res.data.list
-    //   total.value = res.data.total
-    // }
-
-    // 死数据演示
-    orderList.value = [
-      {
-        id: 1,
-        orderNo: 'SO202404100001',
-        createTime: '2024-04-10 14:30:00',
-        status: 1,
-        totalAmount: '104.80',
-        totalQuantity: 3,
-        items: [
-          {
-            id: 1,
-            goodsId: 1,
-            goodsName: '运动水壶',
-            image: 'https://via.placeholder.com/80',
-            price: 39.9,
-            quantity: 2
-          },
-          {
-            id: 2,
-            goodsId: 2,
-            goodsName: '运动毛巾',
-            image: 'https://via.placeholder.com/80',
-            price: 25.0,
-            quantity: 1
-          }
-        ]
-      },
-      {
-        id: 2,
-        orderNo: 'SO202404090002',
-        createTime: '2024-04-09 10:15:00',
-        status: 2,
-        totalAmount: '15.00',
-        totalQuantity: 1,
-        items: [
-          {
-            id: 3,
-            goodsId: 3,
-            goodsName: '能量棒',
-            image: 'https://via.placeholder.com/80',
-            price: 15.0,
-            quantity: 1
-          }
-        ]
-      }
-    ]
+    await orderStore.loadOrders(page.value, pageSize.value, activeTab.value)
     total.value = orderList.value.length
   } catch (error) {
     console.error('加载订单失败:', error)
     ElMessage.error('加载订单失败')
-  } finally {
-    loading.value = false
   }
 }
 
@@ -202,12 +157,7 @@ const cancelOrder = async (order) => {
     type: 'warning'
   }).then(async () => {
     try {
-      // TODO: 后端接口调用
-      // await CancelShoppingOrder(order.id)
-      // await loadOrders()
-
-      // 死数据演示
-      order.status = 0
+      await orderStore.cancelOrder(order.id)
       ElMessage.success('订单已取消')
     } catch (error) {
       console.error('取消订单失败:', error)
@@ -223,12 +173,7 @@ const payOrder = async (order) => {
     type: 'warning'
   }).then(async () => {
     try {
-      // TODO: 后端接口调用
-      // await PayShoppingOrder(order.id)
-      // await loadOrders()
-
-      // 死数据演示
-      order.status = 2
+      await orderStore.payOrder(order.id)
       ElMessage.success('支付成功')
     } catch (error) {
       console.error('支付失败:', error)
@@ -243,6 +188,7 @@ const viewOrder = (order) => {
 
 onMounted(() => {
   loadOrders()
+  total.value = orderList.value.length
 })
 </script>
 
@@ -334,6 +280,23 @@ onMounted(() => {
             color: #999;
           }
         }
+      }
+    }
+
+    .order-remark {
+      padding: 0 20px 20px;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 15px;
+      margin-top: -10px;
+
+      .remark-label {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .remark-text {
+        font-size: 14px;
+        color: #333;
       }
     }
 

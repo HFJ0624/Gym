@@ -23,4 +23,7 @@ public interface BeverageMapper {
 
     //前台查询商品的详情信息
     Beverage selectById(Long id);
+
+    //更新库存
+    void updateStock(Long id,Integer stock);
 }

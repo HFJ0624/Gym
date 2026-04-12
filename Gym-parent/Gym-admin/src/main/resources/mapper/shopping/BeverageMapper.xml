@@ -96,4 +96,10 @@
         where id = #{id} and is_deleted = 0
     </select>
 
+    <update id="updateStock">
+        update beverage
+        set stock = #{stock}
+        where id = #{id}
+    </update>
+
 </mapper>

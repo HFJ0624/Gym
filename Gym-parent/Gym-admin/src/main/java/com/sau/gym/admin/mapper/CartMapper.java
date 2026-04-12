@@ -26,4 +26,7 @@ public interface CartMapper {
 
     //更新购物车数量
     void UpdateCartItem(Long cartId, Integer quantity);
+
+    //获取购物车商品信息
+    Cart getByCartId(Long cartId);
 }

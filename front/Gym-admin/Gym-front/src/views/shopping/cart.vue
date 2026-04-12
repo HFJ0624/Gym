@@ -76,7 +76,7 @@
               type="primary"
               size="large"
               :disabled="selectedItems.length === 0"
-              @click="checkout"
+              @click="openCheckoutDialog"
             >
               结算
             </el-button>
@@ -84,6 +84,31 @@
         </div>
       </div>
     </div>
+
+    <!-- 结算确认对话框 -->
+    <el-dialog v-model="dialogVisible" title="确认结算" width="500px">
+      <div class="checkout-content">
+        <p style="margin-bottom: 20px; color: #666;">
+          确认结算 <strong>{{ selectedQuantity }}</strong> 件商品，合计 <strong style="color: #f7ba2a; font-size: 20px;">¥{{ selectedTotalPrice.toFixed(2) }}</strong> 吗？
+        </p>
+        <el-form label-width="60px">
+          <el-form-item label="备注">
+            <el-input
+              v-model="remark"
+              type="textarea"
+              :rows="3"
+              placeholder="请输入备注（选填）"
+            />
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmCheckout" :loading="submitting">
+          确认
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -92,9 +117,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useCart } from '@/stores/cart'
+import { useOrder } from '@/stores/order'
 
 const router = useRouter()
 const cartStore = useCart()
+const orderStore = useOrder()
 
 const cartList = computed(() => cartStore.cartList)
 const selectedItems = computed(() => cartStore.selectedItems)
@@ -108,6 +135,10 @@ const selectAll = computed({
   get: () => cartList.value.length > 0 && cartList.value.every(item => item.selected),
   set: (value) => cartStore.toggleSelectAll(value)
 })
+
+const dialogVisible = ref(false)
+const remark = ref('')
+const submitting = ref(false)
 
 const handleSelectAll = (value) => {
   cartStore.toggleSelectAll(value)
@@ -145,12 +176,34 @@ const clearSelected = () => {
   }).catch(() => {})
 }
 
-const checkout = () => {
+const openCheckoutDialog = () => {
   if (selectedItems.value.length === 0) {
     ElMessage.warning('请选择要结算的商品')
     return
   }
-  router.push('/shopping/order')
+  remark.value = ''
+  dialogVisible.value = true
+}
+
+const confirmCheckout = async () => {
+  submitting.value = true
+  try {
+    // 创建订单（传递备注）
+    await orderStore.createOrder(selectedItems.value, remark.value)
+
+    // 清空购物车中已结算的商品
+    // for (const item of selectedItems.value) {
+    //   await cartStore.removeFromCart(item.id)
+    // }
+
+    ElMessage.success('订单创建成功')
+    dialogVisible.value = false
+    router.push('/shopping/order')
+  } catch (error) {
+    ElMessage.error('订单创建失败')
+  } finally {
+    submitting.value = false
+  }
 }
 
 const goShopping = () => {
@@ -311,5 +364,9 @@ onMounted(() => {
       }
     }
   }
+}
+
+.checkout-content {
+  padding: 10px 0;
 }
 </style>
