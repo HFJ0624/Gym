@@ -31,6 +31,12 @@ const router = createRouter({
           meta: { title: '首页' },
         },
         {
+          path: '/user/chat',
+          name: 'UserChat',
+          component: () => import('@/views/chat/UserChat.vue'),
+          meta: { title: '在线客服' }
+        },
+        {
           path: 'venues',
           name: 'venues',
           component: () => import('@/views/venue/list.vue'),

@@ -10,6 +10,7 @@
           <router-link class="item" to="/venueComment" :class="{ active: isActive('/venueComment') }">场馆评论</router-link>
           <router-link class="item" to="/notice" :class="{ active: isActive('/notice') }">公告</router-link>
           <router-link class="item" to="/order" :class="{ active: isActive('/order') }">我的预约</router-link>
+          <router-link class="item" to="/user/chat" :class="{ active: isActive('/user/chat') }">在线客服</router-link>
           <router-link class="item" to="/profile" :class="{ active: isActive('/profile') }">个人中心</router-link>
         </nav>
         <div class="right">

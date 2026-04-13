@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sau.gym.admin.mapper.ChatMessageMapper">
+
+    <resultMap id="BaseResultMap" type="com.sau.gym.model.entity.chat.ChatMessage">
+        <id column="id" property="id"/>
+        <result column="conversation_id" property="conversationId"/>
+        <result column="sender_type" property="senderType"/>
+        <result column="sender_id" property="senderId"/>
+        <result column="content" property="content"/>
+        <result column="is_read" property="isRead"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.sau.gym.model.entity.chat.ChatMessage">
+        insert into chat_messages
+            (conversation_id, sender_type, sender_id, content, created_at)
+        values
+            (#{conversationId}, #{senderType}, #{senderId}, #{content}, now())
+    </insert>
+
+    <select id="selectByConversationId" resultMap="BaseResultMap">
+        select * from chat_messages
+        where conversation_id = #{conversationId}
+        order by created_at asc
+    </select>
+
+</mapper>

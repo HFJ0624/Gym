@@ -113,7 +113,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useCart } from '@/stores/cart'
@@ -191,9 +191,16 @@ const confirmCheckout = async () => {
     // 创建订单（传递备注）
     await orderStore.createOrder(selectedItems.value, remark.value)
 
-    ElMessage.success('订单创建成功')
+    // 先关闭对话框
     dialogVisible.value = false
+
+    // 👉 关键：跳页面前先重新拉一次最新订单
+    await orderStore.loadOrders(1, 10, '') 
+
+    // 再跳转
     router.push('/shopping/order')
+    // 显示成功提示
+    ElMessage.success('订单创建成功')
   } catch (error) {
     ElMessage.error('订单创建失败')
   } finally {

@@ -52,31 +52,6 @@
               <span class="total">
                 共 {{ order.totalQuantity }} 件商品，合计: <em>¥{{ order.totalAmount }}</em>
               </span>
-              <div class="order-actions">
-                <el-button
-                  v-if="order.status === 1"
-                  type="danger"
-                  size="small"
-                  @click="cancelOrder(order)"
-                >
-                  取消订单
-                </el-button>
-                <el-button
-                  v-if="order.status === 1"
-                  type="primary"
-                  size="small"
-                  @click="payOrder(order)"
-                >
-                  立即支付
-                </el-button>
-                <el-button
-                  type="default"
-                  size="small"
-                  @click="viewOrder(order)"
-                >
-                  查看详情
-                </el-button>
-              </div>
             </div>
           </div>
         </div>
@@ -145,49 +120,11 @@ const loadOrders = async () => {
     total.value = orderList.value.length
   } catch (error) {
     console.error('加载订单失败:', error)
-    ElMessage.error('加载订单失败')
   }
-}
-
-const cancelOrder = async (order) => {
-  ElMessageBox.confirm('确定要取消这个订单吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    try {
-      await orderStore.cancelOrder(order.id)
-      ElMessage.success('订单已取消')
-    } catch (error) {
-      console.error('取消订单失败:', error)
-      ElMessage.error('取消订单失败')
-    }
-  }).catch(() => {})
-}
-
-const payOrder = async (order) => {
-  ElMessageBox.confirm(`确认支付 ¥${order.totalAmount} 吗？`, '支付确认', {
-    confirmButtonText: '确认支付',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    try {
-      await orderStore.payOrder(order.id)
-      ElMessage.success('支付成功')
-    } catch (error) {
-      console.error('支付失败:', error)
-      ElMessage.error('支付失败')
-    }
-  }).catch(() => {})
-}
-
-const viewOrder = (order) => {
-  ElMessage.info('订单详情功能开发中')
 }
 
 onMounted(() => {
   loadOrders()
-  total.value = orderList.value.length
 })
 </script>
 
@@ -316,11 +253,6 @@ onMounted(() => {
           font-size: 20px;
           font-weight: bold;
         }
-      }
-
-      .order-actions {
-        display: flex;
-        gap: 10px;
       }
     }
   }

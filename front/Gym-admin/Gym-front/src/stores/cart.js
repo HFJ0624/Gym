@@ -125,6 +125,26 @@ export const useCart = defineStore('cart', {
       } catch (error) {
         console.error('清空购物车失败:', error)
       }
+    },
+
+    // 批量删除选中的商品
+    async removeSelectedItems() {
+      try {
+        const selectedIds = this.cartList
+          .filter(item => item.selected)
+          .map(item => item.id)
+
+        // TODO: 后端接口调用 - 批量删除
+        // for (const id of selectedIds) {
+        //   await DeleteCartItem(id)
+        // }
+
+        // 先更新本地数据
+        this.cartList = this.cartList.filter(item => !item.selected)
+        this.cartCount = this.cartList.length
+      } catch (error) {
+        console.error('删除选中商品失败:', error)
+      }
     }
   }
 })
