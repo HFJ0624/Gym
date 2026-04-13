@@ -15,9 +15,9 @@
 
     <insert id="insert" parameterType="com.sau.gym.model.entity.chat.ChatMessage">
         insert into chat_messages
-            (conversation_id, sender_type, sender_id, content, created_at)
+        (conversation_id, sender_type, sender_id, receive_user_id, content, created_at)
         values
-            (#{conversationId}, #{senderType}, #{senderId}, #{content}, now())
+            (#{conversationId}, #{senderType}, #{senderId}, #{receiveUserId}, #{content}, now())
     </insert>
 
     <select id="selectByConversationId" resultMap="BaseResultMap">
@@ -25,5 +25,27 @@
         where conversation_id = #{conversationId}
         order by created_at asc
     </select>
+
+    <!-- 2. 客服 ↔ 用户 双向历史消息（完全适配你的表结构）
+         逻辑：找到客服(adminId=1)和用户(userId)之间的所有对话
+         1. 用户发给客服：sender_type='user' AND sender_id=userId
+         2. 客服发给用户：sender_type='admin' AND sender_id=adminId
+         且 conversation_id 属于双方的对话
+    -->
+    <select id="selectAdminUserChat" resultType="com.sau.gym.model.entity.chat.ChatMessage">
+        SELECT * FROM chat_messages
+        WHERE
+            (
+                -- 用户发给客服
+                sender_type = 'user' AND sender_id = #{userId}
+                )
+           OR
+            (
+                -- 客服发给用户（关键：查 receive_user_id）
+                sender_type = 'admin' AND sender_id = #{adminId} AND receive_user_id = #{userId}
+                )
+        ORDER BY created_at ASC
+    </select>
+
 
 </mapper>

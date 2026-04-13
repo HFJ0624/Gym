@@ -50,6 +50,7 @@ public class ChatServiceImpl implements ChatService {
         message.setSenderType(dto.getSenderType());
         message.setSenderId(dto.getSenderId());
         message.setContent(dto.getContent());
+        message.setReceiveUserId(dto.getReceiveUserId());
         messageMapper.insert(message);
     }
 
@@ -75,5 +76,10 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public void createConversation(ChatConversation conversation) {
         conversationMapper.insert(conversation);
+    }
+
+    @Override
+    public List<ChatMessage> getAdminUserChatHistory(Long adminId, Long userId) {
+        return messageMapper.selectAdminUserChat(adminId, userId);
     }
 }

@@ -27,4 +27,7 @@ public class ChatMessage {
     private Integer isRead;
 
     private LocalDateTime createdAt;
+
+    private Long receiveUserId; // 接收者ID（用户发给客服时=1，客服发给用户时=用户ID）
+
 }

@@ -38,7 +38,7 @@ const authStore = useAuth()
 const userInfo = ref({
   id: authStore.user.id || 1,
   avatar: authStore.user.avatar || 'https://picsum.photos/id/1012/40/40',
-  nickname: authStore.user.nickname || '用户'
+  userName: authStore.user.username
 })
 
 // ✅ 确保永远是数组
@@ -114,10 +114,11 @@ function send() {
   const data = {
     senderType: 'user',
     senderId: userInfo.value.id,
-    userName: userInfo.value.nickname,
+    userName: userInfo.value.userName,
     userAvatar: userInfo.value.avatar,
     content: content.value,
-    conversation_id: userInfo.value.id
+    conversationId: userInfo.value.id,
+    receiveUserId: 1
   }
 
   socket.send(JSON.stringify(data))

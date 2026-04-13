@@ -19,4 +19,6 @@ public interface ChatService {
 
 
     void createConversation(ChatConversation conversation);
+
+    List<ChatMessage> getAdminUserChatHistory(Long adminId, Long userId);
 }

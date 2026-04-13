@@ -29,11 +29,14 @@ public class ChatController {
     //获取历史聊天记录
     @GetMapping("/history/{userId}")
     public Result getHistory(@PathVariable Long userId) {
-        List<ChatMessage> list = chatService.getHistory(userId);
+        // 固定客服ID = 1
+        Long adminId = 1L;
+        // 查询：该用户 + 客服 双向消息
+        List<ChatMessage> list = chatService.getAdminUserChatHistory(adminId, userId);
         return Result.build(list, ResultCodeEnum.SUCCESS);
     }
 
-    //
+
     @GetMapping("/admin/users")
     public Result getAllUsers() {
         List<ChatConversation> list = chatService.getAllUserConversations();

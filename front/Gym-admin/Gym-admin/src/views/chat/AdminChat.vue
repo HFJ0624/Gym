@@ -79,9 +79,7 @@ let socket = null
 const userListLoading = ref(true)
 const socketConnected = ref(false)
 
-// ======================
-// 1. 修复 WebSocket 接收逻辑：正确按用户ID隔离消息
-// ======================
+// 连接WebSocket
 function connect() {
   const wsUrl = `ws://localhost:9601/admin/chatAdmin/ws/chat/admin/${ADMIN_ID}`
   socket = new WebSocket(wsUrl)
@@ -93,25 +91,14 @@ function connect() {
 
   socket.onmessage = (e) => {
     try {
-      let msg = JSON.parse(e.data)
-      // 兼容后端缺失字段，强制补全
-      msg = {
-        senderType: msg.senderType || 'user',
-        content: msg.content || msg,
-        senderId: msg.senderId,
-        receiveUserId: msg.receiveUserId, // 后端必须返回接收者ID
-        ...msg
-      }
+      const msg = JSON.parse(e.data)
+      if (!currentUser.value) return
 
-      // 🔥 核心修复：正确判断消息是否属于当前选中用户
-      // 规则：消息的接收者是当前用户，或者消息的发送者是当前用户
-      const isCurrentUserMsg = 
-        currentUser.value && 
-        (msg.senderId === currentUser.value.userId || msg.receiveUserId === currentUser.value.userId)
+      const isCurrentMsg =
+        (msg.senderType === 'user' && msg.senderId === currentUser.value.userId) ||
+        (msg.senderType === 'admin' && msg.receiveUserId === currentUser.value.userId)
 
-      if (isCurrentUserMsg) {
-        // 强制保证msgList是数组，再push
-        if (!Array.isArray(msgList.value)) msgList.value = []
+      if (isCurrentMsg) {
         msgList.value.push(msg)
         scrollBottom()
       }
@@ -130,9 +117,7 @@ function connect() {
   }
 }
 
-// ======================
-// 2. 加载用户列表（无改动，仅保留）
-// ======================
+// 加载用户列表
 async function loadUserList() {
   userListLoading.value = true
   try {
@@ -140,56 +125,34 @@ async function loadUserList() {
     userList.value = res.data || []
   } catch (err) {
     ElMessage.error('用户列表加载失败')
-    console.error(err)
   } finally {
     userListLoading.value = false
   }
 }
 
-// ======================
-// 3. 修复选择用户：强制重置数组，彻底隔离聊天记录
-// ======================
+// 选择用户 → 加载历史
 async function selectUser(user) {
-  // 先清空当前聊天，防止旧数据污染
   msgList.value = []
   currentUser.value = user
 
   try {
     const res = await service.get(`/admin/chat/chatAdmin/history/${user.userId}`)
-    // 🔥 强制保证返回的是数组，彻底解决非数组问题
-    msgList.value = Array.isArray(res.data) ? res.data : []
+    msgList.value = res.data || []
     scrollBottom()
   } catch (err) {
-    msgList.value = [] // 报错也清空，避免串号
     ElMessage.error('聊天记录加载失败')
-    console.error(err)
   }
 }
 
-// ======================
-// 4. 发送消息（修复：添加receiveUserId，确保后端能正确路由）
-// ======================
+// 发送消息（绝对不报错！）
 function send() {
-  if (!socketConnected.value) {
-    ElMessage.warning('未连接，无法发送')
-    return
-  }
-  if (!currentUser.value || !content.value.trim()) {
-    ElMessage.warning('请输入内容')
-    return
-  }
-
-  // 强制保证msgList是数组
-  if (!Array.isArray(msgList.value)) msgList.value = []
+  if (!socketConnected.value || !currentUser.value || !content.value.trim()) return
 
   const data = {
     senderType: 'admin',
     senderId: ADMIN_ID,
-    receiveUserId: currentUser.value.userId, // 🔥 必须带接收者ID，后端用来路由
-    userName: '客服',
-    userAvatar: adminAvatar,
-    content: content.value.trim(),
-    conversation_id: currentUser.value.userId
+    receiveUserId: currentUser.value.userId, // 🔥 必须传！
+    content: content.value.trim()
   }
 
   socket.send(JSON.stringify(data))
@@ -198,9 +161,7 @@ function send() {
   scrollBottom()
 }
 
-// ======================
-// 5. 滚动到底部（无改动，仅保留）
-// ======================
+// 滚动到底
 function scrollBottom() {
   nextTick(() => {
     if (msgRef.value) {
@@ -235,7 +196,7 @@ onBeforeUnmount(() => {
   width: 260px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow-y: auto;
 }
 .side-title {
@@ -279,7 +240,7 @@ onBeforeUnmount(() => {
   flex: 1;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -301,50 +262,39 @@ onBeforeUnmount(() => {
 }
 .msg-list {
   flex: 1;
-  overflow-y: auto;
   padding: 16px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 .msg-item {
   display: flex;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 10px;
 }
 .msg-item.left {
-  align-self: flex-start;
+  justify-content: flex-start;
 }
 .msg-item.right {
-  align-self: flex-end;
   flex-direction: row-reverse;
 }
-.msg-item .avatar {
-  flex-shrink: 0;
-}
-.msg-item .bubble {
-  max-width: 70%;
+.bubble {
+  max-width: 65%;
   padding: 8px 12px;
   border-radius: 12px;
+  background: #f5f5f5;
+  word-break: break-all;
   font-size: 14px;
-  line-height: 1.5;
 }
-.msg-item.left .bubble {
-  background: #f5f7fa;
-  color: #333;
-  border-bottom-left-radius: 0;
-}
-.msg-item.right .bubble {
+.right .bubble {
   background: #409eff;
   color: #fff;
-  border-bottom-right-radius: 0;
 }
 .input-bar {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   padding: 12px 16px;
   border-top: 1px solid #eee;
-}
-.input-bar .el-input {
-  flex: 1;
 }
 </style>

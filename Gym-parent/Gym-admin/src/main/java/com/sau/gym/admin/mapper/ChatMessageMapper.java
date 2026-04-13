@@ -13,4 +13,6 @@ public interface ChatMessageMapper {
 
     // 根据会话ID查询历史消息
     List<ChatMessage> selectByConversationId(Long conversationId);
+
+    List<ChatMessage> selectAdminUserChat(Long adminId, Long userId);
 }
