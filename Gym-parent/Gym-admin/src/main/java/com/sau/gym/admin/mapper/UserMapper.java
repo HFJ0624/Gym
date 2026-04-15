@@ -46,4 +46,7 @@ public interface UserMapper {
 
     //批量插入数据
     void batchInsert(List<User> userList);
+
+    //加载客服个人信息
+    User selectAdmin();
 }

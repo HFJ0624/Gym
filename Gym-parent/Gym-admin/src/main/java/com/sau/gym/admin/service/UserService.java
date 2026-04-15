@@ -56,4 +56,7 @@ public interface UserService {
 
     //导入用户数据功能
     void importData(MultipartFile file);
+
+    //加载客服个人信息
+    User selectAdmin();
 }

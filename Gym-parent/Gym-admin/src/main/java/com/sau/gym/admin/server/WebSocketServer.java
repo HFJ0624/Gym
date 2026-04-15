@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:websocket服务端
  * 日期: 2026/4/13 15:59
  */
 @Slf4j

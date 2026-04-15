@@ -1,5 +1,4 @@
 <template>
-  <!-- 直接嵌入主内容区，完全适配你的 FrontLayout 布局 -->
   <div class="chat-page-wrapper">
     <div class="chat-container">
       <div class="chat-header">
@@ -8,6 +7,7 @@
       </div>
 
       <div class="msg-list" ref="msgRef">
+        <!-- 1. 增加时间渲染 -->
         <div
           v-for="(msg, index) in msgList"
           :key="index"
@@ -15,9 +15,11 @@
           :class="msg.senderType === 'user' ? 'right' : 'left'"
         >
           <div class="avatar">
-            <img :src="msg.senderType === 'user' ? userInfo.avatar : 'https://picsum.photos/id/1005/40/40'" alt="头像">
+            <img :src="msg.senderType === 'user' ? userInfo.avatar : (msg.userAvatar || adminInfo.avatar)" alt="头像">
           </div>
           <div class="bubble">{{ msg.content }}</div>
+          <!-- 2. 时间气泡 -->
+          <div class="time">{{ formatTime(msg.createdAt || msg.created_at) }}</div>
         </div>
       </div>
 
@@ -30,16 +32,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAuth } from '@/stores/auth'
 
 const authStore = useAuth()
-const userInfo = ref({
-  id: authStore.user.id || 1,
-  avatar: authStore.user.avatar || 'https://picsum.photos/id/1012/40/40',
-  userName: authStore.user.username
+
+// 使用 computed 响应式获取用户信息
+const userInfo = computed(() => ({
+  id: authStore.user?.id || 1,
+  avatar: authStore.user?.avatar || 'https://picsum.photos/id/1012/40/40',
+  username: authStore.user?.username || '用户'
+}))
+
+// 客服信息
+const adminInfo = ref({
+  id: 1,
+  avatar: 'https://picsum.photos/id/1005/40/40',
+  username: '客服'
 })
+
+// 加载客服信息
+async function loadAdminInfo() {
+  try {
+    const res = await fetch(`http://localhost:9601/admin/chat/chatAdmin/admin/info`)
+    const data = await res.data()
+    if (data) {
+      adminInfo.value = {
+        id: data.id || 1,
+        avatar: data.avatar || 'https://picsum.photos/id/1005/40/40',
+        username: data.username || '客服'
+      }
+    }
+  } catch (e) {
+    console.log('加载客服信息失败，使用默认值')
+  }
+}
 
 // ✅ 确保永远是数组
 const msgList = ref([])
@@ -47,6 +75,20 @@ const content = ref('')
 const msgRef = ref(null)
 let socket = null
 const socketConnected = ref(false)
+
+// 3. 新增：时间格式化函数
+function formatTime(timeStr) {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  // 格式化为：月-日 时:分
+  return date.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).replace(/\//g, '-')
+}
 
 function connect() {
   const wsUrl = `ws://localhost:9601/admin/chatAdmin/ws/chat/user/${userInfo.value.id}`
@@ -64,6 +106,7 @@ function connect() {
       const newMsg = {
         senderType: msg.senderType || 'admin',
         content: msg.content || msg,
+        createdAt: msg.createdAt || msg.created_at, // 4. 确保时间字段被正确接收
         ...msg
       }
       // ✅ 强制保证是数组再 push
@@ -111,14 +154,17 @@ function send() {
     msgList.value = []
   }
 
+  // 5. 发送时带上当前本地时间（如果后端不自动生成）
+  const sendTime = new Date().toISOString()
   const data = {
     senderType: 'user',
     senderId: userInfo.value.id,
-    userName: userInfo.value.userName,
+    userName: userInfo.value.username,
     userAvatar: userInfo.value.avatar,
     content: content.value,
     conversationId: userInfo.value.id,
-    receiveUserId: 1
+    receiveUserId: 1,
+    createdAt: sendTime // 可选，让前端先显示，等后端返回后更新
   }
 
   socket.send(JSON.stringify(data))
@@ -134,6 +180,7 @@ function scrollBottom() {
 }
 
 onMounted(() => {
+  loadAdminInfo()
   connect()
   loadHistory()
 })
@@ -149,7 +196,7 @@ onBeforeUnmount(() => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 18px; /* 和你 header 的 inner 内边距完全一致 */
+  padding: 0 18px;
   box-sizing: border-box;
 }
 .chat-container {
@@ -158,7 +205,6 @@ onBeforeUnmount(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
-  /* 关键高度：精准适配你的 header(64px) + footer(24px*2) + 上下间距 */
   height: calc(100vh - 64px - 88px);
   overflow: hidden;
 }
@@ -191,6 +237,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  flex-wrap: wrap;
 }
 .msg-item.left {
   justify-content: flex-start;
@@ -199,29 +246,55 @@ onBeforeUnmount(() => {
   flex-direction: row-reverse;
 }
 .avatar img {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
 }
 .bubble {
   max-width: 65%;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 12px;
   background: #f5f5f5;
   word-break: break-all;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
 }
 .right .bubble {
-  background: #409eff;
+  background: #04ad1b;
   color: #fff;
 }
+.time {
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 🔥 放大输入框区域 核心修改 */
 .input-bar {
   display: flex;
   gap: 10px;
-  padding: 12px 16px;
+  /* 增大上下内边距，更舒展 */
+  padding: 18px;
   border-top: 1px solid #eee;
   background: #fafafa;
+}
+/* 放大 ElementPlus 输入框 */
+:deep(.el-input) {
+  height: 48px;
+}
+:deep(.el-input__wrapper) {
+  height: 100%;
+}
+:deep(.el-input__inner) {
+  font-size: 15px;
+}
+/* 放大发送按钮，和输入框对齐 */
+:deep(.el-button) {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
 }
 </style>

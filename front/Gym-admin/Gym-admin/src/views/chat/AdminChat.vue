@@ -13,7 +13,11 @@
           @click="selectUser(u)"
         >
           <div class="avatar">
-            <img :src="u.userAvatar || defaultAvatar" alt="头像" />
+            <img :src="u.userAvatar || defaultAvatar" alt="avatar" />
+            <!-- 🔥 未读红点：大于0显示 -->
+            <div class="unread-dot" v-if="u.unreadCount > 0">
+              <span class="dot">{{ u.unreadCount }}</span>
+            </div>
           </div>
           <div class="name">{{ u.userName }}</div>
         </div>
@@ -37,10 +41,12 @@
             <div class="avatar">
               <img
                 :src="msg.senderType === 'admin' ? adminAvatar : currentUser.userAvatar || defaultAvatar"
-                alt="头像"
+                alt="avatar"
               />
             </div>
             <div class="bubble">{{ msg.content }}</div>
+            <!-- 🔥 可选：消息时间展示（你之前需要的create_at） -->
+            <div class="time">{{ formatTime(msg.created_at || msg.createdAt) }}</div>
           </div>
         </div>
 
@@ -61,13 +67,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import service from '@/utils/request'
+import { useAccount } from '@/pinia/modules/account';
 
-const ADMIN_ID = 1
-const defaultAvatar = 'https://picsum.photos/id/1012/40/40'
-const adminAvatar = 'https://picsum.photos/id/1005/40/40'
+let ADMIN_ID = ref(null)
+const defaultAvatar = ref('https://picsum.photos/id/1012/40/40')
+
+const accountStore = useAccount()
+
+const adminAvatar = computed(() => {
+  return accountStore.userinfo?.avatar || defaultAvatar.value
+})
+
+const userInfo = computed(() => ({
+  id: accountStore.userinfo?.id || 1,
+  avatar: accountStore.userinfo?.avatar || defaultAvatar.value,
+  username: accountStore.userinfo?.username || '未登录'
+}))
 
 const userList = ref([])
 const currentUser = ref(null)
@@ -79,9 +97,22 @@ let socket = null
 const userListLoading = ref(true)
 const socketConnected = ref(false)
 
+// 🔥 时间格式化（精确到秒，兼容create_at字段）
+function formatTime(timeStr) {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  return date.toLocaleString('zh-CN', {
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit',
+    second: '2-digit' // 🔥 新增：精确到秒
+  }).replace(/\//g, '-')
+}
+
 // 连接WebSocket
 function connect() {
-  const wsUrl = `ws://localhost:9601/admin/chatAdmin/ws/chat/admin/${ADMIN_ID}`
+  const wsUrl = `ws://localhost:9601/admin/chatAdmin/ws/chat/admin/${userInfo.value.id}`
   socket = new WebSocket(wsUrl)
 
   socket.onopen = () => {
@@ -92,8 +123,19 @@ function connect() {
   socket.onmessage = (e) => {
     try {
       const msg = JSON.parse(e.data)
-      if (!currentUser.value) return
+      // 🔥 收到【用户发送的消息】：未读计数+1
+      if (msg.senderType === 'user') {
+        userList.value.forEach(user => {
+          if (user.userId === msg.senderId) {
+            // 不是当前选中的用户，才累加未读
+            if (!currentUser.value || currentUser.value.userId !== user.userId) {
+              user.unreadCount = (user.unreadCount || 0) + 1
+            }
+          }
+        })
+      }
 
+      if (!currentUser.value) return
       const isCurrentMsg =
         (msg.senderType === 'user' && msg.senderId === currentUser.value.userId) ||
         (msg.senderType === 'admin' && msg.receiveUserId === currentUser.value.userId)
@@ -122,7 +164,11 @@ async function loadUserList() {
   userListLoading.value = true
   try {
     const res = await service.get('/admin/chat/chatAdmin/admin/users')
-    userList.value = res.data || []
+    // 🔥 初始化：给每个用户添加未读计数=0
+    userList.value = (res.data || []).map(item => ({
+      ...item,
+      unreadCount: 0
+    }))
   } catch (err) {
     ElMessage.error('用户列表加载失败')
   } finally {
@@ -130,10 +176,12 @@ async function loadUserList() {
   }
 }
 
-// 选择用户 → 加载历史
+// 选择用户 → 加载历史 + 清空未读
 async function selectUser(user) {
   msgList.value = []
   currentUser.value = user
+  // 🔥 选中用户：清空未读红点
+  user.unreadCount = 0
 
   try {
     const res = await service.get(`/admin/chat/chatAdmin/history/${user.userId}`)
@@ -144,14 +192,16 @@ async function selectUser(user) {
   }
 }
 
-// 发送消息（绝对不报错！）
+// 发送消息
 function send() {
   if (!socketConnected.value || !currentUser.value || !content.value.trim()) return
 
   const data = {
     senderType: 'admin',
-    senderId: ADMIN_ID,
-    receiveUserId: currentUser.value.userId, // 🔥 必须传！
+    senderId: userInfo.value.id,
+    userName: userInfo.value.username,
+    userAvatar: userInfo.value.avatar,
+    receiveUserId: currentUser.value.userId,
     content: content.value.trim()
   }
 
@@ -171,6 +221,7 @@ function scrollBottom() {
 }
 
 onMounted(() => {
+  accountStore.getUserinfo()
   connect()
   loadUserList()
 })
@@ -219,6 +270,8 @@ onBeforeUnmount(() => {
   padding: 10px 16px;
   cursor: pointer;
   transition: background 0.2s;
+  /* 🔥 红点定位父级 */
+  position: relative;
 }
 .user-item:hover {
   background: #f5f7fa;
@@ -226,11 +279,33 @@ onBeforeUnmount(() => {
 .user-item.active {
   background: #e8f3ff;
 }
+.avatar {
+  position: relative; /* 🔥 红点定位 */
+}
 .avatar img {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
+}
+/* 🔥 未读红点样式 */
+.unread-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  z-index: 1;
+}
+.dot {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 9px;
+  background: #f56c6c;
+  color: #fff;
+  font-size: 11px;
+  text-align: center;
+  padding: 0 2px;
 }
 .name {
   font-size: 14px;
@@ -272,6 +347,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  flex-wrap: wrap; /* 🔥 时间换行 */
 }
 .msg-item.left {
   justify-content: flex-start;
@@ -279,22 +355,57 @@ onBeforeUnmount(() => {
 .msg-item.right {
   flex-direction: row-reverse;
 }
+
 .bubble {
   max-width: 65%;
-  padding: 8px 12px;
+  padding: 12px 16px;
   border-radius: 12px;
-  background: #f5f5f5;
   word-break: break-all;
-  font-size: 14px;
-}
-.right .bubble {
-  background: #409eff;
+  font-size: 16px;
   color: #fff;
 }
+.msg-item.left .bubble {
+  background: #d8dad6;
+}
+.msg-item.right .bubble {
+  background: #04ad1b;
+}
+/* 🔥 消息时间样式 */
+.time {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* ====================== 🔥 核心修改：放大输入框 ====================== */
 .input-bar {
   display: flex;
   gap: 10px;
-  padding: 12px 16px;
+  /* 增加上下内边距，让输入栏更高 */
+  padding: 16px;
   border-top: 1px solid #eee;
+  background: #fafafa;
+}
+/* 深度修改 ElementPlus 输入框样式：放大高度、内边距 */
+:deep(.el-input) {
+  height: 52px;
+}
+:deep(.el-input__wrapper) {
+  height: 100%;
+  box-shadow: none;
+  border: 1px solid #eee;
+}
+:deep(.el-input__inner) {
+  height: 100%;
+  font-size: 15px;
+  padding: 0 12px;
+}
+/* 同步放大发送按钮，和输入框对齐 */
+:deep(.el-button) {
+  height: 52px;
+  padding: 0 24px;
+  font-size: 15px;
 }
 </style>

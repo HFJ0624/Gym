@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.listener.ExcelListener;
-import com.sau.gym.admin.mapper.RoleMapper;
 import com.sau.gym.admin.mapper.RoleUserMapper;
 import com.sau.gym.admin.mapper.UserMapper;
 import com.sau.gym.admin.service.UserService;
@@ -33,7 +32,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -343,5 +341,12 @@ public class UserServiceImpl implements UserService {
         } catch (IOException e) {
             throw new SauException(ResultCodeEnum.DATA_ERROR);
         }
+    }
+
+    //加载客服个人信息
+    @Override
+    public User selectAdmin() {
+        User user = userMapper.selectAdmin();
+        return user;
     }
 }

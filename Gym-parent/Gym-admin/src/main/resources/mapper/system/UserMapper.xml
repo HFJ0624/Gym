@@ -176,4 +176,11 @@
         </foreach>
     </insert>
 
+    <!--  加载客服个人信息,id为1的就是客服  -->
+    <select id="selectAdmin" resultType="com.sau.gym.model.entity.user.User">
+        select id,avatar,username
+        from user
+        where id = 1 and is_deleted = 0
+    </select>
+
 </mapper>

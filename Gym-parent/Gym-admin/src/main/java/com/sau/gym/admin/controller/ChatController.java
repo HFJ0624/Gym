@@ -1,10 +1,12 @@
 package com.sau.gym.admin.controller;
 
 import com.sau.gym.admin.service.ChatService;
+import com.sau.gym.admin.service.UserService;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.chat.ChatConversation;
 import com.sau.gym.model.entity.chat.ChatMessage;
+import com.sau.gym.model.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +17,7 @@ import java.util.List;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:实现websocket的在线聊天功能
  * 日期: 2026/4/13 16:05
  */
 
@@ -25,6 +27,9 @@ public class ChatController {
 
     @Autowired
     private ChatService chatService;
+
+    @Autowired
+    private UserService userService;
 
     //获取历史聊天记录
     @GetMapping("/history/{userId}")
@@ -37,9 +42,17 @@ public class ChatController {
     }
 
 
+    //加载用户会话信息
     @GetMapping("/admin/users")
     public Result getAllUsers() {
         List<ChatConversation> list = chatService.getAllUserConversations();
         return Result.build(list, ResultCodeEnum.SUCCESS);
+    }
+
+    //加载客服个人信息
+    @GetMapping("/admin/info")
+    public Result getAdminInfo() {
+        User user = userService.selectAdmin();
+        return Result.build(user, ResultCodeEnum.SUCCESS);
     }
 }

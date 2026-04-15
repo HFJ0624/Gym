@@ -37,7 +37,7 @@ public class ChatServiceImpl implements ChatService {
         if (conversation == null) {
             conversation = new ChatConversation();
             conversation.setUserId(dto.getSenderId());
-            conversation.setUserName(dto.getUserName() == null ? "用户" + dto.getSenderId() : dto.getUserName());
+            conversation.setUserName(dto.getUserName());
             conversation.setUserAvatar(dto.getUserAvatar());
             conversation.setAdminId(1L);
             conversation.setStatus(1);
