@@ -11,7 +11,7 @@ export default [
         meta: {
             title: '系统公告',
         },
-        icon: 'Bell',
+        icon: 'Star',
         children: [
             {
                 path: '/notice',

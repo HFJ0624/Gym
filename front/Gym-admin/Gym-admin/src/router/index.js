@@ -14,12 +14,13 @@ import email from './modules/email'
 import visit from './modules/visit'
 import shopping from './modules/shopping'
 import chat from './modules/chat'
+import order from './modules/order'
 
 /* 菜单栏的路由 */
 // 固定菜单
 export const fixedRoutes = [...home]
 // 动态菜单
-export const asyncRoutes = [...system, ...stadium, ...booking, ...bulletin, ...visit, ...shopping, ...chat]
+export const asyncRoutes = [...system, ...stadium, ...booking, ...bulletin, ...visit, ...shopping, ...chat, ...order]
 
 const router = createRouter({
   history: createWebHashHistory(),

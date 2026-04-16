@@ -40,4 +40,24 @@
                )
     </insert>
 
+    <sql id="findPageWhereAdmin">
+        <where>
+            <if test="username != null and username != ''">
+                and u.username like CONCAT('%',#{username},'%')
+            </if>
+            <if test="remark != null and remark != ''">
+                and o.remark like CONCAT('%',#{remark},'%')
+            </if>
+            and o.is_deleted = 0
+        </where>
+    </sql>
+
+    <select id="findByPage" resultType="com.sau.gym.model.vo.order.OrderVO">
+        select u.username,u.phone,o.order_no as orderNo,o.total_price as totalPrice,o.status,o.remark,o.pay_time as payTime
+        from `order` o
+        left join user u on u.id = o.user_id
+        <include refid="findPageWhereAdmin"/>
+        order by o.id
+    </select>
+
 </mapper>

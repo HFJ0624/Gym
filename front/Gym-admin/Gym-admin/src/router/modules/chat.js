@@ -9,7 +9,7 @@ export default [
         meta: {
             title: '场馆客服',
         },
-        icon: 'Message',
+        icon: 'Location',
         children: [
             {
                 path: '/chatAdmin',
