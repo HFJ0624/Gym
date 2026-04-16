@@ -26,16 +26,21 @@
 import { ref, nextTick } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { useAuth } from '@/stores/auth'
 
 const showChat = ref(false)
 const inputMsg = ref('')
 const chatBody = ref(null)
+const authStore = useAuth()
 
+// 聊天消息列表
 const messages = ref([{
   role: 'ai',
   content: '你好！我是体育场馆AI客服，有什么可以帮你？'
 }])
 
+// ============== 核心1：获取当前登录用户ID（必须！记忆功能依赖） ==============
+const userId = ref(authStore.user?.id) 
 const send = async () => {
   if (!inputMsg.value.trim()) return ElMessage.warning('请输入内容')
 
@@ -44,15 +49,23 @@ const send = async () => {
   inputMsg.value = ''
 
   try {
-    const { data } = await axios.post('http://localhost:9601/front/agent/chat', { message: msg })
-    // ✅ 修复这里：你的后端返回 Result，所以取 data.data
+    // ============== 核心2：传递 userId + message 给后端 ==============
+    const { data } = await axios.post('http://localhost:9601/front/agent/chat', null,{
+      params: {
+        userId: userId.value,
+        message: msg
+      }
+    })
+    
     messages.value.push({ role: 'ai', content: data.data })
   } catch (e) {
     ElMessage.error('连接 AI 服务失败')
+    console.error(e)
   }
 
+  // ============== 核心3：修复滚动BUG（原变量名错误） ==============
   nextTick(() => {
-    bodyRef.value.scrollTop = bodyRef.value.scrollHeight
+    chatBody.value.scrollTop = chatBody.value.scrollHeight
   })
 }
 </script>
