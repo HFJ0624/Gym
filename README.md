@@ -9,7 +9,7 @@
 
 前端技术:Vue3+Element Plus+Vite+Vue Router+JS
 
-后端技术:Java+SprinBoot+Mybatis+Mysql+redis+minio+docker+短信验证服务(现在需要公司认证)+邮箱推送功能+EasyExcel
+后端技术:Java+SprinBoot+Mybatis+Mysql+redis+minio+docker+Agent+短信验证服务(现在需要公司认证)+邮箱推送功能+EasyExcel
 
 ## 三、环境需求及部署
 
