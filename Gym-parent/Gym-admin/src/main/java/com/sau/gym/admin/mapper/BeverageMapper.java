@@ -26,4 +26,7 @@ public interface BeverageMapper {
 
     //更新库存
     void updateStock(Long id,Integer stock);
+
+    //根据商品名查数据库商品信息
+    Beverage selectByName(String productName);
 }

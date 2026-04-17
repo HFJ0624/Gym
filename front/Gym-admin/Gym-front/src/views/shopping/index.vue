@@ -71,6 +71,8 @@
         />
       </div>
     </div>
+    <!--  AI 客服小球  -->
+    <AiAssistant />
   </div>
 </template>
 
@@ -80,6 +82,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useCart } from '@/stores/cart'
 import { GetGoodsList } from '@/api/shopping'
+import AiAssistant from '@/components/AiAssistant.vue';
 
 const router = useRouter()
 const cartStore = useCart()

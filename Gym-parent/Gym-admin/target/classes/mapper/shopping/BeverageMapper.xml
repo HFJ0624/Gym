@@ -102,4 +102,10 @@
         where id = #{id}
     </update>
 
+    <select id="selectByName" resultMap="beverageMap">
+        select *
+        from beverage
+        where goods_name = #{productName} and is_deleted = 0
+    </select>
+
 </mapper>

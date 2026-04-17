@@ -37,6 +37,8 @@
         @current-change="fetchData"
       />
     </div> -->
+    <!--  AI 客服小球  -->
+    <AiAssistant />
   </div>
 </template>
 
@@ -45,6 +47,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElEmpty, ElPagination } from 'element-plus';
 import { GetAllNotice } from '@/api/notice';
+import AiAssistant from '@/components/AiAssistant.vue';
 
 const router = useRouter();
 

@@ -37,6 +37,8 @@
         </div>
       </div>
     </div>
+    <!--  AI 客服小球  -->
+    <AiAssistant />
   </div>
 </template>
 
@@ -46,6 +48,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Star, StarFilled } from '@element-plus/icons-vue'
 import { GetAllVenue, RecordVenueVisit, GetUserCollectedVenues, CollectVenue, UncollectVenue } from '@/api/venues'
+import AiAssistant from '@/components/AiAssistant.vue';
 
 const router = useRouter()
 const goDetail = async (id) => {

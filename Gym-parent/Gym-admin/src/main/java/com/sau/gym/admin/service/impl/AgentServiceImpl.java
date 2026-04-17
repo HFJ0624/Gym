@@ -5,18 +5,31 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.sau.gym.admin.mapper.*;
 import com.sau.gym.admin.service.AgentService;
+import com.sau.gym.admin.service.CourtBookingService;
+import com.sau.gym.admin.service.OrderService;
+import com.sau.gym.model.dto.order.OrderDto;
+import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.entity.chat.ChatRecord;
 import com.sau.gym.model.entity.notice.Notice;
+import com.sau.gym.model.entity.shopping.Beverage;
+import com.sau.gym.model.entity.shopping.Cart;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.entity.venue.Venue;
+import com.sau.gym.model.vo.court.CourtVO;
 import com.sau.gym.model.vo.venue.VenueCommentVO;
+import com.sau.gym.utils.AuthContextUtil;
+import jakarta.annotation.PostConstruct;
 import org.eclipse.jetty.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
+import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -35,7 +48,10 @@ public class AgentServiceImpl implements AgentService {
     private VenueMapper venueMapper;
 
     @Autowired
-    private CourtBookingMapper courtBookingMapper;
+    private CourtBookingMapper courtBookingMapper; //预约业务
+
+    @Autowired
+    private CourtMapper courtMapper;
 
     @Autowired
     private UserMapper userMapper;
@@ -45,6 +61,18 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private ChatRecordMapper chatRecordMapper;
+
+    @Autowired
+    private BeverageMapper beverageMapper;
+
+    @Autowired
+    private CartMapper cartMapper;
+
+    @Autowired
+    private OrderService orderService; //订单业务
+
+    @Autowired
+    private CourtBookingService courtBookingService;
 
     @Value("${doubao.api-key}")
     private String API_KEY;
@@ -113,13 +141,24 @@ public class AgentServiceImpl implements AgentService {
             // ===================== 3. 核心：上下文记忆（加载用户历史对话） =====================
             List<Map<String, String>> messages = new ArrayList<>();
             // 系统提示词（增强版规则）
-            String systemPrompt = "你是健身房专属智能客服，严格遵守以下规则：\n" +
-                    "1. 只回答健身房相关问题（场馆、预约、公告、评价、会员）\n" +
-                    "2. 必须使用【真实数据】回答，禁止编造信息\n" +
-                    "3. 记住用户之前的对话内容，上下文连贯\n" +
-                    "4. 回答简洁友好、口语化\n" +
-                    "5. 无答案时回复：暂无相关信息，请咨询管理员\n\n" +
-                    "【真实知识库】：\n" + knowledge;
+            String systemPrompt = "你是体育场馆智能助手，支持：聊天咨询、场馆预约、商城下单（购物车结算）\n" +
+                    "==================== 预约场馆 强制3步流程 ====================\n" +
+                    "必须严格按顺序追问，**缺少参数绝对不能生成JSON**：\n" +
+                    "第1步：询问用户【要预约的体育场馆名称】\n" +
+                    "第2步：询问用户【要预约的体育场馆场地名称】\n" +
+                    "第3步：询问用户【预约日期，格式：yyyy-MM-dd】\n" +
+                    "\n" +
+                    "==================== 规则说明 ====================\n" +
+                    "1. 预约必填3个参数：venueName(场馆名)、courtName(场地名称)、date(日期)\n" +
+                    "2. 商城下单必填：productName(商品名)、quantity(数量)\n" +
+                    "3. 参数不全**只能自然语言追问**，禁止生成JSON\n" +
+                    "4. 参数齐全后，**仅输出纯JSON**，不要任何多余文字\n" +
+                    "\n" +
+                    "==================== JSON输出格式 ====================\n" +
+                    "预约场馆：{\"action\":\"booking\",\"params\":{\"venueName\":\"\",\"courtName\":\"\",\"date\":\"\"}}\n" +
+                    "商城下单：{\"action\":\"shopping\",\"params\":{\"productName\":\"\",\"quantity\":1}}\n" +
+                    "\n" +
+                    "【健身房真实知识库】：\n" + knowledge;
 
             // 添加系统角色
             Map<String, String> systemMsg = new HashMap<>();
@@ -174,6 +213,25 @@ public class AgentServiceImpl implements AgentService {
                 aiReply = "AI服务异常：" + resp;
             }
 
+            // 6. 解析AI指令，执行业务
+            String finalReply = aiReply;
+            try {
+                String jsonStr = aiReply.trim();
+                if (jsonStr.startsWith("{")) {
+                    JSONObject toolCall = JSON.parseObject(jsonStr);
+                    String action = toolCall.getString("action");
+                    JSONObject params = toolCall.getJSONObject("params");
+                    if ("booking".equals(action)){
+                        finalReply = handleVenueBooking(userId, params);
+                    }
+                    if ("shopping".equals(action)){
+                        finalReply = handleShopping(userId, params);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             // ===================== 5. 聊天记录入库（持久化） =====================
             ChatRecord record = new ChatRecord();
             record.setUserId(userId);
@@ -186,11 +244,149 @@ public class AgentServiceImpl implements AgentService {
             chatRecordMapper.insertChatRecord(record);
 
             //返回回复内容
-            return aiReply;
+            return finalReply;
 
         } catch (Exception e) {
             e.printStackTrace();
             return "AI服务异常，请稍后再试";
         }
     }
+
+    // ================== 【无感购物车】自动加购+自动结算 ==================
+    @Transactional
+    public String handleShopping(Long userId, JSONObject params) {
+        try {
+            String productName = params.getString("productName");
+            Integer quantity = params.getInteger("quantity");
+
+            // 1. 根据商品名查数据库商品信息
+            Beverage beverage = beverageMapper.selectByName(productName);
+            if (beverage == null) {
+                return "❌ 下单失败：未找到商品【" + productName + "】，请确认商品名称";
+            }
+
+            // 2. 校验库存（先检查，避免白加购物车）
+            if (beverage.getStock() < quantity) {
+                return "❌ 下单失败：【" + productName + "】库存不足，当前库存：" + beverage.getStock();
+            }
+
+            // 3.校验是否上架
+            if (beverage.getStatus() == 2){
+                return "❌ 下单失败：商品【" + productName + "】已下架";
+            }
+
+            // 3. 【核心】自动后台插入购物车
+            Cart autoCart = new Cart();
+            autoCart.setUserId(userId);
+            autoCart.setGoodsId(beverage.getId());
+            autoCart.setGoodsName(beverage.getGoodsName());
+            autoCart.setPrice(beverage.getPrice());
+            autoCart.setQuantity(quantity);
+            autoCart.setImage(beverage.getImage()); // 假设Beverage有image字段
+            cartMapper.insert(autoCart); // 插入购物车，获取自增ID
+
+            // 4. 封装 OrderDto（只用刚才自动生成的这一个 cartId）
+            OrderDto orderDto = new OrderDto();
+            orderDto.setCartIds(Collections.singletonList(autoCart.getId()));
+            orderDto.setRemark("AI智能下单-自动加购");
+
+            // ================== 【修复空指针】手动将用户放入上下文 ==================
+            User user = userMapper.selectById(userId);
+            AuthContextUtil.set(user);
+
+            // 5. 调用你原有的下单方法（扣余额+减库存+清购物车）
+            orderService.CreateShoppingOrder(orderDto);
+
+            return "🛒 下单成功！\n" +
+                    "商品：" + beverage.getGoodsName() + "\n" +
+                    "数量：" + quantity + "\n" +
+                    "总价：" + beverage.getPrice().multiply(BigDecimal.valueOf(quantity)) + "\n" +
+                    "已自动结算，余额/库存已更新！";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "❌ 下单失败：" + e.getMessage();
+        }
+    }
+
+    // ================== 【预约】场馆+场地类型+日期 自动扣费 ==================
+    @Transactional
+    public String handleVenueBooking(Long userId, JSONObject params) {
+        try {
+            // 接收3个必填参数
+            String venueName = params.getString("venueName");
+            String courtName = params.getString("courtName");
+            String dateStr = params.getString("date");
+
+            // 1. 校验场馆是否存在
+            Venue targetVenue = venueList.stream()
+                    .filter(v -> v.getVenueName().equals(venueName))
+                    .findFirst()
+                    .orElse(null);
+            if (targetVenue == null) {
+                return "❌ 预约失败：不存在【" + venueName + "】这个场馆，请重新选择";
+            }
+
+            System.out.println("=============================================" + targetVenue);
+
+            // 3. 查询场地 + 模糊匹配名称
+            List<CourtVO> courts = courtMapper.getAllCourt(targetVenue.getId());
+            if (courts == null || courts.isEmpty()) {
+                return "❌ 预约失败：【" + venueName + "】暂无可用场地";
+            }
+
+            System.out.println("=============================================" + courts);
+
+            // 模糊匹配场地（包含即匹配）
+            CourtVO c = new CourtVO();
+            for (CourtVO courtVO : courts){
+                if (courtVO.getName().equals(courtName)){
+                    c = courtVO;
+                    break;
+                }
+            }
+            if (StringUtil.isBlank(c.getName())) {
+                return "❌ 预约失败：该【" + venueName + "】场馆的" + "【" + courtName + "】场地不存在";
+            }
+
+            // 3. 日期格式转换
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date bookingDate = sdf.parse(dateStr);
+
+
+            // 4. 封装你的原生 BookingDto（完全兼容你的代码）
+            BookingDto bookingDto = new BookingDto();
+            bookingDto.setCourtId(c.getId());
+            bookingDto.setCourtId(targetVenue.getId());
+            bookingDto.setBookingDate(bookingDate);
+            bookingDto.setUserId(userId);
+            bookingDto.setTotalPrice(c.getPrice());
+            bookingDto.setRemark("AI预约-" + venueName + "-" + c.getType());
+
+            // 5. 调用你原有预约接口（自动扣余额、校验库存）
+            courtBookingService.saveCourtBook(bookingDto);
+
+            // 6. 友好返回结果
+            return "✅ 预约成功！\n" +
+                    "场馆：" + venueName + "\n" +
+                    "场地：" + courtName + "\n" +
+                    "场地类型：" + c.getType() + "\n" +
+                    "日期：" + dateStr + "\n" +
+                    "位置：" + targetVenue.getLocation() + "\n" +
+                    "已自动扣除账户余额，预约生效！";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "❌ 预约异常：" + e.getMessage();
+        }
+    }
+
+    // 懒加载场馆列表
+    private List<Venue> venueList;
+
+    @PostConstruct
+    public void initVenue() {
+        venueList = venueMapper.findAllVenue();
+    }
+
 }
