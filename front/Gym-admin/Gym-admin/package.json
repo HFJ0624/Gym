@@ -20,6 +20,7 @@
     "last 2 versions"
   ],
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
     "axios": "^0.21.1",
     "echarts": "^6.0.0",
     "pinia": "^2.0.14",

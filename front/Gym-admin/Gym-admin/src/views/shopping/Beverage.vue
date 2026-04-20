@@ -133,6 +133,12 @@
                     </el-upload>
                     </el-form-item>
                 </el-row>
+
+                <el-col :span="24">
+                    <el-form-item label="描述" prop="description">
+                        <el-input v-model="goods.description" placeholder="请输入描述" type="textarea" :rows="3"/>
+                    </el-form-item>
+                </el-col>
                 
                 <el-form-item>
                     <el-button type="primary" @click="submit">提交</el-button>
@@ -170,6 +176,7 @@
                 <el-if v-else>未知</el-if>
             </el-table-column>
             <el-table-column prop="remark" label="商品备注" min-width="180" />
+            <el-table-column prop="description" label="商品描述" min-width="180" />
             <el-table-column prop="createTime" label="创建时间" min-width="180" />
             <el-table-column label="操作" align="center" width="200">
                 <template #default="scope">
@@ -271,7 +278,8 @@ const defaultForm = {
     stock: 0,
     image: "",
     status: "",
-    remark: ""
+    remark: "",
+    description: ""
 }
 const goods = ref(defaultForm)
 

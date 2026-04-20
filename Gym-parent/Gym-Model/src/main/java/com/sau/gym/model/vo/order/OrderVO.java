@@ -19,6 +19,9 @@ public class OrderVO {
     @Schema(description = "订单用户名")
     private String username;
 
+    @Schema(description = "订单用户头像")
+    private String avatar;
+
     @Schema(description = "订单用户电话")
     private String phone;
 

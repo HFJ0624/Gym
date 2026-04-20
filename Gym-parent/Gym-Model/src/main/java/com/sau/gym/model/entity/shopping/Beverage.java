@@ -40,4 +40,7 @@ public class Beverage extends BaseEntity {
 
     @Schema(description = "备注（冰/常温/热销）")
     private String remark;
+
+    @Schema(description = "商品备注")
+    private String description;
 }

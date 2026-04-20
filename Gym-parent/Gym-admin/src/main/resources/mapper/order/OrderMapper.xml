@@ -53,7 +53,7 @@
     </sql>
 
     <select id="findByPage" resultType="com.sau.gym.model.vo.order.OrderVO">
-        select u.username,u.phone,o.order_no as orderNo,o.total_price as totalPrice,o.status,o.remark,o.pay_time as payTime
+        select u.username,u.avatar,u.phone,o.order_no as orderNo,o.total_price as totalPrice,o.status,o.remark,o.pay_time as payTime
         from `order` o
         left join user u on u.id = o.user_id
         <include refid="findPageWhereAdmin"/>

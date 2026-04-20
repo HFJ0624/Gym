@@ -8,7 +8,7 @@
 
     <!-- 用于select查询公用抽取的列 -->
     <sql id="columns">
-        id,goods_name,category,price,cost,stock,image,status,remark,create_time,update_time
+        id,goods_name,category,price,cost,stock,image,status,remark,create_time,update_time,description
     </sql>
 
     <sql id="findPageWhere">
@@ -41,7 +41,8 @@
             cost,
             stock,
             image,
-            remark
+            remark,
+            description
         ) values (
                      #{id},
                      #{goodsName},
@@ -50,7 +51,8 @@
                      #{cost},
                      #{stock},
                      #{image},
-                     #{remark}
+                     #{remark},
+                     #{description}
                  )
     </insert>
 
@@ -80,6 +82,9 @@
         </if>
         <if test="remark != null and remark != ''">
             remark = #{remark},
+        </if>
+        <if test="description != null and description != ''">
+            description = #{description},
         </if>
         update_time =  now()
         where

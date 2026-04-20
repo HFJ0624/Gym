@@ -327,15 +327,11 @@ public class AgentServiceImpl implements AgentService {
                 return "❌ 预约失败：不存在【" + venueName + "】这个场馆，请重新选择";
             }
 
-            System.out.println("=============================================" + targetVenue);
-
             // 3. 查询场地 + 模糊匹配名称
             List<CourtVO> courts = courtMapper.getAllCourt(targetVenue.getId());
             if (courts == null || courts.isEmpty()) {
                 return "❌ 预约失败：【" + venueName + "】暂无可用场地";
             }
-
-            System.out.println("=============================================" + courts);
 
             // 模糊匹配场地（包含即匹配）
             CourtVO c = new CourtVO();

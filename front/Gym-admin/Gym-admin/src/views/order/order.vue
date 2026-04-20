@@ -32,6 +32,9 @@
         <el-table :data="list" style="width: 100%">
             <el-table-column prop="orderNo" label="订单号" width="180" />
             <el-table-column prop="username" label="下单人用户名" width="180" />
+            <el-table-column prop="avatar" label="下单人头像" width="180" #default="scope">
+                <img :src="scope.row.avatar" width="50" />
+            </el-table-column>
             <el-table-column prop="phone" label="下单人电话" width="180" />
             <el-table-column prop="totalPrice" label="订单金额" width="180" />
             <el-table-column prop="status" label="订单状态" width="180">
