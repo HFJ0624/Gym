@@ -1,0 +1,145 @@
+package com.sau.gym.admin.agent.tool;
+
+import com.sau.gym.admin.agent.store.AgentDraftStore;
+import com.sau.gym.admin.agent.store.PendingDraft;
+import com.sau.gym.admin.agent.store.PendingDraftType;
+import com.sau.gym.admin.mapper.BeverageMapper;
+import com.sau.gym.admin.mapper.CartMapper;
+import com.sau.gym.admin.mapper.UserMapper;
+import com.sau.gym.admin.service.OrderService;
+import com.sau.gym.model.dto.order.OrderDto;
+import com.sau.gym.model.entity.shopping.Beverage;
+import com.sau.gym.model.entity.shopping.Cart;
+import com.sau.gym.model.entity.user.User;
+import com.sau.gym.utils.AuthContextUtil;
+import dev.langchain4j.agent.tool.P;
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.agent.tool.ToolMemoryId;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+/**
+ * 作者:hfj
+ * 功能:
+ * 日期: 2026/4/23 14:47
+ */
+@Component
+public class GymShoppingTools {
+
+    private final BeverageMapper beverageMapper;
+    private final CartMapper cartMapper;
+    private final UserMapper userMapper;
+    private final OrderService orderService;
+    private final AgentDraftStore draftStore;
+
+    public GymShoppingTools(BeverageMapper beverageMapper,
+                            CartMapper cartMapper,
+                            UserMapper userMapper,
+                            OrderService orderService,
+                            AgentDraftStore draftStore) {
+        this.beverageMapper = beverageMapper;
+        this.cartMapper = cartMapper;
+        this.userMapper = userMapper;
+        this.orderService = orderService;
+        this.draftStore = draftStore;
+    }
+
+    @Tool("根据商品名称和数量生成商城下单草稿。不会真正下单，不会扣余额。")
+    public String createShoppingDraft(
+            @P("商品名称") String productName,
+            @P("商品数量") Integer quantity,
+            @ToolMemoryId Long userId
+    ) {
+        if (quantity == null || quantity <= 0) {
+            quantity = 1;
+        }
+
+        Beverage beverage = beverageMapper.selectByName(productName);
+        if (beverage == null) {
+            return "未找到商品：" + productName;
+        }
+        if (beverage.getStatus() != null && beverage.getStatus() == 2) {
+            return "商品【" + beverage.getGoodsName() + "】已下架。";
+        }
+        if (beverage.getStock() < quantity) {
+            return "商品【" + beverage.getGoodsName() + "】库存不足，当前库存：" + beverage.getStock();
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("goodsId", beverage.getId());
+        data.put("goodsName", beverage.getGoodsName());
+        data.put("quantity", quantity);
+        data.put("price", beverage.getPrice());
+        data.put("image", beverage.getImage());
+
+        draftStore.save(userId, new PendingDraft(
+                PendingDraftType.SHOPPING,
+                data,
+                LocalDateTime.now()
+        ));
+
+        BigDecimal total = beverage.getPrice().multiply(BigDecimal.valueOf(quantity));
+
+        return "我已生成商品下单草稿：\n"
+                + "商品：" + beverage.getGoodsName() + "\n"
+                + "数量：" + quantity + "\n"
+                + "单价：" + beverage.getPrice() + "\n"
+                + "总价：" + total + "\n"
+                + "如果确认，请回复：确认下单\n"
+                + "如果放弃，请回复：取消";
+    }
+
+    public String confirmPendingShopping(Long userId) {
+        PendingDraft draft = draftStore.get(userId);
+        if (draft == null || draft.type() != PendingDraftType.SHOPPING) {
+            return "当前没有待确认的商品下单草稿。";
+        }
+
+        try {
+            Map<String, Object> data = draft.data();
+
+            Long goodsId = ((Number) data.get("goodsId")).longValue();
+            String goodsName = String.valueOf(data.get("goodsName"));
+            Integer quantity = ((Number) data.get("quantity")).intValue();
+
+            Beverage beverage = beverageMapper.selectById(goodsId);
+            if (beverage == null) {
+                return "下单失败：商品不存在。";
+            }
+            if (beverage.getStock() < quantity) {
+                return "下单失败：库存不足。";
+            }
+
+            Cart autoCart = new Cart();
+            autoCart.setUserId(userId);
+            autoCart.setGoodsId(beverage.getId());
+            autoCart.setGoodsName(beverage.getGoodsName());
+            autoCart.setPrice(beverage.getPrice());
+            autoCart.setQuantity(quantity);
+            autoCart.setImage(beverage.getImage());
+            cartMapper.insert(autoCart);
+
+            OrderDto orderDto = new OrderDto();
+            orderDto.setCartIds(Collections.singletonList(autoCart.getId()));
+            orderDto.setRemark("LangChain4j智能下单");
+
+            User user = userMapper.selectById(userId);
+            AuthContextUtil.set(user);
+
+            orderService.CreateShoppingOrder(orderDto);
+            draftStore.clear(userId);
+
+            return "下单成功：\n"
+                    + "商品：" + goodsName + "\n"
+                    + "数量：" + quantity + "\n"
+                    + "总价：" + beverage.getPrice().multiply(BigDecimal.valueOf(quantity)) + "\n"
+                    + "已调用系统原有商城下单逻辑完成结算。";
+        } catch (Exception e) {
+            return "下单失败：" + e.getMessage();
+        }
+    }
+}

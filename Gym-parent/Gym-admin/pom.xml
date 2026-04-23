@@ -84,7 +84,21 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
-    </dependencies>
+        <!-- LangChain4j 核心：AiServices、Memory、Tools -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>1.13.1</version>
+        </dependency>
+
+        <!-- OpenAI-compatible 模型接入 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>1.13.1</version>
+        </dependency>
+
+    </dependencies><build><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><source>16</source><target>16</target></configuration></plugin></plugins></build>
 
 
 </project>
