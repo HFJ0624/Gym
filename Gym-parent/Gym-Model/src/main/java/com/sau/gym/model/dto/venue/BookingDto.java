@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.Date;
 
 /**
@@ -21,7 +22,15 @@ public class BookingDto {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date bookingDate;
 
-    private BigDecimal totalPrice;
+    @Schema(description = "开始时间，例如 19:00:00")
+    @JsonFormat(pattern = "HH:mm:ss")
+    private LocalTime startTime;
+
+    @Schema(description = "结束时间，例如 20:00:00")
+    @JsonFormat(pattern = "HH:mm:ss")
+    private LocalTime endTime;
+
+    private BigDecimal hoursPrice;
 
     private String remark;
 

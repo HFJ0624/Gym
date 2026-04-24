@@ -21,6 +21,8 @@ public enum ResultCodeEnum {
     PASSWORD_NOT_EQ(222,"新密码和旧密码不相等"),
     EMAIL_NOT_EXIST(223,"邮箱不存在"),
     BALANCE_NOT_ENOUGH(224,"用户余额不足,请你充值"),
+    TIME_ERROR(225,"开始时间不能晚于结束时间"),
+    TIME_LESS(226,"预约时长不能小于1小时")
     ;
 
     //业务状态码

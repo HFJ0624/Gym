@@ -50,6 +50,24 @@
               style="width: 100%;"
             />
           </el-form-item>
+          <el-form-item label="预约开始时间">
+            <el-time-picker
+              v-model="bookingForm.startTime"
+              type="time"
+              placeholder="选择开始时间"
+              style="width: 100%;"
+              value-format="HH:mm:ss"
+            />
+          </el-form-item>
+          <el-form-item label="预约结束时间">
+            <el-time-picker
+              v-model="bookingForm.endTime"
+              type="time"
+              placeholder="选择结束时间"
+              style="width: 100%;"
+              value-format="HH:mm:ss"
+            />
+          </el-form-item>
           <el-form-item label="备注">
             <el-input
               v-model="bookingForm.remark"
@@ -98,6 +116,8 @@ const courtInfo = ref({
 // 预约表单数据
 const bookingForm = ref({
   bookingDate: '',
+  startTime: '',
+  endTime: '',
   remark: '',
 })
 
@@ -111,7 +131,9 @@ const submitBooking = async() => {
   try {
     const bookingData = {
       courtId: courtInfo.value.id,
-      totalPrice: courtInfo.value.price,
+      hoursPrice: courtInfo.value.price,
+      startTime: bookingForm.value.startTime,
+      endTime: bookingForm.value.endTime,
       bookingDate: bookingForm.value.bookingDate,
       remark: bookingForm.value.remark,
       userId: userId

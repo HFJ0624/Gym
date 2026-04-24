@@ -35,6 +35,8 @@
             <el-table-column prop="userName" label="用户名" width="180" />
             <el-table-column prop="courtName" label="场地名称" width="180" />
             <el-table-column prop="bookingDate" label="预约日期" width="180" />
+            <el-table-column prop="startTime" label="预约开始时间" width="180" />
+            <el-table-column prop="endTime" label="预约结束时间" width="180" />
             <el-table-column prop="totalPrice" label="订单总金额" width="180" />
 
             <!-- 改造后的状态列 -->
