@@ -16,6 +16,11 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * 作者:hfj
+ * 功能:Agent 主服务
+ * 日期: 2026/3/10 16:28
+ */
 @Service
 public class AgentServiceImpl implements AgentService {
 

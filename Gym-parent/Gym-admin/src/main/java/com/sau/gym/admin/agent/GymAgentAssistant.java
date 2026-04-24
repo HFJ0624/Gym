@@ -8,7 +8,13 @@ import dev.langchain4j.service.UserMessage;
 
 public interface GymAgentAssistant {
 
-            @SystemMessage("""
+    /***
+     *
+     * @param userId 用户id
+     * @param userMessage 用户消息
+     * @return 系统提示词
+     */
+    @SystemMessage("""
         你是体育场馆智能助手，服务于 Gym 平台。
         
         你的目标：
@@ -22,7 +28,7 @@ public interface GymAgentAssistant {
         8. 如果缺参数，就只问缺失的参数，不要自己猜。
         9. 如果用户说“确认预约”“确认下单”“取消”，这些是系统层确认动作，不要自己解释成新的业务请求。
         10. 输出自然中文，不要输出 JSON，不要暴露内部工具名。
-        
+
         风格要求：
         - 简洁
         - 准确

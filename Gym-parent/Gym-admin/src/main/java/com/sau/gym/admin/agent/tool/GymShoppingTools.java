@@ -24,7 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 /**
  * 作者:hfj
- * 功能:
+ * 功能:商城工具类
+ * 负责：
+ * 1. 生成商品下单草稿
+ * 2. 用户确认后真正下单
  * 日期: 2026/4/23 14:47
  */
 @Component
@@ -48,16 +51,25 @@ public class GymShoppingTools {
         this.draftStore = draftStore;
     }
 
+    /***
+     *
+     * @param productName 商品名称
+     * @param quantity 商品数量
+     * @param userId 用户id
+     * @return 创建商品下单草稿
+     */
     @Tool("根据商品名称和数量生成商城下单草稿。不会真正下单，不会扣余额。")
     public String createShoppingDraft(
             @P("商品名称") String productName,
             @P("商品数量") Integer quantity,
             @ToolMemoryId Long userId
     ) {
+        // 默认数量 1
         if (quantity == null || quantity <= 0) {
             quantity = 1;
         }
 
+        // 查询商品
         Beverage beverage = beverageMapper.selectByName(productName);
         if (beverage == null) {
             return "未找到商品：" + productName;
@@ -69,6 +81,7 @@ public class GymShoppingTools {
             return "商品【" + beverage.getGoodsName() + "】库存不足，当前库存：" + beverage.getStock();
         }
 
+        // 构造草稿数据
         Map<String, Object> data = new HashMap<>();
         data.put("goodsId", beverage.getId());
         data.put("goodsName", beverage.getGoodsName());
@@ -76,6 +89,7 @@ public class GymShoppingTools {
         data.put("price", beverage.getPrice());
         data.put("image", beverage.getImage());
 
+        // 存草稿
         draftStore.save(userId, new PendingDraft(
                 PendingDraftType.SHOPPING,
                 data,
@@ -93,6 +107,11 @@ public class GymShoppingTools {
                 + "如果放弃，请回复：取消";
     }
 
+    /***
+     *
+     * @param userId 用户id
+     * @return 真正执行商品下单
+     */
     public String confirmPendingShopping(Long userId) {
         PendingDraft draft = draftStore.get(userId);
         if (draft == null || draft.type() != PendingDraftType.SHOPPING) {
@@ -127,10 +146,14 @@ public class GymShoppingTools {
             orderDto.setCartIds(Collections.singletonList(autoCart.getId()));
             orderDto.setRemark("LangChain4j智能下单");
 
+            // 设置当前用户上下文
             User user = userMapper.selectById(userId);
             AuthContextUtil.set(user);
 
+            // 下单
             orderService.CreateShoppingOrder(orderDto);
+
+            // 成功后清除草稿
             draftStore.clear(userId);
 
             return "下单成功：\n"

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 /**
  * 作者:hfj
- * 功能:
+ * 功能:查询场馆，查询公告工具
  * 日期: 2026/4/23 14:45
  */
 @Component
@@ -27,10 +27,17 @@ public class GymQueryTools {
         this.noticeMapper = noticeMapper;
     }
 
+    /***
+     * 查询场馆工具
+     * P表示参数描述，方便模型理解这个参数是什么
+     * @param keyword 关键词
+     * @return 返回匹配关键词的场馆列表
+     */
     @Tool("查询场馆列表。可以按场馆关键词模糊匹配，返回场馆名称和地址。")
     public String queryVenues(@P(value = "场馆关键词，可为空", required = false) String keyword) {
         List<Venue> venueList = venueMapper.findAllVenue();
 
+        // 如果用户给了关键词，就做简单过滤
         if (StringUtils.hasText(keyword)) {
             venueList = venueList.stream()
                     .filter(v -> v.getVenueName() != null && v.getVenueName().contains(keyword))
@@ -41,6 +48,7 @@ public class GymQueryTools {
             return "当前没有查到符合条件的场馆。";
         }
 
+        // 把结果拼成自然语言返回给模型
         StringBuilder sb = new StringBuilder("可选场馆如下：\n");
         int limit = Math.min(venueList.size(), 8);
         for (int i = 0; i < limit; i++) {
@@ -55,6 +63,10 @@ public class GymQueryTools {
         return sb.toString();
     }
 
+    /***
+     * 查询公告工具
+     * @return 返回最近若干条公告标题和内容
+     */
     @Tool("查询最新公告，返回最近若干条公告标题和内容。")
     public String queryNotices() {
         List<Notice> noticeList = noticeMapper.findAllNotice();
