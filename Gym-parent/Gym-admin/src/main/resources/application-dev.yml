@@ -11,6 +11,11 @@ spring:
     username: root
     password: 1234
 
+  servlet:
+    multipart:
+      max-file-size: 2MB # 单个文件最大上传大小：改为2MB
+      max-request-size: 2MB # 单次请求最大大小（多文件上传总大小），建议和单文件一致
+
     # Redis的相关配置
     data:
       redis:

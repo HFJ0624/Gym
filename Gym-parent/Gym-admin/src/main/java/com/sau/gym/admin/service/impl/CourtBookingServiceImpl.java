@@ -92,7 +92,7 @@ public class CourtBookingServiceImpl implements CourtBookingService {
             courtBooking.setCourtId(bookingDto.getCourtId());
             courtBooking.setBookingDate(bookingDto.getBookingDate());
             courtBooking.setTotalPrice(totalPrice);
-            courtBooking.setStatus(0); //已支付
+            courtBooking.setStatus(1); //已支付
             courtBooking.setRemark(bookingDto.getRemark());
             courtBooking.setStartTime(bookingDto.getStartTime());
             courtBooking.setEndTime(bookingDto.getEndTime());
