@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +68,12 @@ public class CourtBookingServiceImpl implements CourtBookingService {
         Duration duration = Duration.between(bookingDto.getStartTime(), bookingDto.getEndTime());
         //开始时间大于结束时间直接报错
         if (duration.isNegative()){
-            throw new SauException(ResultCodeEnum.TIME_ERROR);
+            return false;
+        }
+
+        //校验预约时间段是否和别人的冲突
+        if (!verify(bookingDto)){
+            return false;
         }
 
         //计算预约时间多久
@@ -141,5 +147,29 @@ public class CourtBookingServiceImpl implements CourtBookingService {
             sb.append(random.nextInt(10));
         }
         return sb.toString();
+    }
+
+    /***
+     *
+     * @param bookingDto 前端预约实体类
+     * @return 返回预约时间段是否冲突,冲突返回false
+     */
+    public Boolean verify(BookingDto bookingDto){
+        List<CourtBookVO> list = courtBookingMapper.selectBookTime(bookingDto.getBookingDate(),bookingDto.getCourtId());
+
+        // 遍历所有已预约时间段，判断是否重叠
+        for (CourtBookVO courtBookVO : list) {
+            // 【核心】判断时间段是否重叠
+            boolean isOverlap = bookingDto.getStartTime().isBefore(courtBookVO.getEndTime())
+                    && bookingDto.getEndTime().isAfter(courtBookVO.getStartTime());
+
+            // 重叠=时间冲突，直接返回false
+            if (isOverlap) {
+                return false;
+            }
+        }
+
+        //校验通过
+        return true;
     }
 }

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
 
@@ -31,7 +32,7 @@ public class CourtBooking extends BaseEntity {
 
     @Schema(description = "预约日期")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date bookingDate;
+    private LocalDate bookingDate;
 
     @Schema(description = "预约开始时间")
     @JsonFormat(pattern = "HH:mm:ss")

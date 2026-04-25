@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
 
@@ -26,7 +27,7 @@ public class CourtBookVO {
     private String courtName;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date bookingDate;
+    private LocalDate bookingDate;
 
     @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime startTime;

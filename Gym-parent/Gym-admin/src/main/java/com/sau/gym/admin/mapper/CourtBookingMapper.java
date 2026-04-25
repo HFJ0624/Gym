@@ -5,6 +5,8 @@ import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -25,4 +27,7 @@ public interface CourtBookingMapper {
 
     //统计所有预约总数
     List<CourtBooking> countAllBook();
+
+    //预约字段的校验规则
+    List<CourtBookVO> selectBookTime(LocalDate bookingDate, Long courtId);
 }

@@ -18,7 +18,7 @@
           <div class="contact">订单编号：{{ o.orderNo }}</div>
           <div v-if="o.remark" class="remark">备注：{{ o.remark }}</div>
           <div class="time">下单时间：{{ formatTime(o.createTime) }}</div>
-          <div>预约时间：{{ formatTime(o.bookingDate) }}</div>
+          <div>预约时间：{{ o.bookingDate }}</div>
           <div>预约开始时间：{{ (o.startTime) }} -- 预约结束时间：{{ (o.endTime) }}</div>
           <div></div>
         </div>

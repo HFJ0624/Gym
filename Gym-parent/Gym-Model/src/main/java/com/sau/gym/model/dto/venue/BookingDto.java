@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Date;
 
 /**
  * 作者:hfj
@@ -20,7 +20,7 @@ public class BookingDto {
     private Long courtId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date bookingDate;
+    private LocalDate bookingDate;
 
     @Schema(description = "开始时间，例如 19:00:00")
     @JsonFormat(pattern = "HH:mm:ss")

@@ -3,11 +3,13 @@ package com.sau.gym.admin.agent.tool;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
 import com.sau.gym.admin.agent.store.PendingDraftType;
+import com.sau.gym.admin.mapper.CourtBookingMapper;
 import com.sau.gym.admin.mapper.CourtMapper;
 import com.sau.gym.admin.mapper.VenueMapper;
 import com.sau.gym.admin.service.CourtBookingService;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.entity.venue.Venue;
+import com.sau.gym.model.vo.court.CourtBookVO;
 import com.sau.gym.model.vo.court.CourtVO;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -19,8 +21,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,15 +42,18 @@ public class GymBookingTools {
 
     private final VenueMapper venueMapper;
     private final CourtMapper courtMapper;
+    private final CourtBookingMapper courtBookingMapper;
     private final CourtBookingService courtBookingService;
     private final AgentDraftStore draftStore;
 
     public GymBookingTools(VenueMapper venueMapper,
                            CourtMapper courtMapper,
+                           CourtBookingMapper courtBookingMapper,
                            CourtBookingService courtBookingService,
                            AgentDraftStore draftStore) {
         this.venueMapper = venueMapper;
         this.courtMapper = courtMapper;
+        this.courtBookingMapper = courtBookingMapper;
         this.courtBookingService = courtBookingService;
         this.draftStore = draftStore;
     }
@@ -124,6 +131,19 @@ public class GymBookingTools {
             return "预约时长必须大于1小时";
         }
 
+        LocalDate localDate = LocalDate.parse(date);
+        List<CourtBookVO> list = courtBookingMapper.selectBookTime(localDate, targetCourt.getId());
+        // 遍历所有已预约时间段，判断是否重叠
+        for (CourtBookVO courtBookVO : list) {
+            // 【核心】判断时间段是否重叠
+            boolean isOverlap = LocalTime.parse(startTime).isBefore(courtBookVO.getEndTime())
+                    && LocalTime.parse(endTime).isAfter(courtBookVO.getStartTime());
+
+            // 重叠=时间冲突
+            if (isOverlap) {
+                return "预约时间段" + date + "开始:" + startTime +",结束:" + endTime + "与他人冲突";
+            }
+        }
 
         BigDecimal totalPrice = targetCourt.getPrice()
                 .multiply(BigDecimal.valueOf(minutes))
@@ -188,7 +208,6 @@ public class GymBookingTools {
             BookingDto bookingDto = new BookingDto();
             bookingDto.setCourtId(courtId);
             bookingDto.setUserId(userId);
-            bookingDto.setBookingDate(new SimpleDateFormat("yyyy-MM-dd").parse(date));
             bookingDto.setStartTime(LocalTime.parse(startTime));
             bookingDto.setEndTime(LocalTime.parse(endTime));
             bookingDto.setHoursPrice((BigDecimal) data.get("hoursPrice"));

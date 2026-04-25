@@ -54,7 +54,7 @@ public class FrontVenueController {
         return Result.build(resultMap, ResultCodeEnum.SUCCESS);
     }
 
-    //添加预约场地并扣除余额,如果余额不足则显示预约失败
+    //添加预约场地
     @Log(title = "预约场地",businessType = 1,operatorType = OperatorType.MANAGE)
     @PostMapping(value = "/book")
     public Result saveVenue(@RequestBody BookingDto bookingDto){

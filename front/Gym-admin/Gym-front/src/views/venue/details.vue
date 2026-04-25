@@ -129,28 +129,36 @@ const submitBooking = async() => {
   }
   // 后续需要调用后端预约接口
   try {
+    // 👇 【修复】标准格式化日期：2026-04-26（补零，永久兼容后端）
+    const date = new Date(bookingForm.value.bookingDate);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份补0
+    const day = String(date.getDate()).padStart(2, '0');       // 日期补0
+    const formatDate = `${year}-${month}-${day}`;
+
     const bookingData = {
       courtId: courtInfo.value.id,
       hoursPrice: courtInfo.value.price,
       startTime: bookingForm.value.startTime,
       endTime: bookingForm.value.endTime,
-      bookingDate: bookingForm.value.bookingDate,
+      bookingDate: formatDate,
       remark: bookingForm.value.remark,
       userId: userId
     }
+
+    
     
     const {code} = await BookCourt(bookingData);
     if (code == 200) {
       ElMessage.success('预约成功')
       // 预约成功后跳转到我的预约页面
       router.push('/order')
-    }else if(code == 224){
-      ElMessage.error('余额不足，请充值充值')
+    }else{
+      ElMessage.error('预约失败，时段或者金额不足')
     }
   } catch (error) {
     ElMessage.error('预约失败，请稍后重试')
   }
-  ElMessage.success('预约提交成功')
 }
 
 // 从后端获取场地详情
