@@ -184,6 +184,24 @@
             <el-table-column prop="venueType" label="场馆类型" min-width="150" />
             <el-table-column prop="location" label="场馆位置" min-width="180" />
             <el-table-column prop="phone" label="场馆电话" min-width="150" />
+
+            <!-- 状态开关 -->
+            <el-table-column label="状态" align="center" width="200">
+                <template #default="scope">
+                    <!-- 核心：用计算属性适配数字/字符串，解决刷新匹配问题 -->
+                    <el-switch
+                    v-model="scope.row.status"
+                    :active-value="1"        
+                    :inactive-value="0"   
+                    active-color="#13ce66"
+                    inactive-color="#ff4949"
+                    @change="(val) => updateStatus(val, scope.row.id)"
+                    style="margin-right: 10px;"
+                    />
+                    <span>{{ scope.row.status == 1 ? '正常开放' : '临时关闭' }}</span>
+                </template>
+            </el-table-column>
+
             <el-table-column prop="capacity" label="场馆容量" min-width="120" align="center" />
 
             <!-- 描述列 -->
@@ -258,7 +276,7 @@
 <script setup>
 import { ref , onMounted } from 'vue'; 
 import { useApp } from '@/pinia/modules/app';
-import { GetVenueListByPage,SaveVenue,UpdateVenue,DeleteVenueById } from '@/api/Venue';
+import { GetVenueListByPage,SaveVenue,UpdateVenue,DeleteVenueById,updateVenueStatus } from '@/api/Venue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 //--------------------------------------分页查询功能--------------------------------------
@@ -382,6 +400,38 @@ const headers = {
 const handleAvatarSuccess = (response, uploadFile) => {
     venue.value.avatar = response.data
 }
+
+//------------------------修改场馆状态功能---------------------------------
+// 修改场馆状态的核心方法   
+const updateStatus = async (newStatus, id) => {
+  try {
+    // 核心：newStatus现在是数字1/0，无需转换，直接传后端
+    const { code, message } = await updateVenueStatus({
+      id: id,          
+      status: newStatus
+    });
+
+    if (code === 200) {
+      ElMessage.success(`设置${newStatus === 1 ? '正常开发' : '临时关闭'}`);
+      fetchData(); // 保留原有fetchData，不修改
+    } else {
+      // 回滚：用数字1/0匹配
+      const targetRow = list.value.find(item => item.id === id);
+      if (targetRow) {
+        targetRow.status = newStatus === 1 ? 0 : 1;
+      }
+      ElMessage.error(message || '状态修改失败，请重试');
+    }
+  } catch (error) {
+    const targetRow = list.value.find(item => item.id === id);
+    if (targetRow) {
+      targetRow.status = targetRow.status === 1 ? 0 : 1;
+    }
+    ElMessage.error('网络异常，修改失败');
+    console.error('修改状态报错：', error);
+  }
+};
+
 </script>
 
 <style scoped>

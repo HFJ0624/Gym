@@ -140,4 +140,11 @@
         and v.is_deleted = 0
     </select>
 
+    <update id="updateVenueStatus">
+        UPDATE venue SET
+            status = #{status}
+        WHERE id = #{id}
+          and is_deleted = 0
+    </update>
+
 </mapper>

@@ -6,6 +6,7 @@ import com.sau.gym.admin.mapper.VenueMapper;
 import com.sau.gym.admin.service.VenueService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.venue.VenueDto;
+import com.sau.gym.model.dto.venue.VenueStatusDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.venue.Venue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,5 +93,16 @@ public class VenueServiceImpl implements VenueService {
 
         resultMap.put("allVenue",allVenue);
         return resultMap;
+    }
+
+    //修改场馆状态
+    @Override
+    public Boolean updateVenueStatus(VenueStatusDto venueStatusDto) {
+        if (venueStatusDto == null){
+            return false;
+        }
+
+        int row = venueMapper.updateVenueStatus(venueStatusDto.getId(),venueStatusDto.getStatus());
+        return row > 0;
     }
 }

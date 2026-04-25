@@ -2,6 +2,7 @@ package com.sau.gym.admin.service;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.model.dto.venue.VenueDto;
+import com.sau.gym.model.dto.venue.VenueStatusDto;
 import com.sau.gym.model.entity.venue.Venue;
 
 import java.util.Map;
@@ -25,4 +26,7 @@ public interface VenueService {
 
     //查找所有场馆(前台)
     Map<String, Object> getAllVenue(VenueDto venueDto);
+
+    //修改场馆状态
+    Boolean updateVenueStatus(VenueStatusDto venueStatusDto);
 }

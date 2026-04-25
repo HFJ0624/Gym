@@ -6,6 +6,7 @@ import com.sau.gym.admin.service.VenueVisitService;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
 import com.sau.gym.model.dto.venue.VenueDto;
+import com.sau.gym.model.dto.venue.VenueStatusDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.venue.Venue;
@@ -68,6 +69,18 @@ public class VenueController {
     public Result<Map<String,Object>> findAllVenue(){
         Map<String, Object> resultMap = venueService.findAllVenue();
         return Result.build(resultMap,ResultCodeEnum.SUCCESS);
+    }
+
+    //修改场馆状态
+    @Log(title = "修改场馆状态",businessType = 2,operatorType = OperatorType.MANAGE)
+    @PutMapping(value = "/updateStatus")
+    public Result updateVenueStatus(@RequestBody VenueStatusDto venueStatusDto){
+        Boolean is_success = venueService.updateVenueStatus(venueStatusDto);
+        if (is_success){
+            return Result.build(null,ResultCodeEnum.SUCCESS);
+        }else {
+            return Result.build(null,ResultCodeEnum.DATA_ERROR);
+        }
     }
 
 }

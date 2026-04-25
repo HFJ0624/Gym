@@ -14,6 +14,9 @@
     <div class="grid" v-loading="loading">
       <div v-for="v in venues" :key="v.id" class="card" @click="goDetail(v.id)">
         <div class="cover-container">
+          <div class="status-badge" :class="v.status === 1 ? 'open' : 'closed'">
+            {{ v.status === 1 ? '正常开放' : '临时关闭' }}
+          </div>
           <img class="cover" :src="v.avatar" :alt="v.name" />
           <div class="star-btn" @click.stop="toggleCollect(v)">
             <el-icon v-if="isCollected(v.id)" class="star-icon collected" :size="24">
@@ -31,7 +34,7 @@
           </div>
           <div class="meta">
             <span class="tag">{{ v.venueType }}</span>
-            <span>营业：{{ v.openTime }}</span>
+            <span>营业时间:{{ v.openTime }} - {{ v.closeTime }}</span>
           </div>
           <div class="addr">{{ v.location }}</div>
         </div>
@@ -167,6 +170,24 @@ onMounted(load)
 }
 .cover-container {
   position: relative;
+}
+.status-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 10;
+  &.open {
+    background: #f0f9eb;
+    color: #67c23a;
+  }
+  &.closed {
+    background: #fef0f0;
+    color: #f56c6c;
+  }
 }
 .cover {
   width: 100%;

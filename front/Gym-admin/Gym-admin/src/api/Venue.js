@@ -44,3 +44,12 @@ export const GetAllVenue = () => {
         method: 'get'
     })
 }
+
+//修改场馆状态
+export const updateVenueStatus = (data) => {
+    return request({
+        url: `${base_url}/updateStatus`,
+        method: 'put',
+        data
+    })
+}

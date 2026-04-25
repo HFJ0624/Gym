@@ -32,4 +32,7 @@ public interface VenueMapper {
 
     //在前台个人中心获取收藏的场馆详情
     List<Venue> selectByUserId(Long id);
+
+    //修改场馆状态
+    int updateVenueStatus(Long id, String status);
 }

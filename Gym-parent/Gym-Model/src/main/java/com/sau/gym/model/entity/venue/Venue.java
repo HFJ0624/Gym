@@ -5,6 +5,7 @@ import com.sau.gym.model.entity.base.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.time.LocalTime;
 import java.util.Date;
 
 /**
@@ -37,16 +38,16 @@ public class Venue extends BaseEntity {
     private String description;
 
     @Schema(description = "开始营业时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date openTime;
+    @JsonFormat(pattern = "HH:mm:ss")
+    private LocalTime openTime;
 
     @Schema(description = "结束营业时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date closeTime;
+    @JsonFormat(pattern = "HH:mm:ss")
+    private LocalTime closeTime;
 
     @Schema(description = "场馆图片")
     private String avatar;
 
-    @Schema(description = "状态：1为正常，0为禁止")
+    @Schema(description = "状态：1正常开放 0临时关闭")
     private Integer status;
 }
