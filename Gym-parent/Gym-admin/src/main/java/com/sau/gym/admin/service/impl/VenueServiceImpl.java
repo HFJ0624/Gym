@@ -105,4 +105,19 @@ public class VenueServiceImpl implements VenueService {
         int row = venueMapper.updateVenueStatus(venueStatusDto.getId(),venueStatusDto.getStatus());
         return row > 0;
     }
+
+    //获取好评前六的场馆
+    @Override
+    public Map<String, Object> getVenueByRate() {
+        //1.获取好评前六的id集合
+        List<Long> list = venueMapper.getVenueByRate();
+
+        //2.获取前六的场馆
+        List<Venue> venueList = venueMapper.selectVenueBatchByIds(list);
+
+        //构建返回对象
+        HashMap<String, Object> resultMap = new HashMap<>();
+        resultMap.put("venueList",venueList);
+        return resultMap;
+    }
 }

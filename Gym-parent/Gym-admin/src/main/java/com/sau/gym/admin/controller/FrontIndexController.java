@@ -83,6 +83,13 @@ public class FrontIndexController {
         return Result.build(resultMap,ResultCodeEnum.SUCCESS);
     }
 
+    //获取好评前六的场馆
+    @PostMapping(value = "/getVenueByRate")
+    public Result<Map<String,Object>> getVenueByRate(){
+        Map<String, Object> resultMap = venueService.getVenueByRate();
+        return Result.build(resultMap,ResultCodeEnum.SUCCESS);
+    }
+
     //查询所有预约记录
     @GetMapping(value = "/order")
     public Result<Map<String,Object>> getCourtOrder(@RequestParam Long userId){

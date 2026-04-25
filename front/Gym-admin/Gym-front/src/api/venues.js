@@ -9,6 +9,13 @@ export const GetAllVenue = (queryDto) => {
   })
 }
 
+export const getVenueByRate = () => {
+  return request({
+    url: `/front/getVenueByRate`,
+    method: 'post',
+  })
+}
+
 // 记录场馆访问次数
 export const RecordVenueVisit = (venueId) => {
   return request({

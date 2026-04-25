@@ -147,4 +147,40 @@
           and is_deleted = 0
     </update>
 
+    <!-- 获取好评率前6的场馆ID集合 -->
+    <select id="getVenueByRate" resultType="java.lang.Long">
+        SELECT v.id
+        FROM venue v
+                 LEFT JOIN venue_comment c
+                           ON v.id = c.venue_id
+                               AND c.status = 1
+                               AND c.is_deleted = 0
+        GROUP BY v.id
+        ORDER BY
+        -- 按好评率降序排序（和之前的计算逻辑完全一致）
+        ROUND(
+                CASE WHEN COUNT(c.id) = 0 THEN 0
+                     ELSE (SUM(CASE WHEN c.esteem > 3 THEN 1 ELSE 0 END) / COUNT(c.id)) * 100
+                    END,
+                2
+        ) DESC,
+            v.id ASC
+        LIMIT 6
+    </select>
+
+    <!-- 2. 根据ID集合批量查询场馆信息 -->
+    <select id="selectVenueBatchByIds" resultMap="venueMap">
+        SELECT * FROM venue
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        <!-- 👇 加这一行，强制按传入的ID顺序排序 -->
+        ORDER BY FIELD(id,
+        <foreach collection="ids" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </select>
+
 </mapper>

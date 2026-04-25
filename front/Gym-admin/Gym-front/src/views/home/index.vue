@@ -59,17 +59,11 @@
 <script setup>
 import { onMounted, ref,computed  } from 'vue'
 import { useRouter } from 'vue-router'
-import { GetAllVenue, RecordVenueVisit } from '@/api/venues'
+import { RecordVenueVisit, getVenueByRate } from '@/api/venues'
 import AiAssistant from '@/components/AiAssistant.vue'
 
 const router = useRouter()
 const go = path => router.push(path)
-
-//首页无须的对象,放着为空
-const queryDto = ref({
-  venueType: "",
-  venueName: "",
-})
 
 const goDetail = async (id) => {
   try {
@@ -86,9 +80,9 @@ const venues = ref([])
 onMounted(async () => {
   loading.value = true
   try {
-    const res = await GetAllVenue(queryDto.value)
+    const res = await getVenueByRate()
     //只展示前6条
-    venues.value = res.data.allVenue.slice(0,6)
+    venues.value = res.data.venueList
   } finally {
     loading.value = false
   }

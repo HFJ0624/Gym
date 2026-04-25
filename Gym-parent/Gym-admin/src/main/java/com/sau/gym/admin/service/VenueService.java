@@ -29,4 +29,6 @@ public interface VenueService {
 
     //修改场馆状态
     Boolean updateVenueStatus(VenueStatusDto venueStatusDto);
+
+    Map<String, Object> getVenueByRate();
 }

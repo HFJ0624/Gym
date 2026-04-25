@@ -208,6 +208,7 @@ public class GymBookingTools {
             BookingDto bookingDto = new BookingDto();
             bookingDto.setCourtId(courtId);
             bookingDto.setUserId(userId);
+            bookingDto.setBookingDate(LocalDate.parse(date));
             bookingDto.setStartTime(LocalTime.parse(startTime));
             bookingDto.setEndTime(LocalTime.parse(endTime));
             bookingDto.setHoursPrice((BigDecimal) data.get("hoursPrice"));
