@@ -2,8 +2,10 @@ package com.sau.gym.admin.mapper;
 
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.venue.CourtBooking;
+import com.sau.gym.model.vo.court.CourtBookEmailVO;
 import com.sau.gym.model.vo.court.CourtBookVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -35,4 +37,15 @@ public interface CourtBookingMapper {
 
     //取消订单
     void cancelOrder(Long orderId);
+
+    /**
+     * 查询【待提醒】的订单：
+     * 已支付(status=1) + 未提醒(is_reminded=0)提前一天提醒
+     */
+    List<CourtBookEmailVO> selectRemindOrders(String targetTime);
+
+    /**
+     * 标记订单为已提醒
+     */
+    void updateRemindedStatus(@Param("orderId") Long orderId);
 }

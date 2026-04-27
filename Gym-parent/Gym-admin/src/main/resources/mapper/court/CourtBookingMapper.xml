@@ -123,4 +123,38 @@
         where id = #{orderId}
     </update>
 
+    <!-- 查询距离预约开始1小时的待提醒订单 -->
+    <select id="selectRemindOrders" resultType="com.sau.gym.model.vo.court.CourtBookEmailVO">
+        SELECT
+            cb.id,
+            cb.order_no,
+            cb.user_id,
+            cb.court_id,
+            cb.booking_date,
+            cb.start_time,
+            cb.end_time,
+            cb.status,
+            cb.remark,
+            cb.is_reminded,
+            cb.total_price,
+            u.username,
+            u.email,
+            c.name AS court_name,
+            c.type AS court_type
+        FROM court_booking cb
+                 LEFT JOIN user u ON cb.user_id = u.id
+                 LEFT JOIN court c ON cb.court_id = c.id
+        WHERE
+        cb.status = 1           <!-- 已支付 -->
+        AND cb.is_reminded = 0   <!-- 未提醒 -->
+        AND cb.booking_date = #{targetTime}
+    </select>
+
+    <!-- 更新为已提醒 -->
+    <update id="updateRemindedStatus">
+        update court_booking
+        set is_reminded = 1
+        where id = #{orderId}
+    </update>
+
 </mapper>

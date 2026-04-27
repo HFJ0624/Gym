@@ -50,4 +50,7 @@ public class CourtBooking extends BaseEntity {
 
     @Schema(description = "备注")
     private String remark;
+
+    @Schema(description = "邮件提醒状态 0未提醒 1已提醒")
+    private Integer isReminded;
 }
