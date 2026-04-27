@@ -32,7 +32,7 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
                 .allowedHeaders("*") ;                // 允许所有的请求头
     }
 
-    //把拦截器注册到SpringMVC 不拦截登录接口和验证码生成接口
+    //把拦截器注册到SpringMVC 不拦截登录接口和验证码生成接口以及其他接口
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginAuthInterceptor)

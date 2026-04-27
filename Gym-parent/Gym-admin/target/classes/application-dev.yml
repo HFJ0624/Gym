@@ -36,6 +36,7 @@ gym:
       - /admin/system/index/generateValidateCode
       - /admin/system/user/register
       - /admin/system/fileUpload
+      - /front/sign-in/** #生成二维码访问后扫码跳转后访问路径
       - /front/login
       - /front/register
       - /front/generateValidateCode

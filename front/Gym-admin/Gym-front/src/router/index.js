@@ -61,6 +61,18 @@ const router = createRouter({
           meta: { title: '我的预约' },
         },
         {
+          path: 'sign/generate',
+          name: 'signGenerate',
+          component: () => import('@/views/sign/Generate.vue'),
+          meta: { title: '扫码签到' },
+        },
+        {
+          path: 'sign/check',
+          name: 'signCheck',
+          component: () => import('@/views/sign/Check.vue'),
+          meta: { title: '签到验证' },
+        },
+        {
           path: 'profile',
           name: 'profile',
           component: () => import('@/views/profile/index.vue'),

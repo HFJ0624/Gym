@@ -25,6 +25,13 @@
 
         <div class="right">
           <el-button
+            v-if="o.status === 1"
+            type="primary"
+            @click="goToSign(o)"
+          >
+            去扫码签到
+          </el-button>
+          <el-button
             v-if="o.status === 1 && canCancel(o.bookingDate)"
             type="danger"
             plain
@@ -66,7 +73,6 @@ const orders = ref([])
 const cancelingId = ref('')
 const auth = useAuth()
 const userId = auth.user?.id
-console.log(userId)
 
 const formatTime = iso => {
   if (!iso) return '--'
@@ -124,6 +130,19 @@ const onCancel = async o => {
 }
 
 const goVenue = () => router.push('/venues')
+
+const goToSign = (order) => {
+  router.push({
+    name: 'signGenerate',
+    query: {
+      orderId: order.id,
+      courtName: order.courtName,
+      bookingDate: order.bookingDate,
+      startTime: order.startTime,
+      endTime: order.endTime
+    }
+  })
+}
 
 onMounted(load)
 </script>
