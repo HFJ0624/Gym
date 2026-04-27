@@ -5,7 +5,7 @@
       <el-button @click="load" :loading="loading">刷新</el-button>
     </div>
 
-    <el-card v-for="o in orders" :key="o.id" class="card" shadow="never">
+    <el-card v-for="o in displayOrders" :key="o.id" class="card" shadow="never">
       <div class="row">
         <div class="left">
           <div class="name">{{ o.courtName }}</div>
@@ -19,42 +19,65 @@
           <div v-if="o.remark" class="remark">备注：{{ o.remark }}</div>
           <div class="time">下单时间：{{ formatTime(o.createTime) }}</div>
           <div>预约时间：{{ o.bookingDate }}</div>
-          <div>预约开始时间：{{ (o.startTime) }} -- 预约结束时间：{{ (o.endTime) }}</div>
-          <div></div>
+          <div>预约开始时间：{{ o.startTime }} -- 预约结束时间：{{ o.endTime }}</div>
         </div>
 
         <div class="right">
-          <el-button
-            v-if="o.status === 1"
-            type="primary"
-            @click="goToSign(o)"
-          >
-            去扫码签到
-          </el-button>
-          <el-button
-            v-if="o.status === 1 && canCancel(o.bookingDate)"
-            type="danger"
-            plain
-            :loading="cancelingId === o.id"
-            @click="onCancel(o)"
-          >
-            取消预约
-          </el-button>
-          <el-button
-            v-else-if="o.status ===1"
-            type="info"
-            plain
-            disabled
-          >
-            已过取消时间
-          </el-button>
+          <template v-if="o.status === 1">
+            <!-- 签到按钮 -->
+            <el-button
+              v-if="isSignDate(o.bookingDate)"
+              type="primary"
+              @click="goToSign(o)"
+              style="margin-bottom: 8px"
+            >
+              去扫码签到
+            </el-button>
+            <el-button
+              v-else
+              type="info"
+              plain
+              disabled
+              style="margin-bottom: 8px"
+            >
+              仅限当天签到
+            </el-button>
+
+            <!-- 取消按钮 -->
+            <el-button
+              v-if="canCancel(o.bookingDate)"
+              type="danger"
+              plain
+              :loading="cancelingId === o.id"
+              @click="onCancel(o)"
+            >
+              取消预约
+            </el-button>
+            <el-button v-else type="info" plain disabled>
+              已过取消时间
+            </el-button>
+          </template>
         </div>
       </div>
     </el-card>
 
-    <el-empty v-if="!loading && orders.length === 0" description="你还没有预约记录，去逛逛场馆吧">
+    <!-- 修复：空状态判断（总条数为0） -->
+    <el-empty v-if="!loading && total === 0" description="你还没有预约记录，去逛逛场馆吧">
       <el-button type="primary" @click="goVenue">去预约</el-button>
     </el-empty>
+    
+    <!-- 分页组件 -->
+    <div class="pagination" v-if="total > 0">
+      <el-pagination
+        v-model:current-page="pageParams.page"
+        v-model:page-size="pageParams.limit"
+        :page-sizes="[5, 10, 20, 50]"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="load"
+        @current-change="load"
+      />
+    </div>
   </div>
 </template>
 
@@ -62,19 +85,23 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { getCourtOrder } from '@/api/orders'
-// 从Pinia store中获取用户信息
+import { getCourtOrder, cancelOrder } from '@/api/orders'
 import { useAuth } from '@/stores/auth'
 
 const router = useRouter()
-
 const loading = ref(false)
-const orders = ref([])
 const cancelingId = ref('')
 const auth = useAuth()
 const userId = auth.user?.id
 
-const formatTime = iso => {
+// 分页参数
+const pageParams = ref({ page: 1, limit: 5 })
+const total = ref(0)
+// 当前页订单数据
+const displayOrders = ref([])
+
+// 时间格式化
+const formatTime = (iso) => {
   if (!iso) return '--'
   const d = new Date(iso)
   const yyyy = d.getFullYear()
@@ -85,7 +112,8 @@ const formatTime = iso => {
   return `${yyyy}-${mm}-${dd} ${hh}:${mi}`
 }
 
-const statusText = status => {
+// 订单状态
+const statusText = (status) => {
   if (status === 0) return '待支付'
   if (status === 1) return '已支付'
   if (status === 2) return '已取消'
@@ -93,7 +121,8 @@ const statusText = status => {
   return '未知状态'
 }
 
-const badgeClass = status => {
+// 状态样式
+const badgeClass = (status) => {
   if (status === 0) return 'warning'
   if (status === 1) return 'ok'
   if (status === 2) return 'cancel'
@@ -101,36 +130,64 @@ const badgeClass = status => {
   return 'normal'
 }
 
-// 检查是否可以取消预约（预约日期未过期）
-const canCancel = bookingDate => {
-  const today = new Date().toISOString().split('T')[0]
+// 本地日期（无时区问题）
+const getLocalDateString = () => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+// 可取消判断
+const canCancel = (bookingDate) => {
+  const today = getLocalDateString()
   return bookingDate >= today
 }
 
+// 可签到判断
+const isSignDate = (bookingDate) => {
+  const today = getLocalDateString()
+  return bookingDate === today
+}
+
+// 🔥 核心修复：正确解析后端 PageInfo 数据
 const load = async () => {
   loading.value = true
   try {
-    const res = await getCourtOrder(userId)
-    orders.value = res.data.orders
+    // 后端返回结构：Result.data = PageInfo对象
+    const res = await getCourtOrder(userId, pageParams.value.page, pageParams.value.limit)
+    // 赋值订单列表 + 总条数
+    displayOrders.value = res.data.list || []
+    total.value = res.data.total || 0
+  } catch (err) {
+    ElMessage.error('加载失败')
   } finally {
     loading.value = false
   }
 }
 
-const onCancel = async o => {
-  await ElMessageBox.confirm('确认取消该预约吗？取消后不可恢复。', '提示', { type: 'warning' })
+// 取消订单
+const onCancel = async (o) => {
+  await ElMessageBox.confirm('确认取消该预约吗？取消后不可恢复。', '提示', { 
+    type: 'warning',
+    confirmButtonText: '确认',
+    cancelButtonText: '取消'
+  })
   cancelingId.value = o.id
   try {
     await cancelOrder(o.id)
-    ElMessage.success('已取消')
-    await load()
+    ElMessage.success('取消成功')
+    load()
+  } catch (err) {
+    ElMessage.error('取消失败')
   } finally {
     cancelingId.value = ''
   }
 }
 
+// 路由跳转
 const goVenue = () => router.push('/venues')
-
 const goToSign = (order) => {
   router.push({
     name: 'signGenerate',
@@ -198,6 +255,13 @@ onMounted(load)
   gap: 20px;
   align-items: start;
 }
+
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
 .name {
   font-size: 20px;
   font-weight: 600;
@@ -253,5 +317,9 @@ onMounted(load)
   color: #1a1a1a;
   border-color: #1a1a1a;
 }
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
 </style>
-

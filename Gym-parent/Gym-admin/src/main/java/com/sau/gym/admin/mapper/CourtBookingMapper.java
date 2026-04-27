@@ -30,4 +30,9 @@ public interface CourtBookingMapper {
 
     //预约字段的校验规则
     List<CourtBookVO> selectBookTime(LocalDate bookingDate, Long courtId);
+
+    CourtBooking selectById(Long orderId);
+
+    //取消订单
+    void cancelOrder(Long orderId);
 }

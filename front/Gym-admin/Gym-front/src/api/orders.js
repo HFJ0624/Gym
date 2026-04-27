@@ -2,11 +2,19 @@
 import request from '@/utils/frontRequest'
 
 // 获取我的预约列表
-export function getCourtOrder(userId) {
+export function getCourtOrder(userId, pageNum, pageSize) {
   return request({
-    url: '/front/order',
+    url: `/front/order/${userId}/${pageNum}/${pageSize}`,
     method: 'get',
-    params: { userId }
+  })
+}
+
+// 取消预约
+export function cancelOrder(orderId) {
+  return request({
+    url: '/front/order/cancel',
+    method: 'post',
+    params: { orderId }
   })
 }
 

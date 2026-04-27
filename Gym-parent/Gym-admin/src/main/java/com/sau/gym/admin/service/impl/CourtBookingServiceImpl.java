@@ -9,9 +9,11 @@ import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
+import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.user.UserBalance;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
+import com.sau.gym.utils.AuthContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,15 +119,16 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
     //查询所有预约记录
     @Override
-    public Map<String, Object> getCourtOrder(Long userId) {
+    public PageInfo<CourtBookVO> getCourtOrder(Long userId,Integer current,Integer limit) {
+
+        PageHelper.startPage(current,limit);
+
         //查询该用户所有的预约场地信息
         List<CourtBookVO> orders = courtBookingMapper.getCourtOrder(userId);
 
-        //构建返回对象
-        HashMap<String, Object> resultMap = new HashMap<>();
+        PageInfo<CourtBookVO> pageInfo = new PageInfo<>(orders);
 
-        resultMap.put("orders",orders);
-        return resultMap;
+        return pageInfo;
     }
 
     //统计所有预约总数
@@ -133,6 +136,23 @@ public class CourtBookingServiceImpl implements CourtBookingService {
     public List<CourtBooking> countAllBook() {
         List<CourtBooking> list = courtBookingMapper.countAllBook();
         return list;
+    }
+
+    //前台用户取消预约订单
+    @Transactional
+    @Override
+    public void cancelOrder(Long orderId) {
+        //获取订单信息
+        CourtBooking courtBooking = courtBookingMapper.selectById(orderId);
+
+        //取消订单
+        courtBookingMapper.cancelOrder(orderId);
+
+        User user = AuthContextUtil.get();
+        UserBalance userBalance = userBalanceMapper.GetBalanceById(user.getId());
+
+        //把订单余额返回给用户的余额
+        userBalanceMapper.updateBalance(user.getId(),courtBooking.getTotalPrice().add(userBalance.getBalance()));
     }
 
     /***

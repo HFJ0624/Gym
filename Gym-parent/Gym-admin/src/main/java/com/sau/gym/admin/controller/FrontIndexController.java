@@ -1,5 +1,6 @@
 package com.sau.gym.admin.controller;
 
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.service.*;
 import com.sau.gym.common.log.annotation.Log;
 import com.sau.gym.common.log.enums.OperatorType;
@@ -10,6 +11,7 @@ import com.sau.gym.model.dto.venue.VenueDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.user.User;
+import com.sau.gym.model.vo.court.CourtBookVO;
 import com.sau.gym.model.vo.system.LoginVo;
 import com.sau.gym.model.vo.system.ValidateCodeVo;
 import com.sau.gym.utils.AuthContextUtil;
@@ -91,10 +93,10 @@ public class FrontIndexController {
     }
 
     //查询所有预约记录
-    @GetMapping(value = "/order")
-    public Result<Map<String,Object>> getCourtOrder(@RequestParam Long userId){
-        Map<String, Object> resultMap = courtBookingService.getCourtOrder(userId);
-        return Result.build(resultMap, ResultCodeEnum.SUCCESS);
+    @GetMapping(value = "/order/{userId}/{current}/{limit}")
+    public Result<PageInfo<CourtBookVO>> getCourtOrder(@PathVariable(value = "userId") Long userId, @PathVariable(value = "current") Integer current, @PathVariable(value = "limit") Integer limit){
+        PageInfo<CourtBookVO> pageInfo = courtBookingService.getCourtOrder(userId,current,limit);
+        return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
     }
 
     //查询所有发表公告
@@ -121,9 +123,18 @@ public class FrontIndexController {
     }
 
     //前台用户充值余额
+    @Log(title = "前台用户充值余额",businessType = 2,operatorType = OperatorType.MOBILE)
     @PostMapping(value = "/recharge")
     public Result<Map<String,Object>> Recharge(@RequestBody UserBalanceDto userBalanceDto){
         userBalanceService.Recharge(userBalanceDto);
         return Result.build(null, ResultCodeEnum.SUCCESS);
+    }
+
+    //前台用户取消预约订单
+    @Log(title = "前台用户取消预约订单",businessType = 2,operatorType = OperatorType.MOBILE)
+    @PostMapping(value = "/order/cancel")
+    public Result cancelOrder(@RequestParam Long orderId){
+        courtBookingService.cancelOrder(orderId);
+        return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }

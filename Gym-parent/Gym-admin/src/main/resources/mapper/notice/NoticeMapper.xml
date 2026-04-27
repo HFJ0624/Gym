@@ -81,14 +81,14 @@
     <select id="findAllNotice" resultMap="NoticeMap">
         select id,create_id,title,create_time
         from notice
-        where is_deleted = 0
+        where is_deleted = 0 and status = 1
     </select>
 
     <!-- 查询所有的角色数据 -->
     <select id="getNotices" resultMap="NoticeMap">
         select id,title,content,notice_type,status,create_time
         from notice
-        where is_deleted = 0
+        where is_deleted = 0 and status = 1
     </select>
 
     <!-- 查询所有的角色数据 -->

@@ -91,13 +91,15 @@
         from court_booking c
         left join court co on co.id = c.court_id
         where c.user_id = #{userId}
-        order by c.id
+        and c.is_deleted = 0
+        order by c.id desc
     </select>
 
     <!--统计所有预约总数-->
     <select id="countAllBook" resultMap="CourtBookMap">
         select id
         from court_booking
+        where is_deleted = 0
     </select>
 
     <select id="selectBookTime" resultType="com.sau.gym.model.vo.court.CourtBookVO">
@@ -105,8 +107,20 @@
         from court_booking
         where court_id = #{courtId} and
         booking_date = #{bookingDate}
+        and is_deleted = 0
     </select>
 
+    <select id="selectById" resultMap="CourtBookMap">
+        select *
+        from court_booking
+        where id = #{orderId} and is_deleted = 0
+    </select>
 
+    <!--  取消订单  -->
+    <update id="cancelOrder">
+        update court_booking
+        set is_deleted = 1,status = 2
+        where id = #{orderId}
+    </update>
 
 </mapper>

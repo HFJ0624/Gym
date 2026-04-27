@@ -21,8 +21,11 @@ public interface CourtBookingService {
     boolean saveCourtBook(BookingDto bookingDto);
 
     //查询所有预约记录
-    Map<String, Object> getCourtOrder(Long userId);
+    PageInfo<CourtBookVO> getCourtOrder(Long userId,Integer current,Integer limit);
 
     //统计所有预约总数
     List<CourtBooking> countAllBook();
+
+    //前台用户取消预约订单
+    void cancelOrder(Long orderId);
 }
