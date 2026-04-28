@@ -1,44 +1,127 @@
-## 一、项目背景
+# Gym 体育场馆预约平台
 
-该项目是一个高校及各大体育馆的体育场馆预约平台,其功能主要是用户可以登录预约场地、发布评论以及后台管理系统等等，是一个的SpringBoot+Vue的项目。
+## 1. 项目介绍
 
-后台的Gym-admin系统一个Vue3 Element Admin的脚手架，脚手架链接:https://github.com/youlaitech/vue3-element-admin
+Gym 是一个基于 Spring Boot 3 + Vue3 的体育场馆预约平台，包含用户前台、后台管理系统和智能 Agent 服务。
 
+项目核心业务包括：场馆浏览、场地预约、订单管理、评论收藏、公告管理、后台运营管理、邮箱通知、智能问答与 Agent 工具调用。
 
-## 二、技术背景
+本项目的目标不是简单实现 CRUD，而是围绕真实预约业务构建完整后端主链，并进一步接入 Java + AI 应用能力，例如 Agent 工具调用、RAG 知识库问答、智能预约草稿生成等。
 
-前端技术:Vue3+Element Plus+Vite+Vue Router+JS
+## 2. 项目亮点
 
-后端技术:Java+SprinBoot+Mybatis+Mysql+redis+minio+docker+Agent+短信验证服务(现在需要公司认证)+邮箱推送功能+EasyExcel
+- 前后端分离架构，包含用户前台和后台管理端
+- 基于 Spring Boot 3 + MyBatis 构建后端业务系统
+- 支持场馆、场地、预约、订单、公告、评论、收藏等核心业务
+- 接入 Redis，用于缓存、验证码、登录状态等场景
+- 接入 MinIO，用于图片和文件存储
+- 接入邮箱通知能力
+- 引入 LangChain4j，构建体育场馆智能 Agent
+- 规划使用 pgvector 构建 RAG 知识库
+- 规划二维码核销、预约状态机、支付流水、退款流水、后台统计看板
 
-## 三、环境需求及部署
+## 3. 技术栈
 
-node版本为16.19.0
+### 后端
 
-SpringBoot为2.6.13版本以及java17、redis7、mysql8、maven版本为3.8.3
+- Java 17
+- Spring Boot 3.0.5
+- Spring MVC
+- MyBatis
+- MySQL 8
+- Redis 7
+- MinIO
+- WebSocket
+- Mail
+- EasyExcel
+- LangChain4j
+- pgvector
+- ZXing
+- Maven 多模块
 
-```shell
-# Vue3-Element-Admin 要求 Node.js 版本 >= 12 ，推荐Node.js  16.x版本
-git clone 该项目
+### 前端
 
-# 建议不要直接使用 cnpm 安装依赖，会有各种诡异的 bug。可以通过如下操作解决 npm 下载速度慢的问题
-# 前台系统 启动在localhost:3002/
-npm install --registry=https://registry.npm.taobao.org
-npm run dev
+- Vue3
+- Element Plus
+- Vite
+- Vue Router
+- Axios
+- Pinia / Store
 
-# 管理员系统 启动在localhost:3001/
-npm install --registry=https://registry.npm.taobao.org
-npm start
+### 工程化
 
-# 后端点击AdminApplication启动类启动 启动在localhost:9601/
-```
+- Maven
+- Docker
+- Git
+- GitHub
 
-## 四、后端框架结构
-<img width="1331" height="747" alt="image" src="https://github.com/user-attachments/assets/e27a1cdc-7ff5-4514-99b0-27efb3ca3d68" />
-<img width="728" height="1197" alt="6424472ce06d13eb7d2fda9754268fbf" src="https://github.com/user-attachments/assets/2fdd92cd-2655-4687-95dc-6768a0e40c68" />
+## 4. 系统角色
 
+### 普通用户
 
-## 五、开发心得
+- 注册登录
+- 浏览场馆
+- 查看公告
+- 预约场地
+- 查看我的预约
+- 查看我的订单
+- 评论和收藏
+- 使用 Agent 查询场馆与预约信息
 
-本项目的起源是想着学习java后端方向以及前端，项目背景是本人除了编写代码的其他爱好就是健身及各种运动才有感而生想到的项目背景，我是在学完了各种技术以及做了四个项目前提下，自己想着动手搭建从0到1的一个项目，期间会搭配着各种AI以及大佬的博客解决项目中遇到的各种难题。我觉得该项目可以够一个小白跟着视频学完，想完全自学的一个项目，你看完我的或者别人的，感觉都会有点灵感，虽然这只是一个SpringBoot+Vue的一个前后端分离项目，放在现在的AI大背景下可能不是很够看的一个项目，但我觉得要学就要大胆去做，而不是畏手畏脚不敢去做，如果有更好的意见，恳请各位指点。回想起来，自己也是刚开始从java的输入System.out.println();都会打错，到现在也慢慢进步，也能慢慢给一些同学建议。当你没那么在意未来，当下最重要，也许新学的技术会更新迭代的很快，也许有一天AI会代替程序员，也许现在都充斥着入行Java就是1949年入国军，但是我觉得不要被这些给吓到了而去焦虑未来，既然选择了这条路，不清楚是不是最好的，那就坚信自己的选择，相信自己的选择是最正确的选择。最后，接受各个大佬的指点以及互相讨论学习也可，谢谢大家。
-持续更新ing...
+### 管理员
+
+- 用户管理
+- 场馆管理
+- 场地管理
+- 预约管理
+- 订单管理
+- 公告管理
+- 评论管理
+- 运营数据统计
+
+### 智能 Agent
+
+- 查询场馆
+- 查询公告
+- 查询可预约时段
+- 查询我的预约
+- 查询我的订单
+- 生成预约草稿
+- 用户确认后执行预约
+- 后续接入 RAG 知识库问答
+
+## 5. 功能模块
+
+| 模块 | 说明 |
+|---|---|
+| 用户模块 | 登录、注册、个人信息 |
+| 场馆模块 | 场馆列表、详情、状态管理 |
+| 场地模块 | 场地管理、价格、容量、状态 |
+| 预约模块 | 按日期和时段预约、取消、改签 |
+| 订单模块 | 预约订单、商城订单、订单状态流转 |
+| 支付模块 | 模拟支付、支付流水、退款流水 |
+| 公告模块 | 公告发布、公告展示、公告分类 |
+| 评论收藏 | 用户评论、收藏场馆 |
+| 通知模块 | 预约通知、取消通知、退款通知 |
+| Agent 模块 | 智能查询、预约草稿、工具调用 |
+| RAG 模块 | 场馆知识库问答，规划中 |
+
+## 6. 项目结构
+
+```text
+Gym
+├── Gym-parent                  # 后端父工程
+│   ├── Gym-admin               # 后端启动模块与业务接口
+│   ├── Gym-Model               # 实体类、DTO、VO
+│   └── Gym-common              # 公共模块
+│       ├── common-log          # 日志相关
+│       ├── common-service      # 通用服务
+│       └── common-util         # 工具类
+├── front
+│   └── Gym-admin
+│       ├── Gym-admin           # 后台管理端
+│       └── Gym-front           # 用户前台端
+├── db
+│   └── gym.sql                 # 数据库初始化脚本
+├── README.md
+└── .gitignore
