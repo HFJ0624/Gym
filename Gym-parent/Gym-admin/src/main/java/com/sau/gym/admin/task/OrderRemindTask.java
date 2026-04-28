@@ -2,22 +2,19 @@ package com.sau.gym.admin.task;
 
 import com.sau.gym.admin.mapper.CourtBookingMapper;
 import com.sau.gym.admin.utils.MailService;
-import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookEmailVO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:邮箱定时任务
  * 日期: 2026/4/27 21:19
  */
 @Component

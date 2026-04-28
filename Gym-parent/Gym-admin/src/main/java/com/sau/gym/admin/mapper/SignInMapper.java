@@ -1,8 +1,11 @@
 package com.sau.gym.admin.mapper;
 
+import com.sau.gym.model.dto.system.SignInDto;
 import com.sau.gym.model.entity.system.SignIn;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface SignInMapper {
@@ -15,4 +18,7 @@ public interface SignInMapper {
 
     // 更新签到状态（已到场+签到时间）
     int updateStatusByToken(@Param("token") String token);
+
+    //分页查看所有签到记录
+    List<SignIn> findByPage(SignInDto signInDto);
 }

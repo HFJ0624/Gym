@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * 作者:hfj
- * 功能:
+ * 功能:提醒用户发送邮件服务类
  * 日期: 2026/4/27 21:09
  */
 @Service

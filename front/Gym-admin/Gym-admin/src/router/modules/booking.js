@@ -1,6 +1,7 @@
 const Layout = () => import('@/layout/index.vue')
 const venueBook = () => import('@/views/booking/venueBook.vue')
 const courtBook = () => import('@/views/booking/courtBook.vue')
+const signIn = () => import('@/views/booking/signIn.vue')
 
 export default [
     {
@@ -30,6 +31,16 @@ export default [
                     title: '场地预约',
                 },
                 icon: 'PhoneFilled',
+                hidden: false
+            }, 
+            {
+                path: '/siginIn',
+                name: 'signIn',
+                component: signIn,
+                meta: {
+                    title: '签到查看',
+                },
+                icon: 'List',
                 hidden: false
             }, 
         ],

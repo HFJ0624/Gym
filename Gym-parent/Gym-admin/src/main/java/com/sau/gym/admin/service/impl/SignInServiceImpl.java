@@ -1,12 +1,16 @@
 package com.sau.gym.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.mapper.SignInMapper;
 import com.sau.gym.admin.service.SignInService;
+import com.sau.gym.model.dto.system.SignInDto;
 import com.sau.gym.model.entity.system.SignIn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -51,5 +55,16 @@ public class SignInServiceImpl implements SignInService {
     @Override
     public SignIn getSignInByToken(String token) {
         return signInMapper.selectByToken(token);
+    }
+
+    //分页查看所有签到记录
+    @Override
+    public PageInfo<SignIn> findByPage(Integer current, Integer limit, SignInDto signInDto) {
+
+        PageHelper.startPage(current,limit);
+
+        List<SignIn> list = signInMapper.findByPage(signInDto);
+        PageInfo<SignIn> pageInfo = new PageInfo<>(list);
+        return pageInfo;
     }
 }
