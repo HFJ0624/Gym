@@ -6,7 +6,7 @@ import { useAuth } from '@/stores/auth'
 // - 自动携带 headers.token（与你后端一致）
 // - 未登录时跳转到 /front/login
 const service = axios.create({
-  baseURL: 'http://localhost:9601',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 10000,
   withCredentials: true,
 })

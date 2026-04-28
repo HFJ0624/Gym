@@ -9,14 +9,14 @@ export const useOrder = defineStore('order', () => {
   const loadOrders = async (page = 1, pageSize = 10, status = '') => {
     loading.value = true
     try {
-      //TODO: 后端接口调用
+      //获取所有订单
       const res = await GetShoppingOrderList(page, pageSize, status)
       if (res.code === 200) {
         orderList.value = res.data.list
         return res.data
       }
 
-      // 死数据演示
+      //返回订单列表和总数
       return {
         list: orderList.value,
         total: orderList.value.length
@@ -32,7 +32,7 @@ export const useOrder = defineStore('order', () => {
   const createOrder = async (cartItems, remark = '') => {
     loading.value = true
     try {
-      //TODO: 后端接口调用
+      //创建订单
       const res = await CreateShoppingOrder({
         cartIds: cartItems.map(item => item.id),
         remark
@@ -54,10 +54,7 @@ export const useOrder = defineStore('order', () => {
 
   const cancelOrder = async (orderId) => {
     try {
-      // TODO: 后端接口调用
-      // await CancelShoppingOrder(orderId)
-
-      // 死数据演示
+      //暂时用不上该功能
       const order = orderList.value.find(o => o.id === orderId)
       if (order) {
         order.status = 0
@@ -73,7 +70,6 @@ export const useOrder = defineStore('order', () => {
       // TODO: 后端接口调用
       // await PayShoppingOrder(orderId)
 
-      // 死数据演示
       const order = orderList.value.find(o => o.id === orderId)
       if (order) {
         order.status = 2

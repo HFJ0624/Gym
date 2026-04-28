@@ -41,7 +41,6 @@ export const useCart = defineStore('cart', {
     // 加载购物车列表
     async loadCart() {
       try {
-        //TODO: 后端接口调用
         const res = await GetCartList()
         if (res.code === 200) {
           this.cartList = res.data.list.map(item => ({
@@ -60,7 +59,6 @@ export const useCart = defineStore('cart', {
     // 添加商品到购物车
     async addToCart(goodsId, quantity = 1) {
       try {
-        //TODO: 后端接口调用
         await AddToCart({ goodsId, quantity })
         await this.loadCart()
 
@@ -116,10 +114,6 @@ export const useCart = defineStore('cart', {
     // 清空购物车
     async clearCart() {
       try {
-        // TODO: 后端接口调用
-        // await ClearCart()
-
-        // 死数据演示
         this.cartList = []
         this.cartCount = 0
       } catch (error) {
@@ -133,12 +127,7 @@ export const useCart = defineStore('cart', {
         const selectedIds = this.cartList
           .filter(item => item.selected)
           .map(item => item.id)
-
-        // TODO: 后端接口调用 - 批量删除
-        // for (const id of selectedIds) {
-        //   await DeleteCartItem(id)
-        // }
-
+          
         // 先更新本地数据
         this.cartList = this.cartList.filter(item => !item.selected)
         this.cartCount = this.cartList.length
