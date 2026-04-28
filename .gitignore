@@ -1,17 +1,6 @@
-# Compiled class file
+# Java
 *.class
-**/application-local.yml
-
-# Log file
 *.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
 *.jar
 *.war
 *.nar
@@ -19,7 +8,39 @@
 *.zip
 *.tar.gz
 *.rar
+target/
+**/target/
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Local config
+**/application-local.yml
+**/application-dev-local.yml
+**/.env
+.env
+
+# Node
+node_modules/
+dist/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# JVM crash logs
 hs_err_pid*
 replay_pid*
