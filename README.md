@@ -126,6 +126,8 @@ Gym
 ├── README.md
 └── .gitignore
 
+```
+
 ## 7.部署项目
 环境需求:JDK 17、Maven 3.8+、MySQL 8、Redis 7、Node.js 16+
 1.先执行初始化数据库
