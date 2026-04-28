@@ -1,0 +1,7 @@
+package com.sau.gym.admin.agent.service;
+
+public interface AgentService {
+
+    //构建agent智能聊天
+    String chat(Long userId,String message);
+}
