@@ -27,4 +27,7 @@ public interface CourtMapper {
 
     //查询一个场地的所有信息
     List<CourtVO> getCourt(Long courtId, Long venueId);
+
+    //获取场地信息
+    Court selectOne(Long courtId);
 }

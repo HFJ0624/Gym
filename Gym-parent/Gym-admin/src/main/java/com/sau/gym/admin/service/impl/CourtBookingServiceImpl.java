@@ -2,15 +2,19 @@ package com.sau.gym.admin.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.sau.gym.admin.mapper.BalanceRecordMapper;
 import com.sau.gym.admin.mapper.CourtBookingMapper;
+import com.sau.gym.admin.mapper.CourtMapper;
 import com.sau.gym.admin.mapper.UserBalanceMapper;
 import com.sau.gym.admin.service.CourtBookingService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
+import com.sau.gym.model.entity.finance.BalanceRecord;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.user.UserBalance;
+import com.sau.gym.model.entity.venue.Court;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
 import com.sau.gym.utils.AuthContextUtil;
@@ -22,6 +26,7 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +43,13 @@ public class CourtBookingServiceImpl implements CourtBookingService {
     private CourtBookingMapper courtBookingMapper;
 
     @Autowired
+    private CourtMapper courtMapper;
+
+    @Autowired
     private UserBalanceMapper userBalanceMapper;
+
+    @Autowired
+    private BalanceRecordMapper balanceRecordMapper;
 
     //场地预约的查询功能
     @Override
@@ -94,7 +105,8 @@ public class CourtBookingServiceImpl implements CourtBookingService {
         UserBalance userBalance = userBalanceMapper.GetBalanceById(bookingDto.getUserId());
         if (userBalance.getBalance().compareTo(totalPrice) >= 0){
             //生成订单编码
-            courtBooking.setOrderNo(getSecure32RandomNumber());
+            String order_no = getSecure32RandomNumber();
+            courtBooking.setOrderNo(order_no);
 
             courtBooking.setUserId(bookingDto.getUserId());
             courtBooking.setCourtId(bookingDto.getCourtId());
@@ -104,6 +116,21 @@ public class CourtBookingServiceImpl implements CourtBookingService {
             courtBooking.setRemark(bookingDto.getRemark());
             courtBooking.setStartTime(bookingDto.getStartTime());
             courtBooking.setEndTime(bookingDto.getEndTime());
+
+            //插入流水信息
+            BalanceRecord balanceRecord = new BalanceRecord();
+            balanceRecord.setUserId(bookingDto.getUserId());
+            balanceRecord.setType(2);
+            balanceRecord.setAmount(totalPrice);
+            balanceRecord.setBeforeBalance(userBalance.getBalance());
+            balanceRecord.setAfterBalance(userBalance.getBalance().subtract(totalPrice));
+            balanceRecord.setOrderNo(order_no);
+            balanceRecord.setCreateTime(new Date());
+
+            //获取场地信息
+            Court court = courtMapper.selectOne(bookingDto.getCourtId());
+            balanceRecord.setRemark("用户预约场地,订单金额:" + totalPrice + "元,场地名称:" + court.getName());
+            balanceRecordMapper.insertOne(balanceRecord);
 
             BigDecimal surplus = userBalance.getBalance().subtract(totalPrice);
             //保存到数据库

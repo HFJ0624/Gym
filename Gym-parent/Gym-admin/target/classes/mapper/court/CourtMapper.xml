@@ -105,4 +105,10 @@
         where v.id = #{venueId} and c.id = #{courtId}
     </select>
 
+    <select id="selectOne" resultMap="CourtMap">
+        select *
+        from court
+        where is_deleted = 0 and id = #{courtId}
+    </select>
+
 </mapper>

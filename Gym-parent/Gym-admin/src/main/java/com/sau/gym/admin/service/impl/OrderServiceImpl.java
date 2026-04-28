@@ -7,6 +7,7 @@ import com.sau.gym.admin.service.OrderService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.order.OrderDto;
 import com.sau.gym.model.dto.order.OrdersDto;
+import com.sau.gym.model.entity.finance.BalanceRecord;
 import com.sau.gym.model.entity.order.Order;
 import com.sau.gym.model.entity.order.OrderItem;
 import com.sau.gym.model.entity.shopping.Beverage;
@@ -49,6 +50,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private UserBalanceMapper userBalanceMapper;
 
+    @Autowired
+    private BalanceRecordMapper balanceRecordMapper;
+
     //创建订单
     @Transactional
     @Override
@@ -82,10 +86,11 @@ public class OrderServiceImpl implements OrderService {
             totalPrice = totalPrice.add(itemTotal);
         }
 
+        String order_no = getSecure32RandomNumber();
         //4.创建订单
         Order order = new Order();
         order.setPayTime(new Date());
-        order.setOrderNo(getSecure32RandomNumber());
+        order.setOrderNo(order_no);
         order.setRemark(orderDto.getRemark());
         order.setUserId(user.getId());
         order.setTotalPrice(totalPrice);
@@ -93,6 +98,18 @@ public class OrderServiceImpl implements OrderService {
         if (userBalance.getBalance().compareTo(totalPrice) >= 0){
             //用余额支付并更新余额
             order.setStatus(1);
+
+            //插入流水信息
+            BalanceRecord balanceRecord = new BalanceRecord();
+            balanceRecord.setUserId(user.getId());
+            balanceRecord.setOrderNo(order_no);
+            balanceRecord.setAmount(totalPrice);
+            balanceRecord.setType(2);
+            balanceRecord.setBeforeBalance(userBalance.getBalance());
+            balanceRecord.setAfterBalance(userBalance.getBalance().subtract(totalPrice));
+            balanceRecord.setCreateTime(new Date());
+            balanceRecord.setRemark("用户下商城订单,订单金额:" + totalPrice + "元");
+            balanceRecordMapper.insertOne(balanceRecord);
 
             //更新余额
             BigDecimal surplus = userBalance.getBalance().subtract(totalPrice);
