@@ -142,8 +142,8 @@ Gym-parent/Gym-admin/src/main/java/com/sau/gym/admin/AdminApplication.java
 后端端口在9601
 
 4.启动前端
-后台管理端
 ```shell
+后台管理端
 cd front/Gym-admin/Gym-admin
 npm install
 npm run dev
