@@ -7,6 +7,7 @@ dist-ssr
 # local env files
 .env.local
 .env.*.local
+.env.development
 
 # Log files
 npm-debug.log*
