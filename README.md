@@ -2,7 +2,7 @@
 
 ## 1. 项目介绍
 
-Gym 是一个基于 Spring Boot 3 + Vue3 的体育场馆预约平台，包含用户前台、后台管理系统和智能 Agent 服务。
+Gym 是一个基于 Spring Boot 3 + Vue3 + Agent的体育场馆预约平台，包含用户前台、后台管理系统和智能 Agent 服务。
 
 项目核心业务包括：场馆浏览、场地预约、订单管理、评论收藏、公告管理、后台运营管理、邮箱通知、智能问答与 Agent 工具调用。
 
@@ -129,16 +129,17 @@ Gym
 ```
 
 ## 7.部署项目
-环境需求:JDK 17、Maven 3.8+、MySQL 8、Redis 7、Node.js 16+
-1.先执行初始化数据库
+环境需求:JDK 17、Maven 3.8+、MySQL 8、Redis 7、Node.js 16+<br>
+1.先执行初始化数据库<br>
 初始化数据库 先执行：db/gym.sql
 
 2.修改配置文件
-修改Gym-parent/Gym-admin/src/main/resources/application.yml改成自己的配置环境
-并新建一个本地的配置文件存放重要的配置数据Gym-parent/Gym-admin/src/main/resources/application-local.yml
+修改Gym-parent/Gym-admin/src/main/resources/application.yml改成自己的配置环境<br>
+并新建一个本地的配置文件存放重要的配置数据Gym-parent/Gym-admin/src/main/resources/application-local.yml<br>
+<img width="532" height="402" alt="image" src="https://github.com/user-attachments/assets/783054f6-85ae-4ee0-a27a-14f09c46cd34" />
 
 3.启动后端
-Gym-parent/Gym-admin/src/main/java/com/sau/gym/admin/AdminApplication.java
+Gym-parent/Gym-admin/src/main/java/com/sau/gym/admin/AdminApplication.java<br>
 后端端口在9601
 
 4.启动前端
