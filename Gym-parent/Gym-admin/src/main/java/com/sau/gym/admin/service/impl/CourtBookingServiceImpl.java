@@ -10,6 +10,7 @@ import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.finance.BalanceRecord;
 import com.sau.gym.model.entity.finance.PaymentRecord;
+import com.sau.gym.model.entity.finance.RefundRecord;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.user.UserBalance;
 import com.sau.gym.model.entity.venue.Court;
@@ -51,6 +52,9 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
     @Autowired
     private PaymentRecordMapper paymentRecordMapper;
+
+    @Autowired
+    private RefundRecordMapper refundRecordMapper;
 
     //场地预约的查询功能
     @Override
@@ -191,6 +195,20 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
         User user = AuthContextUtil.get();
         UserBalance userBalance = userBalanceMapper.GetBalanceById(user.getId());
+
+        //插入退款流水表
+        RefundRecord refundRecord = new RefundRecord();
+        refundRecord.setRefundAmount(courtBooking.getTotalPrice());
+        refundRecord.setOrderType(1);
+        refundRecord.setOrderNo(courtBooking.getOrderNo());
+        refundRecord.setStatus(1);
+        refundRecord.setUserId(courtBooking.getUserId());
+        refundRecord.setCreateTime(new Date());
+        refundRecord.setRefundTime(new Date());
+        PaymentRecord paymentRecord =paymentRecordMapper.selectOne(courtBooking.getOrderNo());
+        refundRecord.setPayNo(paymentRecord.getPayNo());
+        refundRecord.setOrderNo(courtBooking.getOrderNo());
+        refundRecordMapper.insertOne(refundRecord);
 
         //把订单余额返回给用户的余额
         userBalanceMapper.updateBalance(user.getId(),courtBooking.getTotalPrice().add(userBalance.getBalance()));

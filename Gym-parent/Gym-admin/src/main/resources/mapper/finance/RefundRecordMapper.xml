@@ -1,36 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.sau.gym.admin.mapper.PaymentRecordMapper">
+<mapper namespace="com.sau.gym.admin.mapper.RefundRecordMapper">
 
-    <!--  插入流水信息   -->
+    <!--  插入退款流水信息   -->
     <insert id="insertOne">
-        insert into payment_record (
+        insert into refund_record (
+            refund_no,
             pay_no,
             order_no,
             user_id,
             order_type,
-            pay_channel,
-            amount,
+            refund_amount,
             status,
-            pay_time,
+            refund_time,
             create_time
         ) values (
+                     #{refundNo},
                      #{payNo},
                      #{orderNo},
                      #{userId},
                      #{orderType},
-                     #{payChannel},
-                     #{amount},
+                     #{refundAmount},
                      #{status},
-                     #{payTime},
+                     #{refundTime},
                      #{createTime}
                  )
     </insert>
-
-    <select id="selectOne" resultType="com.sau.gym.model.entity.finance.PaymentRecord">
-        select *
-        from payment_record
-        where order_no = #{orderNo}
-    </select>
 
 </mapper>
