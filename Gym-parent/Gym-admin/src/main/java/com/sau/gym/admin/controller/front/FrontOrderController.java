@@ -24,8 +24,8 @@ public class FrontOrderController {
     @Autowired
     private OrderService orderService;
 
-    //创建订单
-    @Log(title = "创建订单",businessType = 1,operatorType = OperatorType.MANAGE)
+    //商城订单下单
+    @Log(title = "商城订单下单",businessType = 1,operatorType = OperatorType.MANAGE)
     @PostMapping(value = "/create")
     public Result CreateShoppingOrder(@RequestBody OrderDto orderDto){
         orderService.CreateShoppingOrder(orderDto);

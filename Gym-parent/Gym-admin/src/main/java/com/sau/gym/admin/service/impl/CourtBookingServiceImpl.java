@@ -2,16 +2,14 @@ package com.sau.gym.admin.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.sau.gym.admin.mapper.BalanceRecordMapper;
-import com.sau.gym.admin.mapper.CourtBookingMapper;
-import com.sau.gym.admin.mapper.CourtMapper;
-import com.sau.gym.admin.mapper.UserBalanceMapper;
+import com.sau.gym.admin.mapper.*;
 import com.sau.gym.admin.service.CourtBookingService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import com.sau.gym.model.entity.finance.BalanceRecord;
+import com.sau.gym.model.entity.finance.PaymentRecord;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.user.UserBalance;
 import com.sau.gym.model.entity.venue.Court;
@@ -51,6 +49,9 @@ public class CourtBookingServiceImpl implements CourtBookingService {
     @Autowired
     private BalanceRecordMapper balanceRecordMapper;
 
+    @Autowired
+    private PaymentRecordMapper paymentRecordMapper;
+
     //场地预约的查询功能
     @Override
     public PageInfo<CourtBookVO> findByPage(Integer current, Integer limit, CourtBookDto courtBookDto) {
@@ -72,7 +73,7 @@ public class CourtBookingServiceImpl implements CourtBookingService {
         courtBookingMapper.deleteById(id);
     }
 
-    //添加预约场地
+    //下单预约场地
     @Transactional
     @Override
     public boolean saveCourtBook(BookingDto bookingDto) {
@@ -131,6 +132,19 @@ public class CourtBookingServiceImpl implements CourtBookingService {
             Court court = courtMapper.selectOne(bookingDto.getCourtId());
             balanceRecord.setRemark("用户预约场地,订单金额:" + totalPrice + "元,场地名称:" + court.getName());
             balanceRecordMapper.insertOne(balanceRecord);
+
+            //插入支付流水信息
+            PaymentRecord paymentRecord = new PaymentRecord();
+            paymentRecord.setOrderType(1);
+            paymentRecord.setPayChannel(1);
+            paymentRecord.setPayNo(get20SerialNo());
+            paymentRecord.setPayTime(new Date());
+            paymentRecord.setCreateTime(new Date());
+            paymentRecord.setUserId(bookingDto.getUserId());
+            paymentRecord.setStatus(1);
+            paymentRecord.setOrderNo(order_no);
+            paymentRecord.setAmount(totalPrice);
+            paymentRecordMapper.insertOne(paymentRecord);
 
             BigDecimal surplus = userBalance.getBalance().subtract(totalPrice);
             //保存到数据库
@@ -218,5 +232,15 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
         //校验通过
         return true;
+    }
+
+    /***
+     *
+     * @return 生成20位流水号（时间+随机数，纯数字）
+     */
+    public static String get20SerialNo() {
+        long time = System.currentTimeMillis();
+        String random = String.format("%07d", (int) (Math.random() * 10000000));
+        return String.valueOf(time) + random;
     }
 }

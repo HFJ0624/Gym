@@ -54,8 +54,8 @@ public class FrontVenueController {
         return Result.build(resultMap, ResultCodeEnum.SUCCESS);
     }
 
-    //添加预约场地
-    @Log(title = "预约场地",businessType = 1,operatorType = OperatorType.MANAGE)
+    //下单预约场地
+    @Log(title = "下单预约场地",businessType = 1,operatorType = OperatorType.MANAGE)
     @PostMapping(value = "/book")
     public Result saveVenue(@RequestBody BookingDto bookingDto){
         boolean is_success = courtBookingService.saveCourtBook(bookingDto);

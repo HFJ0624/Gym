@@ -8,6 +8,7 @@ import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.order.OrderDto;
 import com.sau.gym.model.dto.order.OrdersDto;
 import com.sau.gym.model.entity.finance.BalanceRecord;
+import com.sau.gym.model.entity.finance.PaymentRecord;
 import com.sau.gym.model.entity.order.Order;
 import com.sau.gym.model.entity.order.OrderItem;
 import com.sau.gym.model.entity.shopping.Beverage;
@@ -52,6 +53,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private BalanceRecordMapper balanceRecordMapper;
+
+    @Autowired
+    private PaymentRecordMapper paymentRecordMapper;
 
     //创建订单
     @Transactional
@@ -99,7 +103,7 @@ public class OrderServiceImpl implements OrderService {
             //用余额支付并更新余额
             order.setStatus(1);
 
-            //插入流水信息
+            //插入用户余额流水信息
             BalanceRecord balanceRecord = new BalanceRecord();
             balanceRecord.setUserId(user.getId());
             balanceRecord.setOrderNo(order_no);
@@ -110,6 +114,19 @@ public class OrderServiceImpl implements OrderService {
             balanceRecord.setCreateTime(new Date());
             balanceRecord.setRemark("用户下商城订单,订单金额:" + totalPrice + "元");
             balanceRecordMapper.insertOne(balanceRecord);
+
+            //插入支付流水信息
+            PaymentRecord paymentRecord = new PaymentRecord();
+            paymentRecord.setPayNo(get20SerialNo());
+            paymentRecord.setPayChannel(1); //余额支付
+            paymentRecord.setCreateTime(new Date());
+            paymentRecord.setAmount(totalPrice);
+            paymentRecord.setUserId(user.getId());
+            paymentRecord.setOrderNo(order_no);
+            paymentRecord.setStatus(1);
+            paymentRecord.setOrderType(2);
+            paymentRecord.setPayTime(new Date());
+            paymentRecordMapper.insertOne(paymentRecord);
 
             //更新余额
             BigDecimal surplus = userBalance.getBalance().subtract(totalPrice);
@@ -208,5 +225,15 @@ public class OrderServiceImpl implements OrderService {
             sb.append(random.nextInt(10));
         }
         return sb.toString();
+    }
+
+    /***
+     *
+     * @return 生成20位流水号（时间+随机数，纯数字）
+     */
+    public static String get20SerialNo() {
+        long time = System.currentTimeMillis();
+        String random = String.format("%07d", (int) (Math.random() * 10000000));
+        return String.valueOf(time) + random;
     }
 }
