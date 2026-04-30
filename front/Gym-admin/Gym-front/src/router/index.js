@@ -125,6 +125,12 @@ const router = createRouter({
           name: 'Notification',
           component: () => import('@/views/notification/index.vue'),
           meta: { title: '我的消息' }
+        },
+        {
+          path: '/rag',
+          name: 'RagKnowledge',
+          component: () => import('@/views/rag/index.vue'),
+          meta: { title: '场馆知识库问答' }
         }
       ],
     },

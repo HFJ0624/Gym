@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.KnowledgeDocumentMapper">
+
+    <!-- 新增知识文档 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO knowledge_document (
+            title,
+            content,
+            knowledge_scope,
+            source_type,
+            venue_id,
+            venue_name,
+            court_id,
+            court_name,
+            court_type,
+            notice_id,
+            topic,
+            tags,
+            priority,
+            enabled,
+            indexed_status,
+            create_time,
+            update_time
+        )
+        VALUES (
+                   #{title},
+                   #{content},
+                   #{knowledgeScope},
+                   #{sourceType},
+                   #{venueId},
+                   #{venueName},
+                   #{courtId},
+                   #{courtName},
+                   #{courtType},
+                   #{noticeId},
+                   #{topic},
+                   #{tags},
+                   #{priority},
+                   1,
+                   0,
+                   NOW(),
+                   NOW()
+               )
+    </insert>
+
+    <!-- 查询所有启用知识 -->
+    <select id="selectEnabledDocuments"
+            resultType="com.sau.gym.model.entity.rag.KnowledgeDocument">
+        SELECT
+            id,
+            title,
+            content,
+            knowledge_scope AS knowledgeScope,
+            source_type AS sourceType,
+            venue_id AS venueId,
+            venue_name AS venueName,
+            court_id AS courtId,
+            court_name AS courtName,
+            court_type AS courtType,
+            notice_id AS noticeId,
+            topic,
+            tags,
+            priority,
+            enabled,
+            indexed_status AS indexedStatus,
+            create_time AS createTime,
+            update_time AS updateTime
+        FROM knowledge_document
+        WHERE enabled = 1
+        ORDER BY priority DESC, id ASC
+    </select>
+
+    <!-- 标记已入向量库 -->
+    <update id="markIndexed">
+        UPDATE knowledge_document
+        SET indexed_status = 1,
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

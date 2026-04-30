@@ -6,7 +6,6 @@ import com.sau.gym.admin.service.NotificationService;
 import com.sau.gym.model.entity.event.NotificationEvent;
 import com.sau.gym.model.entity.notice.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;

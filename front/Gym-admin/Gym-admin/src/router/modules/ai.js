@@ -1,5 +1,6 @@
 const Layout = () => import('@/layout/index.vue')
 const agent = () => import('@/views/ai/ai.vue')
+const rag = () => import('@/views/ai/rag.vue')
 
 export default [
     {
@@ -17,6 +18,16 @@ export default [
                 component: agent,
                 meta: {
                     title: 'agent',
+                },
+                icon: 'Message',
+                hidden: false
+            },
+            {
+                path: '/rag',
+                name: 'rag',
+                component: rag,
+                meta: {
+                    title: '场馆知识库问答',
                 },
                 icon: 'Message',
                 hidden: false
