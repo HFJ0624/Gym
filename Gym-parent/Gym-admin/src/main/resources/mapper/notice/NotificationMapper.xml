@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.NotificationMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO notification (
+            user_id,
+            title,
+            content,
+            type,
+            business_id,
+            business_no,
+            business_type,
+            read_status,
+            create_time,
+            is_deleted
+        )
+        VALUES (
+               #{userId},
+               #{title},
+               #{content},
+               #{type},
+               #{businessId},
+               #{businessNo},
+               #{businessType},
+               #{readStatus},
+               #{createTime},
+               0
+           )
+    </insert>
+
+    <select id="selectUserNotificationList" resultType="com.sau.gym.model.vo.notice.NotificationVO">
+        SELECT
+        id,
+        title,
+        content,
+        type,
+        CASE type
+        WHEN 1 THEN '预约通知'
+        WHEN 2 THEN '支付通知'
+        WHEN 3 THEN '退款通知'
+        WHEN 4 THEN '公告通知'
+        WHEN 5 THEN '系统通知'
+        WHEN 6 THEN 'Agent通知'
+        ELSE '未知通知'
+        END AS typeName,
+        business_id AS businessId,
+        business_no AS businessNo,
+        business_type AS businessType,
+        read_status AS readStatus,
+        create_time AS createTime,
+        read_time AS readTime
+        FROM notification
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+        <if test="readStatus != null">
+            AND read_status = #{readStatus}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(1)
+        FROM notification
+        WHERE user_id = #{userId}
+          AND read_status = 0
+          AND is_deleted = 0
+    </select>
+
+    <update id="markRead">
+        UPDATE notification
+        SET read_status = 1,
+            read_time = #{readTime},
+            update_time = #{readTime}
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+    </update>
+
+    <update id="markAllRead">
+        UPDATE notification
+        SET read_status = 1,
+            read_time = #{readTime},
+            update_time = #{readTime}
+        WHERE user_id = #{userId}
+          AND read_status = 0
+          AND is_deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE notification
+        SET deleted = 1,
+            update_time = NOW()
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+    </update>
+
+</mapper>

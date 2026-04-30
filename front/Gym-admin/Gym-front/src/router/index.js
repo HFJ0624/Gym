@@ -120,6 +120,12 @@ const router = createRouter({
           component: () => import('@/views/shopping/order.vue'),
           meta: { title: '我的订单' },
         },
+        {
+          path: '/notification',
+          name: 'Notification',
+          component: () => import('@/views/notification/index.vue'),
+          meta: { title: '我的消息' }
+        }
       ],
     },
   ],

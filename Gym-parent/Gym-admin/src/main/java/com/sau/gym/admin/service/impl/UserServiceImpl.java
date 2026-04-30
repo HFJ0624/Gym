@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
             String phone = loginDto.getPhone();
             String redisCode = redisTemplate.opsForValue().get("phone:code:" + phone);
             if(StrUtil.isEmpty(redisCode) || !StrUtil.equals(redisCode , phoneCode)) {
-                throw new SauException(ResultCodeEnum.VALIDATECODE_ERROR);
+                throw new SauException(ResultCodeEnum.VALIDATE_CODE_ERROR);
             }
 
             // 验证通过删除redis中的验证码
@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
             String email = loginDto.getEmail();
             String redisCode = redisTemplate.opsForValue().get("email:" + email);
             if(StrUtil.isEmpty(redisCode) || !StrUtil.equals(redisCode , emailCode)) {
-                throw new SauException(ResultCodeEnum.VALIDATECODE_ERROR);
+                throw new SauException(ResultCodeEnum.VALIDATE_CODE_ERROR);
             }
 
             // 验证通过删除redis中的验证码
@@ -132,7 +132,7 @@ public class UserServiceImpl implements UserService {
             //从Redis中获取验证码
             String redisCode = redisTemplate.opsForValue().get("user:login:CAPTCHA:" + codeKey);
             if(StrUtil.isEmpty(redisCode) || !StrUtil.equalsIgnoreCase(redisCode , captcha)) {
-                throw new SauException(ResultCodeEnum.VALIDATECODE_ERROR);
+                throw new SauException(ResultCodeEnum.VALIDATE_CODE_ERROR);
             }
 
             // 验证通过删除redis中的验证码

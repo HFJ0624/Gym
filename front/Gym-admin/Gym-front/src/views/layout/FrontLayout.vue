@@ -18,6 +18,10 @@
             <el-icon><ShoppingCart /></el-icon>
             <span v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</span>
           </div>
+          <div class="notification-btn" @click="go('/notification')">
+            <el-icon><Bell /></el-icon>
+            <span v-if="unreadCount > 0" class="notification-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+          </div>
           <el-dropdown>
             <span class="user">
               <el-avatar size="small" :src="avatar" />
@@ -25,6 +29,7 @@
             </span>
             <template #dropdown>
               <el-dropdown-item @click="go('/profile')">个人中心</el-dropdown-item>
+              <el-dropdown-item @click="go('/notification')">我的消息</el-dropdown-item>
               <el-dropdown-item @click="go('/order')">我的预约</el-dropdown-item>
               <el-dropdown-item @click="go('/shopping/order')">我的订单</el-dropdown-item>
               <el-dropdown-item divided @click="logout">退出登录</el-dropdown-item>
@@ -43,11 +48,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/stores/auth'
 import { useCart } from '@/stores/cart'
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { ShoppingCart, Bell } from '@element-plus/icons-vue'
+import { getUnreadNotificationCount } from '@/api/notification'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,6 +64,7 @@ const cartStore = useCart()
 const username = computed(() => auth.user?.username || '用户')
 const avatar = computed(() => auth.user?.avatar)
 const cartCount = computed(() => cartStore.totalQuantity)
+const unreadCount = ref(0)
 
 const go = path => router.push(path)
 
@@ -72,8 +79,18 @@ const logout = () => {
   router.replace({ name: 'login', query: { redirect: route.fullPath } })
 }
 
+const loadUnreadCount = async () => {
+  try {
+    const res = await getUnreadNotificationCount()
+    unreadCount.value = res.data || 0
+  } catch (e) {
+    console.error('加载未读数量失败', e)
+  }
+}
+
 onMounted(() => {
   cartStore.loadCart()
+  loadUnreadCount()
 })
 </script>
 
@@ -131,7 +148,8 @@ onMounted(() => {
   align-items: center;
   gap: 15px;
 
-  .cart-btn {
+  .cart-btn,
+  .notification-btn {
     position: relative;
     padding: 8px;
     cursor: pointer;
@@ -142,7 +160,8 @@ onMounted(() => {
       color: #1a1a1a;
     }
 
-    .cart-badge {
+    .cart-badge,
+    .notification-badge {
       position: absolute;
       top: 0;
       right: 0;
@@ -150,11 +169,15 @@ onMounted(() => {
       height: 18px;
       line-height: 18px;
       padding: 0 5px;
-      background: #f7ba2a;
+      background: #f56c6c;
       color: #fff;
       border-radius: 9px;
       font-size: 12px;
       text-align: center;
+    }
+
+    .cart-badge {
+      background: #f7ba2a;
     }
   }
 

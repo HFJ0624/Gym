@@ -48,7 +48,7 @@
     </update>
 
     <!-- 插入预约场地 -->
-    <insert id="saveCourtBook">
+    <insert id="saveCourtBook" useGeneratedKeys="true" keyProperty="id">
         insert into court_booking (
             id,
             order_no,

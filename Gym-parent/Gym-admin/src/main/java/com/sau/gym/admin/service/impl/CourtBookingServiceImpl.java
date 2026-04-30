@@ -2,12 +2,15 @@ package com.sau.gym.admin.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.sau.gym.admin.enums.NotificationBusinessTypeEnum;
+import com.sau.gym.admin.enums.NotificationTypeEnum;
 import com.sau.gym.admin.mapper.*;
 import com.sau.gym.admin.service.CourtBookingService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.venue.BookingDto;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
+import com.sau.gym.model.entity.event.NotificationEvent;
 import com.sau.gym.model.entity.finance.BalanceRecord;
 import com.sau.gym.model.entity.finance.PaymentRecord;
 import com.sau.gym.model.entity.finance.RefundRecord;
@@ -18,6 +21,7 @@ import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
 import com.sau.gym.utils.AuthContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +59,9 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
     @Autowired
     private RefundRecordMapper refundRecordMapper;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     //场地预约的查询功能
     @Override
@@ -155,6 +162,18 @@ public class CourtBookingServiceImpl implements CourtBookingService {
             courtBookingMapper.saveCourtBook(courtBooking);
             //更新用户余额
             userBalanceMapper.updateBalance(bookingDto.getUserId(),surplus);
+
+            //监听事件:获取通知消息-用户下单预约消息
+            eventPublisher.publishEvent(new NotificationEvent(
+                    bookingDto.getUserId(),
+                    "预约订单已创建",
+                    "您的预约订单已创建，已完成支付。订单号：" + order_no,
+                    NotificationTypeEnum.BOOKING.getCode(),
+                    courtBooking.getId(),
+                    order_no,
+                    NotificationBusinessTypeEnum.BOOKING_ORDER.getCode()
+            ));
+
             return true;
         }
 
@@ -212,6 +231,17 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
         //把订单余额返回给用户的余额
         userBalanceMapper.updateBalance(user.getId(),courtBooking.getTotalPrice().add(userBalance.getBalance()));
+
+        //监听事件:获取通知消息-用户退款消息
+        eventPublisher.publishEvent(new NotificationEvent(
+                user.getId(),
+                "预约已取消",
+                "您的预约订单已取消。订单号：" + courtBooking.getOrderNo(),
+                NotificationTypeEnum.BOOKING.getCode(),
+                courtBooking.getId(),
+                courtBooking.getOrderNo(),
+                NotificationBusinessTypeEnum.BOOKING_ORDER.getCode()
+        ));
     }
 
     /***
