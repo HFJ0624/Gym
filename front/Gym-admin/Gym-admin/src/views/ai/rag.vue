@@ -1,79 +1,348 @@
 <template>
   <div class="rag-page">
-    <!-- 页面标题 -->
+    <!-- 顶部说明区域 -->
     <el-card class="page-card" shadow="never">
       <template #header>
         <div class="card-header">
           <div>
             <h2>RAG 知识库管理</h2>
             <p>
-              用于将 MySQL 中的 knowledge_document 知识文档重新切分、向量化，并写入 PostgreSQL + pgvector。
+              用于维护体育场馆系统的知识文档，并将知识切分、向量化后写入 PostgreSQL + pgvector。
             </p>
+          </div>
+
+          <div class="header-actions">
+            <el-button type="primary" @click="openCreateDialog">
+              新增知识
+            </el-button>
+
+            <el-button
+              type="warning"
+              :loading="rebuildLoading"
+              @click="handleRebuild"
+            >
+              重建知识库索引
+            </el-button>
           </div>
         </div>
       </template>
 
       <el-alert
-        title="说明：重建索引是管理操作，不会由普通用户提问自动触发。普通用户提问只会调用 /front/rag/ask 进行检索和回答。"
+        title="说明：新增或修改知识后，indexed_status 会变为未索引。需要点击“重建知识库索引”后，前台 RAG 问答才能检索到最新知识。"
         type="info"
         show-icon
         :closable="false"
       />
-
-      <div class="action-area">
-        <el-button
-          type="primary"
-          size="large"
-          :loading="rebuildLoading"
-          @click="handleRebuild"
-        >
-          重建知识库索引
-        </el-button>
-
-        <el-button
-          size="large"
-          @click="handleRefreshTip"
-        >
-          查看操作说明
-        </el-button>
-      </div>
-
-      <el-descriptions
-        title="重建流程"
-        :column="1"
-        border
-        class="flow-desc"
-      >
-        <el-descriptions-item label="第一步">
-          从 MySQL 的 knowledge_document 表读取 enabled = 1 的知识。
-        </el-descriptions-item>
-
-        <el-descriptions-item label="第二步">
-          将知识正文按 chunk.size 和 chunk.overlap 切分成多个知识片段。
-        </el-descriptions-item>
-
-        <el-descriptions-item label="第三步">
-          调用火山方舟 embedding 模型，将每个知识片段转成向量。
-        </el-descriptions-item>
-
-        <el-descriptions-item label="第四步">
-          将文本片段、metadata、embedding 向量写入 PostgreSQL 的 gym_knowledge 表。
-        </el-descriptions-item>
-
-        <el-descriptions-item label="第五步">
-          将 knowledge_document.indexed_status 更新为 1。
-        </el-descriptions-item>
-      </el-descriptions>
     </el-card>
 
-    <!-- 测试问答区域 -->
+    <!-- 查询条件 -->
+    <el-card class="page-card" shadow="never">
+      <el-form
+        :model="queryForm"
+        label-width="90px"
+        class="query-form"
+      >
+        <el-row :gutter="16">
+          <el-col :span="6">
+            <el-form-item label="知识标题">
+              <el-input
+                v-model="queryForm.title"
+                placeholder="请输入知识标题"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item label="知识范围">
+              <el-select
+                v-model="queryForm.knowledgeScope"
+                placeholder="全部"
+                clearable
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="item in knowledgeScopeOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item label="来源类型">
+              <el-select
+                v-model="queryForm.sourceType"
+                placeholder="全部"
+                clearable
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="item in sourceTypeOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item label="启用状态">
+              <el-select
+                v-model="queryForm.enabled"
+                placeholder="全部"
+                clearable
+                style="width: 100%"
+              >
+                <el-option label="启用" :value="1" />
+                <el-option label="禁用" :value="0" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item label="索引状态">
+              <el-select
+                v-model="queryForm.indexedStatus"
+                placeholder="全部"
+                clearable
+                style="width: 100%"
+              >
+                <el-option label="已索引" :value="1" />
+                <el-option label="未索引" :value="0" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item label="场馆ID">
+              <el-input-number
+                v-model="queryForm.venueId"
+                :min="1"
+                :controls="false"
+                placeholder="可选"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item label="场地ID">
+              <el-input-number
+                v-model="queryForm.courtId"
+                :min="1"
+                :controls="false"
+                placeholder="可选"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item>
+              <el-button type="primary" @click="handleSearch">
+                查询
+              </el-button>
+
+              <el-button @click="handleResetQuery">
+                重置
+              </el-button>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+    </el-card>
+
+    <!-- 知识列表 -->
     <el-card class="page-card" shadow="never">
       <template #header>
         <div class="card-header">
           <div>
-            <h3>知识库问答测试</h3>
+            <h3>知识文档列表</h3>
             <p>
-              重建索引后，可以在这里测试 RAG 是否能正常召回知识。
+              当前列表展示 MySQL 中的 knowledge_document 原始知识。是否能被 RAG 检索，取决于是否已重建索引。
+            </p>
+          </div>
+        </div>
+      </template>
+
+      <el-table
+        v-loading="tableLoading"
+        :data="tableData"
+        border
+        row-key="id"
+        style="width: 100%"
+      >
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+          align="center"
+        />
+
+        <el-table-column
+          prop="title"
+          label="知识标题"
+          min-width="180"
+          show-overflow-tooltip
+        />
+
+        <el-table-column
+          label="知识范围"
+          width="120"
+          align="center"
+        >
+          <template #default="{ row }">
+            <el-tag type="primary">
+              {{ formatKnowledgeScope(row.knowledgeScope) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          label="来源类型"
+          width="120"
+          align="center"
+        >
+          <template #default="{ row }">
+            {{ formatSourceType(row.sourceType) }}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          prop="venueName"
+          label="场馆"
+          width="150"
+          show-overflow-tooltip
+        />
+
+        <el-table-column
+          prop="courtName"
+          label="场地"
+          width="150"
+          show-overflow-tooltip
+        />
+
+        <el-table-column
+          prop="courtType"
+          label="场地类型"
+          width="110"
+          show-overflow-tooltip
+        />
+
+        <el-table-column
+          prop="topic"
+          label="主题"
+          width="140"
+          show-overflow-tooltip
+        />
+
+        <el-table-column
+          prop="priority"
+          label="优先级"
+          width="90"
+          align="center"
+        />
+
+        <el-table-column
+          label="启用"
+          width="90"
+          align="center"
+        >
+          <template #default="{ row }">
+            <el-switch
+              :model-value="row.enabled"
+              :active-value="1"
+              :inactive-value="0"
+              @change="value => handleEnabledChange(row, value)"
+            />
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          label="索引状态"
+          width="110"
+          align="center"
+        >
+          <template #default="{ row }">
+            <el-tag v-if="row.indexedStatus === 1" type="success">
+              已索引
+            </el-tag>
+
+            <el-tag v-else type="danger">
+              未索引
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          label="更新时间"
+          width="180"
+          show-overflow-tooltip
+        >
+          <template #default="{ row }">
+            {{ formatDateTime(row.updateTime) }}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          label="操作"
+          width="220"
+          fixed="right"
+          align="center"
+        >
+          <template #default="{ row }">
+            <el-button
+              type="primary"
+              link
+              @click="openEditDialog(row)"
+            >
+              编辑
+            </el-button>
+
+            <el-button
+              type="info"
+              link
+              @click="openDetailDialog(row)"
+            >
+              查看
+            </el-button>
+
+            <el-button
+              type="danger"
+              link
+              @click="handleDelete(row)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-box">
+        <el-pagination
+          v-model:current-page="queryForm.pageNum"
+          v-model:page-size="queryForm.pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="loadTableData"
+          @current-change="loadTableData"
+        />
+      </div>
+    </el-card>
+
+    <!-- RAG 测试区域 -->
+    <el-card class="page-card" shadow="never">
+      <template #header>
+        <div class="card-header">
+          <div>
+            <h3>RAG 问答测试</h3>
+            <p>
+              用于测试知识库是否能正常召回。测试前请确认知识已经完成索引重建。
             </p>
           </div>
         </div>
@@ -95,20 +364,28 @@
           <el-input-number
             v-model="testForm.venueId"
             :min="1"
+            :controls="false"
             placeholder="可选"
-            clearable
+            style="width: 220px"
           />
-          <span class="form-tip">可选。测试某个场馆知识时填写。</span>
+
+          <span class="form-tip">
+            可选。填写后后端会优先检索该场馆知识。
+          </span>
         </el-form-item>
 
         <el-form-item label="场地ID">
           <el-input-number
             v-model="testForm.courtId"
             :min="1"
+            :controls="false"
             placeholder="可选"
-            clearable
+            style="width: 220px"
           />
-          <span class="form-tip">可选。测试某个具体场地知识时填写。</span>
+
+          <span class="form-tip">
+            可选。填写后后端会优先检索该场地知识。
+          </span>
         </el-form-item>
 
         <el-form-item>
@@ -143,6 +420,7 @@
             prop="title"
             label="知识标题"
             min-width="180"
+            show-overflow-tooltip
           />
 
           <el-table-column
@@ -154,24 +432,28 @@
           <el-table-column
             prop="venueName"
             label="场馆"
-            width="160"
+            width="150"
+            show-overflow-tooltip
           />
 
           <el-table-column
             prop="courtName"
             label="场地"
-            width="160"
+            width="150"
+            show-overflow-tooltip
           />
 
           <el-table-column
             prop="topic"
             label="主题"
-            width="140"
+            width="130"
+            show-overflow-tooltip
           />
 
           <el-table-column
             label="相似度"
             width="100"
+            align="center"
           >
             <template #default="{ row }">
               {{ formatScore(row.score) }}
@@ -182,34 +464,413 @@
             prop="contentPreview"
             label="命中文本"
             min-width="260"
+            show-overflow-tooltip
           />
         </el-table>
       </div>
     </el-card>
+
+    <!-- 新增 / 编辑弹窗 -->
+    <el-dialog
+      v-model="formDialogVisible"
+      :title="formDialogTitle"
+      width="860px"
+      destroy-on-close
+    >
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="formRules"
+        label-width="100px"
+      >
+        <el-row :gutter="16">
+          <el-col :span="24">
+            <el-form-item label="知识标题" prop="title">
+              <el-input
+                v-model="form.title"
+                maxlength="200"
+                show-word-limit
+                placeholder="例如：平台预约规则"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="知识范围" prop="knowledgeScope">
+              <el-select
+                v-model="form.knowledgeScope"
+                placeholder="请选择知识范围"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="item in knowledgeScopeOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="来源类型" prop="sourceType">
+              <el-select
+                v-model="form.sourceType"
+                placeholder="请选择来源类型"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="item in sourceTypeOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="场馆ID">
+              <el-input-number
+                v-model="form.venueId"
+                :min="1"
+                :controls="false"
+                placeholder="平台级知识可不填"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="场馆名称">
+              <el-input
+                v-model="form.venueName"
+                placeholder="例如：羽毛球馆"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="场地ID">
+              <el-input-number
+                v-model="form.courtId"
+                :min="1"
+                :controls="false"
+                placeholder="非场地级知识可不填"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="场地名称">
+              <el-input
+                v-model="form.courtName"
+                placeholder="例如：1号羽毛球场"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="场地类型">
+              <el-input
+                v-model="form.courtType"
+                placeholder="例如：篮球场、足球场、羽毛球场"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="公告ID">
+              <el-input-number
+                v-model="form.noticeId"
+                :min="1"
+                :controls="false"
+                placeholder="公告知识可填写"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="主题">
+              <el-input
+                v-model="form.topic"
+                placeholder="例如：预约规则、停车说明、场地价格"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="标签">
+              <el-input
+                v-model="form.tags"
+                placeholder="多个标签用英文逗号分隔"
+                clearable
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="优先级">
+              <el-input-number
+                v-model="form.priority"
+                :min="0"
+                :controls="false"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="是否启用">
+              <el-switch
+                v-model="form.enabled"
+                :active-value="1"
+                :inactive-value="0"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="知识正文" prop="content">
+              <el-input
+                v-model="form.content"
+                type="textarea"
+                :rows="8"
+                maxlength="5000"
+                show-word-limit
+                placeholder="请输入知识正文。这里的内容会被切分成 chunk 后写入向量库。"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="formDialogVisible = false">
+          取消
+        </el-button>
+
+        <el-button
+          type="primary"
+          :loading="submitLoading"
+          @click="handleSubmitForm"
+        >
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 查看详情弹窗 -->
+    <el-dialog
+      v-model="detailDialogVisible"
+      title="知识详情"
+      width="820px"
+    >
+      <el-descriptions
+        :column="2"
+        border
+      >
+        <el-descriptions-item label="ID">
+          {{ detail.id }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="标题">
+          {{ detail.title }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="知识范围">
+          {{ formatKnowledgeScope(detail.knowledgeScope) }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="来源类型">
+          {{ formatSourceType(detail.sourceType) }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="场馆">
+          {{ detail.venueName || '-' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="场地">
+          {{ detail.courtName || '-' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="主题">
+          {{ detail.topic || '-' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="标签">
+          {{ detail.tags || '-' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="启用状态">
+          {{ detail.enabled === 1 ? '启用' : '禁用' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="索引状态">
+          {{ detail.indexedStatus === 1 ? '已索引' : '未索引' }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="创建时间">
+          {{ formatDateTime(detail.createTime) }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="更新时间">
+          {{ formatDateTime(detail.updateTime) }}
+        </el-descriptions-item>
+      </el-descriptions>
+
+      <div class="detail-content">
+        <h4>知识正文</h4>
+        <p>{{ detail.content }}</p>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { rebuildRagKnowledge, testRagAsk } from '@/api/rag'
+import {
+  pageKnowledgeDocument,
+  getKnowledgeDocumentDetail,
+  saveKnowledgeDocument,
+  updateKnowledgeDocument,
+  updateKnowledgeDocumentEnabled,
+  deleteKnowledgeDocument,
+  rebuildRagKnowledge,
+  testRagAsk
+} from '@/api/rag'
 
 /**
- * 重建索引加载状态。
+ * 知识范围选项。
+ *
+ * 1 平台级：预约规则、退款规则等通用知识
+ * 2 场馆级：某个场馆的停车、开放时间、设施说明
+ * 3 场地级：某个具体场地的价格、设施、注意事项
+ * 4 公告级：系统公告、维护通知
+ * 5 FAQ：常见问题
+ */
+const knowledgeScopeOptions = [
+  { label: '平台级知识', value: 1 },
+  { label: '场馆级知识', value: 2 },
+  { label: '场地级知识', value: 3 },
+  { label: '公告级知识', value: 4 },
+  { label: '常见问题', value: 5 }
+]
+
+/**
+ * 来源类型选项。
+ */
+const sourceTypeOptions = [
+  { label: '平台规则', value: 1 },
+  { label: '预约规则', value: 2 },
+  { label: '退款规则', value: 3 },
+  { label: '场馆介绍', value: 4 },
+  { label: '场馆设施', value: 5 },
+  { label: '停车说明', value: 6 },
+  { label: '开放时间', value: 7 },
+  { label: '场地介绍', value: 8 },
+  { label: '场地设施', value: 9 },
+  { label: '场地价格', value: 10 },
+  { label: '公告', value: 11 },
+  { label: 'FAQ', value: 12 }
+]
+
+/**
+ * 查询表单。
+ */
+const queryForm = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  title: '',
+  knowledgeScope: undefined,
+  sourceType: undefined,
+  venueId: undefined,
+  courtId: undefined,
+  enabled: undefined,
+  indexedStatus: undefined
+})
+
+/**
+ * 表格数据。
+ */
+const tableData = ref([])
+
+/**
+ * 总数。
+ */
+const total = ref(0)
+
+/**
+ * 表格加载状态。
+ */
+const tableLoading = ref(false)
+
+/**
+ * 重建索引状态。
  */
 const rebuildLoading = ref(false)
 
 /**
- * 测试问答加载状态。
+ * 弹窗状态。
  */
-const testLoading = ref(false)
+const formDialogVisible = ref(false)
+const detailDialogVisible = ref(false)
+const submitLoading = ref(false)
 
 /**
- * 测试表单。
- *
- * question：必填
- * venueId：可选
- * courtId：可选
+ * 当前是否编辑模式。
+ */
+const isEdit = ref(false)
+
+/**
+ * 表单引用。
+ */
+const formRef = ref(null)
+
+/**
+ * 表单标题。
+ */
+const formDialogTitle = computed(() => {
+  return isEdit.value ? '编辑知识文档' : '新增知识文档'
+})
+
+/**
+ * 表单数据。
+ */
+const form = reactive(getDefaultForm())
+
+/**
+ * 详情数据。
+ */
+const detail = reactive({})
+
+/**
+ * 表单校验规则。
+ */
+const formRules = {
+  title: [
+    { required: true, message: '请输入知识标题', trigger: 'blur' }
+  ],
+  content: [
+    { required: true, message: '请输入知识正文', trigger: 'blur' }
+  ],
+  knowledgeScope: [
+    { required: true, message: '请选择知识范围', trigger: 'change' }
+  ],
+  sourceType: [
+    { required: true, message: '请选择来源类型', trigger: 'change' }
+  ]
+}
+
+/**
+ * 测试问答表单。
  */
 const testForm = reactive({
   question: '',
@@ -226,11 +887,202 @@ const testResult = reactive({
 })
 
 /**
- * 点击“重建知识库索引”。
+ * 测试加载状态。
+ */
+const testLoading = ref(false)
+
+/**
+ * 初始化。
+ */
+onMounted(() => {
+  loadTableData()
+})
+
+/**
+ * 加载知识列表。
+ */
+const loadTableData = async () => {
+  tableLoading.value = true
+
+  try {
+    const res = await pageKnowledgeDocument(cleanQueryParams(queryForm))
+    const data = unwrapData(res)
+
+    tableData.value = data?.list || []
+    total.value = data?.total || 0
+  } finally {
+    tableLoading.value = false
+  }
+}
+
+/**
+ * 查询。
+ */
+const handleSearch = () => {
+  queryForm.pageNum = 1
+  loadTableData()
+}
+
+/**
+ * 重置查询。
+ */
+const handleResetQuery = () => {
+  queryForm.pageNum = 1
+  queryForm.pageSize = 10
+  queryForm.title = ''
+  queryForm.knowledgeScope = undefined
+  queryForm.sourceType = undefined
+  queryForm.venueId = undefined
+  queryForm.courtId = undefined
+  queryForm.enabled = undefined
+  queryForm.indexedStatus = undefined
+
+  loadTableData()
+}
+
+/**
+ * 打开新增弹窗。
+ */
+const openCreateDialog = () => {
+  isEdit.value = false
+  resetForm()
+  formDialogVisible.value = true
+
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
+}
+
+/**
+ * 打开编辑弹窗。
+ */
+const openEditDialog = async row => {
+  isEdit.value = true
+  resetForm()
+
+  /**
+   * 优先调用详情接口，保证拿到完整 content。
+   * 如果你的列表已经返回 content，也可以直接用 row。
+   */
+  const res = await getKnowledgeDocumentDetail(row.id)
+  const data = unwrapData(res)
+
+  Object.assign(form, {
+    id: data.id,
+    title: data.title,
+    content: data.content,
+    knowledgeScope: data.knowledgeScope,
+    sourceType: data.sourceType,
+    venueId: data.venueId,
+    venueName: data.venueName,
+    courtId: data.courtId,
+    courtName: data.courtName,
+    courtType: data.courtType,
+    noticeId: data.noticeId,
+    topic: data.topic,
+    tags: data.tags,
+    priority: data.priority ?? 0,
+    enabled: data.enabled ?? 1
+  })
+
+  formDialogVisible.value = true
+
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
+}
+
+/**
+ * 打开详情弹窗。
+ */
+const openDetailDialog = async row => {
+  const res = await getKnowledgeDocumentDetail(row.id)
+  const data = unwrapData(res)
+
+  Object.keys(detail).forEach(key => delete detail[key])
+  Object.assign(detail, data)
+
+  detailDialogVisible.value = true
+}
+
+/**
+ * 提交新增/编辑表单。
+ */
+const handleSubmitForm = async () => {
+  await formRef.value.validate()
+
+  submitLoading.value = true
+
+  try {
+    const payload = cleanFormParams(form)
+
+    if (isEdit.value) {
+      await updateKnowledgeDocument(payload)
+      ElMessage.success('更新成功')
+    } else {
+      await saveKnowledgeDocument(payload)
+      ElMessage.success('新增成功')
+    }
+
+    formDialogVisible.value = false
+    await loadTableData()
+  } finally {
+    submitLoading.value = false
+  }
+}
+
+/**
+ * 启用/禁用知识。
  *
  * 注意：
- * 这个操作会清空并重建 pgvector 表，属于有副作用的管理操作，
- * 所以点击前要二次确认。
+ * 启用状态变化后 indexed_status 会被后端重置为 0，
+ * 需要重新点击“重建知识库索引”。
+ */
+const handleEnabledChange = async (row, value) => {
+  const oldValue = row.enabled
+
+  try {
+    await updateKnowledgeDocumentEnabled(row.id, value)
+    row.enabled = value
+    row.indexedStatus = 0
+
+    ElMessage.success(value === 1 ? '已启用' : '已禁用')
+  } catch (error) {
+    row.enabled = oldValue
+    throw error
+  }
+}
+
+/**
+ * 删除知识。
+ */
+const handleDelete = async row => {
+  await ElMessageBox.confirm(
+    `确定要删除知识「${row.title}」吗？删除后需要重建索引，才能同步到向量库。`,
+    '删除确认',
+    {
+      type: 'warning',
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消'
+    }
+  )
+
+  await deleteKnowledgeDocument(row.id)
+
+  ElMessage.success('删除成功')
+
+  /**
+   * 如果当前页只有一条数据且不是第一页，删除后回到上一页。
+   */
+  if (tableData.value.length === 1 && queryForm.pageNum > 1) {
+    queryForm.pageNum--
+  }
+
+  await loadTableData()
+}
+
+/**
+ * 重建知识库索引。
  */
 const handleRebuild = async () => {
   await ElMessageBox.confirm(
@@ -247,22 +1099,15 @@ const handleRebuild = async () => {
 
   try {
     await rebuildRagKnowledge()
-
     ElMessage.success('知识库索引重建成功')
 
     /**
-     * 重建成功后，建议用户去测试问答区域验证召回效果。
+     * 重建成功后刷新列表，查看 indexed_status 是否变成 1。
      */
+    await loadTableData()
   } finally {
     rebuildLoading.value = false
   }
-}
-
-/**
- * 显示操作说明。
- */
-const handleRefreshTip = () => {
-  ElMessage.info('先在 MySQL 的 knowledge_document 表维护知识，再点击“重建知识库索引”，最后用测试问答验证效果。')
 }
 
 /**
@@ -283,39 +1128,22 @@ const handleTestAsk = async () => {
       question: testForm.question.trim()
     }
 
-    /**
-     * venueId 是可选参数。
-     * 如果填写，后端会优先检索当前场馆相关知识。
-     */
     if (testForm.venueId) {
       payload.venueId = testForm.venueId
     }
 
-    /**
-     * courtId 是可选参数。
-     * 如果填写，后端会优先检索当前场地相关知识。
-     */
     if (testForm.courtId) {
       payload.courtId = testForm.courtId
     }
 
     const res = await testRagAsk(payload)
+    const data = unwrapData(res)
 
-    /**
-     * 这里按你的统一 Result 格式处理：
-     * {
-     *   code: 200,
-     *   data: {
-     *     answer: '',
-     *     sources: []
-     *   }
-     * }
-     */
-    testResult.answer = res.data?.answer || '知识库暂无相关信息。'
-    testResult.sources = res.data?.sources || []
+    testResult.answer = data?.answer || '知识库暂无相关信息。'
+    testResult.sources = data?.sources || []
 
     if (testResult.sources.length === 0) {
-      ElMessage.info('本次没有命中参考来源，请检查 knowledge_document 是否已入库，或降低 min-score。')
+      ElMessage.info('本次没有命中参考来源，请检查知识是否已索引，或适当降低 min-score。')
     }
   } finally {
     testLoading.value = false
@@ -323,7 +1151,7 @@ const handleTestAsk = async () => {
 }
 
 /**
- * 清空测试内容。
+ * 清空测试。
  */
 const handleClearTest = () => {
   testForm.question = ''
@@ -334,20 +1162,169 @@ const handleClearTest = () => {
 }
 
 /**
- * 格式化相似度分数。
+ * 默认表单。
  */
-const formatScore = score => {
+function getDefaultForm() {
+  return {
+    id: undefined,
+    title: '',
+    content: '',
+    knowledgeScope: undefined,
+    sourceType: undefined,
+    venueId: undefined,
+    venueName: '',
+    courtId: undefined,
+    courtName: '',
+    courtType: '',
+    noticeId: undefined,
+    topic: '',
+    tags: '',
+    priority: 0,
+    enabled: 1
+  }
+}
+
+/**
+ * 重置表单。
+ */
+function resetForm() {
+  Object.assign(form, getDefaultForm())
+}
+
+/**
+ * 清理查询参数。
+ *
+ * 避免把空字符串传给后端影响动态 SQL。
+ */
+function cleanQueryParams(params) {
+  const payload = {}
+
+  Object.keys(params).forEach(key => {
+    const value = params[key]
+
+    if (value !== '' && value !== undefined && value !== null) {
+      payload[key] = value
+    }
+  })
+
+  return payload
+}
+
+/**
+ * 清理表单参数。
+ */
+function cleanFormParams(params) {
+  const payload = {}
+
+  Object.keys(params).forEach(key => {
+    const value = params[key]
+
+    if (value !== undefined) {
+      payload[key] = value
+    }
+  })
+
+  return payload
+}
+
+/**
+ * 兼容不同 request 封装。
+ *
+ * 有的项目返回：
+ * res.data
+ *
+ * 有的项目返回：
+ * res.data.data
+ *
+ * 有的项目拦截器直接返回：
+ * data
+ */
+function unwrapData(res) {
+  if (!res) {
+    return null
+  }
+
+  if (res.data && res.data.data !== undefined) {
+    return res.data.data
+  }
+
+  if (res.data !== undefined) {
+    return res.data
+  }
+
+  return res
+}
+
+/**
+ * 格式化知识范围。
+ */
+function formatKnowledgeScope(value) {
+  const item = knowledgeScopeOptions.find(option => option.value === value)
+  return item ? item.label : '未知'
+}
+
+/**
+ * 格式化来源类型。
+ */
+function formatSourceType(value) {
+  const item = sourceTypeOptions.find(option => option.value === value)
+  return item ? item.label : '未知'
+}
+
+/**
+ * 格式化相似度。
+ */
+function formatScore(score) {
   if (score === null || score === undefined) {
     return '-'
   }
 
   return Number(score).toFixed(4)
 }
+
+/**
+ * 格式化日期。
+ */
+function formatDateTime(value) {
+  if (!value) {
+    return '-'
+  }
+
+  /**
+   * 如果后端直接返回字符串，直接展示。
+   */
+  if (typeof value === 'string') {
+    return value.replace('T', ' ')
+  }
+
+  try {
+    const date = new Date(value)
+    const year = date.getFullYear()
+    const month = pad(date.getMonth() + 1)
+    const day = pad(date.getDate())
+    const hour = pad(date.getHours())
+    const minute = pad(date.getMinutes())
+    const second = pad(date.getSeconds())
+
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+  } catch (error) {
+    return value
+  }
+}
+
+/**
+ * 补零。
+ */
+function pad(value) {
+  return value < 10 ? `0${value}` : `${value}`
+}
 </script>
 
 <style scoped>
 .rag-page {
   padding: 20px;
+  background: #f5f7fa;
+  min-height: 100%;
 }
 
 .page-card {
@@ -355,25 +1332,41 @@ const formatScore = score => {
   border-radius: 10px;
 }
 
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .card-header h2,
 .card-header h3 {
   margin: 0 0 8px;
   font-weight: 600;
+  color: #303133;
 }
 
 .card-header p {
   margin: 0;
   color: #606266;
   font-size: 14px;
+  line-height: 1.6;
 }
 
-.action-area {
-  margin-top: 20px;
-  margin-bottom: 20px;
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
-.flow-desc {
+.query-form {
+  margin-bottom: -18px;
+}
+
+.pagination-box {
   margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .form-tip {
@@ -392,11 +1385,13 @@ const formatScore = score => {
 
 .answer-box h4 {
   margin: 0 0 10px;
+  color: #303133;
 }
 
 .answer-box p {
   margin: 0;
   white-space: pre-wrap;
+  color: #303133;
 }
 
 .source-box {
@@ -405,5 +1400,25 @@ const formatScore = score => {
 
 .source-box h4 {
   margin: 0 0 12px;
+  color: #303133;
+}
+
+.detail-content {
+  margin-top: 20px;
+}
+
+.detail-content h4 {
+  margin: 0 0 10px;
+  color: #303133;
+}
+
+.detail-content p {
+  margin: 0;
+  padding: 14px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  line-height: 1.8;
+  color: #303133;
 }
 </style>

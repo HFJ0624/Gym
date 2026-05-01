@@ -1,9 +1,14 @@
 package com.sau.gym.admin.controller.ai;
 
+import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.rag.service.RagKnowledgeIngestService;
+import com.sau.gym.admin.service.KnowledgeDocumentManageService;
+import com.sau.gym.model.dto.rag.KnowledgeDocumentQueryDto;
 import com.sau.gym.model.dto.rag.KnowledgeDocumentSaveDto;
+import com.sau.gym.model.dto.rag.KnowledgeDocumentUpdateDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
+import com.sau.gym.model.entity.rag.KnowledgeDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +23,9 @@ public class RagController {
 
     @Autowired
     private RagKnowledgeIngestService ragKnowledgeIngestService;
+
+    @Autowired
+    private KnowledgeDocumentManageService knowledgeDocumentManageService;
 
     /***
      *
@@ -40,4 +48,51 @@ public class RagController {
         ragKnowledgeIngestService.rebuildAll();
         return Result.build(null, ResultCodeEnum.SUCCESS);
     }
+
+    /**
+     * 分页查询知识文档。
+     */
+    @PostMapping("/document/page")
+    public Result page(@RequestBody KnowledgeDocumentQueryDto queryDto) {
+        PageInfo<KnowledgeDocument> pageInfo = knowledgeDocumentManageService.page(queryDto);
+        return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
+    }
+
+    /**
+     * 查询知识详情。
+     */
+    @GetMapping("/document/{id}")
+    public Result detail(@PathVariable Long id) {
+        KnowledgeDocument document = knowledgeDocumentManageService.detail(id);
+        return Result.build(document, ResultCodeEnum.SUCCESS);
+    }
+
+    /**
+     * 更新知识文档。
+     */
+    @PutMapping("/document")
+    public Result updateDocument(@RequestBody KnowledgeDocumentUpdateDto dto) {
+        knowledgeDocumentManageService.update(dto);
+        return Result.build(null, ResultCodeEnum.SUCCESS);
+    }
+
+    /**
+     * 启用/禁用知识。
+     */
+    @PutMapping("/document/{id}/enabled/{enabled}")
+    public Result updateEnabled(@PathVariable Long id,
+                                @PathVariable Integer enabled) {
+        knowledgeDocumentManageService.updateEnabled(id, enabled);
+        return Result.build(null, ResultCodeEnum.SUCCESS);
+    }
+
+    /**
+     * 删除知识文档。
+     */
+    @DeleteMapping("/document/{id}")
+    public Result deleteDocument(@PathVariable Long id) {
+        knowledgeDocumentManageService.delete(id);
+        return Result.build(null, ResultCodeEnum.SUCCESS);
+    }
+
 }

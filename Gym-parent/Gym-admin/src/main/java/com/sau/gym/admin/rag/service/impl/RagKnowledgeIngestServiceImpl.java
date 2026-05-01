@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -231,8 +232,9 @@ public class RagKnowledgeIngestServiceImpl implements RagKnowledgeIngestService 
             ragEmbeddingStore.add(embedding, segment);
         }
 
+        Date date = new Date();
         // 7. 标记该知识文档已完成索引
-        knowledgeDocumentMapper.markIndexed(document.getId());
+        knowledgeDocumentMapper.markIndexed(document.getId(),date);
     }
 
     /**

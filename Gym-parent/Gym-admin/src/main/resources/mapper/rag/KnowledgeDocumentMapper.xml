@@ -39,14 +39,153 @@
                    #{priority},
                    1,
                    0,
-                   NOW(),
-                   NOW()
+                   #{createTime},
+                   #{updateTime}
                )
     </insert>
 
-    <!-- 查询所有启用知识 -->
-    <select id="selectEnabledDocuments"
-            resultType="com.sau.gym.model.entity.rag.KnowledgeDocument">
+    <!-- 管理台分页查询知识文档 -->
+    <select id="selectPage" resultType="com.sau.gym.model.entity.rag.KnowledgeDocument">
+        SELECT
+        id,
+        title,
+        content,
+        knowledge_scope AS knowledgeScope,
+        source_type AS sourceType,
+        venue_id AS venueId,
+        venue_name AS venueName,
+        court_id AS courtId,
+        court_name AS courtName,
+        court_type AS courtType,
+        notice_id AS noticeId,
+        topic,
+        tags,
+        priority,
+        enabled,
+        indexed_status AS indexedStatus,
+        create_time AS createTime,
+        update_time AS updateTime
+        FROM knowledge_document
+        WHERE 1 = 1
+        <if test="title != null and title != ''">
+            AND title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="knowledgeScope != null">
+            AND knowledge_scope = #{knowledgeScope}
+        </if>
+        <if test="sourceType != null">
+            AND source_type = #{sourceType}
+        </if>
+        <if test="venueId != null">
+            AND venue_id = #{venueId}
+        </if>
+        <if test="courtId != null">
+            AND court_id = #{courtId}
+        </if>
+        <if test="enabled != null">
+            AND enabled = #{enabled}
+        </if>
+        <if test="indexedStatus != null">
+            AND indexed_status = #{indexedStatus}
+        </if>
+        ORDER BY priority DESC, id DESC
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultType="com.sau.gym.model.entity.rag.KnowledgeDocument">
+        SELECT
+            id,
+            title,
+            content,
+            knowledge_scope AS knowledgeScope,
+            source_type AS sourceType,
+            venue_id AS venueId,
+            venue_name AS venueName,
+            court_id AS courtId,
+            court_name AS courtName,
+            court_type AS courtType,
+            notice_id AS noticeId,
+            topic,
+            tags,
+            priority,
+            enabled,
+            indexed_status AS indexedStatus,
+            create_time AS createTime,
+            update_time AS updateTime
+        FROM knowledge_document
+        WHERE id = #{id}
+    </select>
+
+    <!-- 更新知识文档 -->
+    <update id="updateById">
+        UPDATE knowledge_document SET
+        <if test="title != null and title != ''">
+            title = #{title},
+        </if>
+        <if test="content != null and content != ''">
+            content = #{content},
+        </if>
+        <if test="knowledgeScope != null and knowledgeScope != ''">
+            knowledge_scope = #{knowledgeScope},
+        </if>
+        <if test="sourceType != null and sourceType != ''">
+            source_type = #{sourceType},
+        </if>
+        <if test="venueId != null and venueId != ''">
+            venue_id = #{venueId},
+        </if>
+        <if test="venueName != null and venueName != ''">
+            venue_name = #{venueName},
+        </if>
+        <if test="courtId != null and courtId != ''">
+            court_id = #{courtId},
+        </if>
+        <if test="courtName != null and courtName != ''">
+            court_name = #{courtName},
+        </if>
+        <if test="courtType != null and courtType != ''">
+            court_type = #{courtType},
+        </if>
+        <if test="noticeId != null and noticeId != ''">
+            notice_id = #{noticeId},
+        </if>
+        <if test="topic != null and topic != ''">
+            topic = #{topic},
+        </if>
+        <if test="tags != null and tags != ''">
+            tags = #{tags},
+        </if>
+        <if test="priority != null and priority != ''">
+            priority = #{priority},
+        </if>
+        <if test="enabled != null and enabled != ''">
+            enabled = #{enabled},
+        </if>
+        <if test="updateTime != null and updateTime != ''">
+            update_time = #{updateTime},
+        </if>
+            indexed_status = 0
+        WHERE id = #{id}
+    </update>
+
+    <!-- 启用/禁用知识 -->
+    <update id="updateEnabled">
+        UPDATE knowledge_document
+        SET enabled = #{enabled},
+            indexed_status = 0,
+            update_time = #{date}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除知识(逻辑删除) -->
+    <update id="deleteById">
+        update knowledge_document
+        set is_deleted = 1
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询所有启用知识，用于 rebuild -->
+    <select id="selectEnabledDocuments" resultType="com.sau.gym.model.entity.rag.KnowledgeDocument">
         SELECT
             id,
             title,
@@ -75,8 +214,15 @@
     <update id="markIndexed">
         UPDATE knowledge_document
         SET indexed_status = 1,
-            update_time = NOW()
+            update_time = #{date}
         WHERE id = #{id}
+    </update>
+
+    <!-- 全部重置为未索引 -->
+    <update id="resetAllIndexedStatus">
+        UPDATE knowledge_document
+        SET indexed_status = 0,
+            update_time = #{date}
     </update>
 
 </mapper>
