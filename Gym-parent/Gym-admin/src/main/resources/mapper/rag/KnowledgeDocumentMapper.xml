@@ -161,7 +161,7 @@
         <if test="enabled != null and enabled != ''">
             enabled = #{enabled},
         </if>
-        <if test="updateTime != null and updateTime != ''">
+        <if test="updateTime != null">
             update_time = #{updateTime},
         </if>
             indexed_status = 0
@@ -223,6 +223,68 @@
         UPDATE knowledge_document
         SET indexed_status = 0,
             update_time = #{date}
+    </update>
+
+    <!-- 根据场馆ID和来源类型查询知识 -->
+    <select id="selectByVenueIdAndSourceType" resultType="com.sau.gym.model.entity.rag.KnowledgeDocument">
+        SELECT
+            id,
+            title,
+            content,
+            knowledge_scope AS knowledgeScope,
+            source_type AS sourceType,
+            venue_id AS venueId,
+            venue_name AS venueName,
+            court_id AS courtId,
+            court_name AS courtName,
+            court_type AS courtType,
+            notice_id AS noticeId,
+            topic,
+            tags,
+            priority,
+            enabled,
+            indexed_status AS indexedStatus,
+            create_time AS createTime,
+            update_time AS updateTime
+        FROM knowledge_document
+        WHERE venue_id = #{venueId}
+          AND source_type = #{sourceType}
+        LIMIT 1
+    </select>
+
+    <!-- 根据场馆ID和来源类型更新知识 -->
+    <update id="updateByVenueIdAndSourceType" parameterType="com.sau.gym.model.entity.rag.KnowledgeDocument">
+        UPDATE knowledge_document SET
+        <if test="title != null and title != ''">
+            title = #{title},
+        </if>
+        <if test="content != null and content != ''">
+            content = #{content},
+        </if>
+        <if test="knowledgeScope != null and knowledgeScope != ''">
+            knowledge_scope = #{knowledgeScope},
+        </if>
+        <if test="venueName != null and venueName != ''">
+            venue_name = #{venueName},
+        </if>
+        <if test="topic != null and topic != ''">
+            topic = #{topic},
+        </if>
+        <if test="tags != null and tags != ''">
+            tags = #{tags},
+        </if>
+        <if test="priority != null and priority != ''">
+            priority = #{priority},
+        </if>
+        <if test="enabled != null and enabled != ''">
+            enabled = #{enabled},
+        </if>
+        <if test="updateTime != null">
+            update_time = #{updateTime},
+        </if>
+        indexed_status = 0
+        WHERE venue_id = #{venueId}
+          AND source_type = #{sourceType}
     </update>
 
 </mapper>

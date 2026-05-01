@@ -83,3 +83,13 @@ export function testRagAsk(data) {
         data
     })
 }
+
+/**
+ * 同步场馆数据到 RAG 知识库。
+ */
+export function syncVenueKnowledge() {
+    return request({
+        url: '/admin/rag/sync/venue',
+        method: 'post'
+    })
+}

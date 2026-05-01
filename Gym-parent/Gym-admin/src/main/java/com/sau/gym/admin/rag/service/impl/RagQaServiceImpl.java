@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -273,6 +274,7 @@ public class RagQaServiceImpl implements RagQaService {
             log.setMatchedSources(JSON.toJSONString(sources));
             log.setMaxScore(maxScore == null ? null : BigDecimal.valueOf(maxScore));
             log.setMinScore(minScore == null ? null : BigDecimal.valueOf(minScore));
+            log.setCreateTime(new Date());
 
             ragSearchLogMapper.insert(log);
         } catch (Exception e) {

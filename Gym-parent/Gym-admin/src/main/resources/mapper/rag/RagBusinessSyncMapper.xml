@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.RagBusinessSyncMapper">
+
+    <!--
+        查询所有启用且未删除的场馆。
+
+        注意：
+        这里字段别名要和 Venue 实体属性匹配。
+    -->
+    <select id="selectEnabledVenues" resultType="com.sau.gym.model.entity.venue.Venue">
+        SELECT
+            id,
+            venue_name AS venueName,
+            venue_type AS venueType,
+            location,
+            phone,
+            capacity,
+            description,
+            status,
+            open_time AS openTime,
+            close_time AS closeTime,
+            avatar,
+            create_time AS createTime,
+            update_time AS updateTime,
+            is_deleted AS isDeleted
+        FROM venue
+        WHERE status = 1
+          AND is_deleted = 0
+        ORDER BY id ASC
+    </select>
+
+</mapper>

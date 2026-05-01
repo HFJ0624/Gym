@@ -20,7 +20,7 @@
                    #{matchedSources},
                    #{maxScore},
                    #{minScore},
-                   NOW()
+                   #{createTime}
                )
     </insert>
 

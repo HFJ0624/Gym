@@ -69,4 +69,16 @@ public interface KnowledgeDocumentMapper {
      * 全量 rebuild 前可以先把 indexed_status 改成 0。
      */
     int resetAllIndexedStatus(Date date);
+
+    /**
+     * 根据场馆ID和来源类型查询知识文档。
+     * 用于判断某个场馆的 RAG 知识是否已经存在。
+     */
+    KnowledgeDocument selectByVenueIdAndSourceType(@Param("venueId") Long venueId, @Param("sourceType") Integer sourceType);
+
+    /**
+     * 根据场馆ID和来源类型更新知识文档。
+     * 用于同步场馆知识时覆盖旧内容。
+     */
+    int updateByVenueIdAndSourceType(KnowledgeDocument document);
 }

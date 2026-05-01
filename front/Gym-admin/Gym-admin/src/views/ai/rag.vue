@@ -23,6 +23,13 @@
             >
               重建知识库索引
             </el-button>
+            <el-button
+                type="success"
+                :loading="syncVenueLoading"
+                @click="handleSyncVenue"
+              >
+              同步场馆知识
+            </el-button>
           </div>
         </div>
       </template>
@@ -744,7 +751,8 @@ import {
   updateKnowledgeDocumentEnabled,
   deleteKnowledgeDocument,
   rebuildRagKnowledge,
-  testRagAsk
+  testRagAsk,
+  syncVenueKnowledge
 } from '@/api/rag'
 
 /**
@@ -1317,6 +1325,44 @@ function formatDateTime(value) {
  */
 function pad(value) {
   return value < 10 ? `0${value}` : `${value}`
+}
+
+/**
+ * 同步场馆知识加载状态。
+ */
+const syncVenueLoading = ref(false)
+
+/**
+ * 同步场馆数据到 RAG 知识库。
+ *
+ * 注意：
+ * 这个操作只会同步到 MySQL 的 knowledge_document。
+ * 同步后 indexed_status = 0，需要再点击“重建知识库索引”。
+ */
+const handleSyncVenue = async () => {
+  await ElMessageBox.confirm(
+    '确定要从 venue 表同步场馆知识吗？同步后需要重建知识库索引，前台 RAG 才能检索到最新内容。',
+    '同步确认',
+    {
+      type: 'warning',
+      confirmButtonText: '确定同步',
+      cancelButtonText: '取消'
+    }
+  )
+
+  syncVenueLoading.value = true
+
+  try {
+    await syncVenueKnowledge()
+    ElMessage.success('场馆知识同步成功，请继续点击“重建知识库索引”')
+
+    /**
+     * 同步后刷新列表，可以看到新生成的场馆知识。
+     */
+    await loadTableData()
+  } finally {
+    syncVenueLoading.value = false
+  }
 }
 </script>
 

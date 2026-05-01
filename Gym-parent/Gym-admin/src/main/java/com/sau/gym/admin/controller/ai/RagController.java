@@ -1,6 +1,7 @@
 package com.sau.gym.admin.controller.ai;
 
 import com.github.pagehelper.PageInfo;
+import com.sau.gym.admin.rag.service.RagBusinessSyncService;
 import com.sau.gym.admin.rag.service.RagKnowledgeIngestService;
 import com.sau.gym.admin.service.KnowledgeDocumentManageService;
 import com.sau.gym.model.dto.rag.KnowledgeDocumentQueryDto;
@@ -26,6 +27,9 @@ public class RagController {
 
     @Autowired
     private KnowledgeDocumentManageService knowledgeDocumentManageService;
+
+    @Autowired
+    private RagBusinessSyncService ragBusinessSyncService;
 
     /***
      *
@@ -92,6 +96,15 @@ public class RagController {
     @DeleteMapping("/document/{id}")
     public Result deleteDocument(@PathVariable Long id) {
         knowledgeDocumentManageService.delete(id);
+        return Result.build(null, ResultCodeEnum.SUCCESS);
+    }
+
+    /**
+     * 同步场馆业务数据到 RAG 知识库。
+     */
+    @PostMapping("/sync/venue")
+    public Result syncVenueKnowledge() {
+        ragBusinessSyncService.syncVenueKnowledge();
         return Result.build(null, ResultCodeEnum.SUCCESS);
     }
 
