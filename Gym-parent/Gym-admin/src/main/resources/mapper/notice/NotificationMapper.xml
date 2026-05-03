@@ -42,6 +42,7 @@
         WHEN 4 THEN '公告通知'
         WHEN 5 THEN '系统通知'
         WHEN 6 THEN 'Agent通知'
+        WHEN 7 THEN '商城通知'
         ELSE '未知通知'
         END AS typeName,
         business_id AS businessId,

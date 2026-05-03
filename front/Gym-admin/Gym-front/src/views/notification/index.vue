@@ -3,7 +3,12 @@
     <el-card shadow="never">
       <template #header>
         <div class="header-content">
-          <span>我的消息</span>
+          <div class="title-wrapper">
+            <span>我的消息</span>
+            <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="unread-badge">
+              <span></span>
+            </el-badge>
+          </div>
           <el-button type="primary" @click="handleMarkAllRead">全部标记已读</el-button>
         </div>
       </template>
@@ -66,14 +71,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 import {
   getMyNotifications,
   markNotificationRead,
   markAllNotificationsRead,
-  deleteNotification
+  deleteNotification,
+  getUnreadNotificationCount
 } from '@/api/notification'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -82,6 +88,8 @@ const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const readStatus = ref('all')
+const unreadCount = ref(0)
+let pollingTimer = null
 
 const getReadStatusParam = () => {
   if (readStatus.value === 'all') {
@@ -101,16 +109,27 @@ const loadNotifications = async () => {
   total.value = res.data.total || 0
 }
 
+const loadUnreadCount = async () => {
+  try {
+    const res = await getUnreadNotificationCount()
+    unreadCount.value = res.data || 0
+  } catch (error) {
+    console.error('获取未读数量失败:', error)
+  }
+}
+
 const handleMarkRead = async id => {
   await markNotificationRead(id)
   ElMessage.success('已标记为已读')
   await loadNotifications()
+  await loadUnreadCount()
 }
 
 const handleMarkAllRead = async () => {
   await markAllNotificationsRead()
   ElMessage.success('已全部标记为已读')
   await loadNotifications()
+  await loadUnreadCount()
 }
 
 const handleDelete = async id => {
@@ -121,10 +140,18 @@ const handleDelete = async id => {
   await deleteNotification(id)
   ElMessage.success('删除成功')
   await loadNotifications()
+  await loadUnreadCount()
 }
 
 onMounted(() => {
   loadNotifications()
+})
+
+onUnmounted(() => {
+  if (pollingTimer) {
+    clearInterval(pollingTimer)
+    pollingTimer = null
+  }
 })
 </script>
 
@@ -148,6 +175,18 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unread-badge {
+  :deep(.el-badge__content) {
+    background-color: #f56c6c;
+  }
 }
 
 :deep(.el-button--primary) {

@@ -2,11 +2,14 @@ package com.sau.gym.admin.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.sau.gym.admin.enums.NotificationBusinessTypeEnum;
+import com.sau.gym.admin.enums.NotificationTypeEnum;
 import com.sau.gym.admin.mapper.*;
 import com.sau.gym.admin.service.OrderService;
 import com.sau.gym.common.exception.SauException;
 import com.sau.gym.model.dto.order.OrderDto;
 import com.sau.gym.model.dto.order.OrdersDto;
+import com.sau.gym.model.entity.event.NotificationEvent;
 import com.sau.gym.model.entity.finance.BalanceRecord;
 import com.sau.gym.model.entity.finance.PaymentRecord;
 import com.sau.gym.model.entity.order.Order;
@@ -21,6 +24,7 @@ import com.sau.gym.model.vo.order.OrderVO;
 import com.sau.gym.model.vo.system.TurnoverVo;
 import com.sau.gym.utils.AuthContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +65,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private CourtBookingMapper courtBookingMapper;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     //创建订单
     @Transactional
@@ -147,6 +154,7 @@ public class OrderServiceImpl implements OrderService {
                 dateTime = new Date();
                 beverageMapper.updateStock(beverage.getId(),beverage.getStock() - cart.getQuantity(),dateTime);
             }
+
         }else {
             //余额不够支付,显示为待支付
             order.setStatus(0);
@@ -155,6 +163,17 @@ public class OrderServiceImpl implements OrderService {
         order.setUpdateTime(date);
         //插入到数据库
         orderMapper.insertOrder(order);
+
+        //监听事件:获取通知消息-用户下单商城消息
+        eventPublisher.publishEvent(new NotificationEvent(
+                user.getId(),
+                "商城订单已下单",
+                "您的商城订单已创建，已完成支付。订单号：" + order_no,
+                NotificationTypeEnum.MALL.getCode(),
+                order.getId(),
+                order_no,
+                NotificationBusinessTypeEnum.MALL_ORDER.getCode()
+        ));
 
         //5.插入订单明细
         OrderItem orderItem;

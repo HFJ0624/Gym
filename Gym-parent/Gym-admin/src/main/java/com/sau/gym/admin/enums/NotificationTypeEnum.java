@@ -10,7 +10,10 @@ public enum NotificationTypeEnum {
     REFUND(3, "退款通知"),
     NOTICE(4, "公告通知"),
     SYSTEM(5, "系统通知"),
-    AGENT(6, "Agent通知");
+    AGENT(6, "Agent通知"),
+    MALL(7,"商城通知");
+
+
 
     private final Integer code;
     private final String desc;
