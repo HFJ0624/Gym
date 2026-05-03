@@ -62,4 +62,11 @@ public class BeverageServiceImpl implements BeverageService {
         Beverage beverage = beverageMapper.selectById(id);
         return beverage;
     }
+
+    //查询库存不足的商品
+    @Override
+    public List<Beverage> findStock() {
+        List<Beverage> list = beverageMapper.findStock();
+        return list;
+    }
 }

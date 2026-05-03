@@ -11,6 +11,12 @@ spring:
     username: root
     password: 1234
 
+  jackson:
+    # 全局设置时区为东八区
+    time-zone: GMT+8
+    # 日期格式，和数据库保持一致
+    date-format: yyyy-MM-dd HH:mm:ss
+
   servlet:
     multipart:
       max-file-size: 2MB # 单个文件最大上传大小：改为2MB

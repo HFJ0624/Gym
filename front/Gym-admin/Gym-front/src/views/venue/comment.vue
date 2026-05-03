@@ -57,7 +57,7 @@
         <div class="comment-content">
           <div class="comment-header-info">
             <span class="comment-author">{{ comment.username }}</span>
-            <span class="comment-time">{{ formatTime(comment.createTime) }}</span>
+            <span class="comment-time">{{ comment.createTime }}</span>
           </div>
           <div class="comment-text">{{ comment.content }}</div>
           <div class="comment-rating">

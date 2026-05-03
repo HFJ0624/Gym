@@ -121,4 +121,10 @@
         where goods_name = #{productName} and is_deleted = 0
     </select>
 
+    <select id="findStock" resultMap="beverageMap">
+        select *
+        from beverage
+        where stock &lt; 50
+    </select>
+
 </mapper>

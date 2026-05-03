@@ -17,7 +17,7 @@
         insert into chat_messages
         (conversation_id, sender_type, sender_id, receive_user_id, content, created_at)
         values
-            (#{conversationId}, #{senderType}, #{senderId}, #{receiveUserId}, #{content}, now())
+            (#{conversationId}, #{senderType}, #{senderId}, #{receiveUserId}, #{content}, #{createdAt})
     </insert>
 
     <select id="selectByConversationId" resultMap="BaseResultMap">

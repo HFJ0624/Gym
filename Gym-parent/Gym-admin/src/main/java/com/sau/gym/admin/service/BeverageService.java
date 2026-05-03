@@ -4,6 +4,8 @@ import com.github.pagehelper.PageInfo;
 import com.sau.gym.model.dto.shopping.BeverageDto;
 import com.sau.gym.model.entity.shopping.Beverage;
 
+import java.util.List;
+
 public interface BeverageService {
 
     //零食饮品查询方法
@@ -20,4 +22,7 @@ public interface BeverageService {
 
     //前台查询商品的详情信息
     Beverage selectById(Long id);
+
+    //查询库存不足的商品
+    List<Beverage> findStock();
 }

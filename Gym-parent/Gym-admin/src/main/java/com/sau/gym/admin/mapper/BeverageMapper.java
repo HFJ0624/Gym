@@ -30,4 +30,7 @@ public interface BeverageMapper {
 
     //根据商品名查数据库商品信息
     Beverage selectByName(String productName);
+
+    //查询库存不足的商品
+    List<Beverage> findStock();
 }
