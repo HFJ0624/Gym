@@ -93,7 +93,8 @@ public class OrderServiceImpl implements OrderService {
         String order_no = getSecure32RandomNumber();
         //4.创建订单
         Order order = new Order();
-        order.setPayTime(new Date());
+        Date date = new Date();
+        order.setPayTime(date);
         order.setOrderNo(order_no);
         order.setRemark(orderDto.getRemark());
         order.setUserId(user.getId());
@@ -119,7 +120,6 @@ public class OrderServiceImpl implements OrderService {
             PaymentRecord paymentRecord = new PaymentRecord();
             paymentRecord.setPayNo(get20SerialNo());
             paymentRecord.setPayChannel(1); //余额支付
-            Date date = new Date();
             paymentRecord.setCreateTime(date);
             paymentRecord.setAmount(totalPrice);
             paymentRecord.setUserId(user.getId());
@@ -146,6 +146,8 @@ public class OrderServiceImpl implements OrderService {
             //余额不够支付,显示为待支付
             order.setStatus(0);
         }
+        order.setCreateTime(date);
+        order.setUpdateTime(date);
         //插入到数据库
         orderMapper.insertOrder(order);
 

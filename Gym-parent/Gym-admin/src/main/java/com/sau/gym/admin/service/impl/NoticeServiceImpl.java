@@ -13,6 +13,7 @@ import com.sau.gym.model.vo.notice.NoticeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,12 +47,16 @@ public class NoticeServiceImpl implements NoticeService {
     //添加公告
     @Override
     public void saveNotice(Notice notice) {
+        Date date = new Date();
+        notice.setCreateTime(date);
+        notice.setUpdateTime(date);
         noticeMapper.saveNotice(notice);
     }
 
     //修改公告
     @Override
     public void updateNotice(Notice notice) {
+        notice.setUpdateTime(new Date());
         noticeMapper.updateNotice(notice);
     }
 

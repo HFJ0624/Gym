@@ -10,6 +10,7 @@ import com.sau.gym.model.vo.notice.NoticeCommentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +42,16 @@ public class NoticeCommentServiceImpl implements NoticeCommentService {
     public void saveNoticeComment(NoticeComment noticeComment) {
         //添加完公告评论,公告的评论数量要加一(已在SQL触发器实现,notice_comment表,触发器:trg_after_insert_notice_comment)
         noticeComment.setStatus(1);
+        Date date = new Date();
+        noticeComment.setCreateTime(date);
+        noticeComment.setUpdateTime(date);
         noticeCommentMapper.saveNoticeComment(noticeComment);
     }
 
     //修改公告评论
     @Override
     public void updateNoticeComment(NoticeComment noticeComment) {
+        noticeComment.setUpdateTime(new Date());
         noticeCommentMapper.updateNoticeComment(noticeComment);
     }
 
