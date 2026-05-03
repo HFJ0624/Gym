@@ -4,6 +4,7 @@ import com.sau.gym.model.entity.venue.VenueVisit;
 import com.sau.gym.model.vo.venue.VenueVisitVO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -13,7 +14,7 @@ public interface VenueVisitMapper {
     void addVisit(Long venueId);
 
     //创建场馆的访问记录
-    void addOne(Long id);
+    void addOne(Long id, Date date);
 
     //查询所有访问量
     List<VenueVisitVO> selectALL();

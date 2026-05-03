@@ -10,6 +10,7 @@ import com.sau.gym.model.vo.venue.VenueCommentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -38,19 +39,25 @@ public class VenueCommentServiceImpl implements VenueCommentService {
     //添加体育场馆评论
     @Override
     public void saveVenueComment(VenueComment venueComment) {
+        Date date = new Date();
+        venueComment.setCreateTime(date);
+        venueComment.setUpdateTime(date);
         venueCommentMapper.saveVenueComment(venueComment);
     }
 
     //修改场馆评论
     @Override
     public void updateVenueComment(VenueComment venueComment) {
+        Date date = new Date();
+        venueComment.setUpdateTime(date);
         venueCommentMapper.updateVenueComment(venueComment);
     }
 
     //删除场馆评论
     @Override
     public void deleteById(Long id) {
-        venueCommentMapper.deleteById(id);
+        Date date = new Date();
+        venueCommentMapper.deleteById(id,date);
     }
 
     //场馆评论查询方法(前台)

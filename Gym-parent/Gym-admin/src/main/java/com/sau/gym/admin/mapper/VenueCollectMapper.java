@@ -5,6 +5,7 @@ import com.sau.gym.model.entity.venue.VenueCollect;
 import com.sau.gym.model.vo.venue.VenueCollectVO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -17,7 +18,7 @@ public interface VenueCollectMapper {
     List<VenueCollect> selectAllVenuesByUserId(Long id);
 
     //用户收藏场馆
-    void CollectVenue(Long id, Long venueId);
+    void CollectVenue(Long id, Long venueId, Date date);
 
     //用户取消收藏场馆
     void UnCollectVenue(Long id, Long venueId);

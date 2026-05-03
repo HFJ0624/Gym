@@ -12,6 +12,7 @@ import com.sau.gym.model.vo.venue.VenueCollectVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,8 @@ public class VenueCollectServiceImpl implements VenueCollectService {
     //用户收藏场馆
     @Override
     public void CollectVenue(Long id, Long venueId) {
-        venueCollectMapper.CollectVenue(id,venueId);
+        Date date = new Date();
+        venueCollectMapper.CollectVenue(id,venueId,date);
     }
 
     //用户取消收藏场馆

@@ -8,8 +8,16 @@
 
     <insert id="addOne">
         insert into venue_visit
-        (venue_id)
-        values(#{id})
+        (
+        venue_id,
+        create_time,
+        update_time
+        )
+        values(
+               #{id},
+               #{date},
+               #{date}
+              )
     </insert>
 
     <select id="selectALL" resultType="com.sau.gym.model.vo.venue.VenueVisitVO">

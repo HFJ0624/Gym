@@ -5,6 +5,7 @@ import com.sau.gym.model.entity.venue.VenueComment;
 import com.sau.gym.model.vo.venue.VenueCommentVO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -20,7 +21,7 @@ public interface VenueCommentMapper {
     void updateVenueComment(VenueComment venueComment);
 
     //删除场馆评论
-    void deleteById(Long id);
+    void deleteById(Long id, Date date);
 
     //场馆评论查询方法(前台)
     List<VenueCommentVO> findByPageComment(Integer venueId);

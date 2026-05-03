@@ -9,6 +9,7 @@ import com.sau.gym.model.vo.venue.VenueVisitVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -31,7 +32,8 @@ public class VenueVisitServiceImpl implements VenueVisitService {
     //创建场馆的访问记录
     @Override
     public void addOne(Long id) {
-        venueVisitMapper.addOne(id);
+        Date date = new Date();
+        venueVisitMapper.addOne(id,date);
     }
 
     //场馆访问量分页查询
