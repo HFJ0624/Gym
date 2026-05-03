@@ -39,14 +39,18 @@
             user_id,
             content,
             esteem,
-            status
+            status,
+            create_time,
+            update_time
         ) values (
                      #{id},
                      #{noticeId},
                      #{userId},
                      #{content},
                      #{esteem},
-                     #{status}
+                     #{status},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 
@@ -59,7 +63,7 @@
         <if test="esteem != null and esteem != ''">
             esteem = #{esteem},
         </if>
-        update_time =  now()
+        update_time =  #{updateTime}
         where
         id = #{id}
     </update>

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +42,8 @@ public class ChatServiceImpl implements ChatService {
             conversation.setUserAvatar(dto.getUserAvatar());
             conversation.setAdminId(1L);
             conversation.setStatus(1);
+            conversation.setCreatedAt(LocalDateTime.now());
+            conversation.setUpdatedAt(LocalDateTime.now());
             conversationMapper.insert(conversation);
         }
 
@@ -51,6 +54,7 @@ public class ChatServiceImpl implements ChatService {
         message.setSenderId(dto.getSenderId());
         message.setContent(dto.getContent());
         message.setReceiveUserId(dto.getReceiveUserId());
+        message.setCreatedAt(LocalDateTime.now());
         messageMapper.insert(message);
     }
 

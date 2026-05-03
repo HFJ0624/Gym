@@ -51,8 +51,8 @@
             #{venueId},
             #{id},
             1,
-            now(),
-            now(),
+            #{date},
+            #{date},
             0        )
     </insert>
 

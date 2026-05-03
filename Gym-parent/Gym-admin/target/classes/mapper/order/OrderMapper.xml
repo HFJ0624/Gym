@@ -29,14 +29,18 @@
             total_price,
             status,
             remark,
-            pay_time
+            pay_time,
+            create_time,
+            update_time
         )values(
                    #{orderNo},
                    #{userId},
                    #{totalPrice},
                    #{status},
                    #{remark},
-                   #{payTime}
+                   #{payTime},
+                   #{createTime},
+                   #{updateTime}
                )
     </insert>
 

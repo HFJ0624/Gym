@@ -16,7 +16,9 @@
             oper_param,
             json_result,
             status,
-            error_msg
+            error_msg,
+            create_time,
+            update_time
         ) values (
                      #{id},
                      #{title},
@@ -29,7 +31,9 @@
                      #{operaParam},
                      #{jsonResult},
                      #{status},
-                     #{errorMsg}
+                     #{errorMsg},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 

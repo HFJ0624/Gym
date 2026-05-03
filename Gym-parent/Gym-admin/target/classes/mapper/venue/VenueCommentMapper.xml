@@ -38,13 +38,17 @@
             venue_id,
             user_id,
             content,
-            esteem
+            esteem,
+            create_time,
+            update_time
         ) values (
                      #{id},
                      #{venueId},
                      #{userId},
                      #{content},
-                     #{esteem}
+                     #{esteem},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 
@@ -57,14 +61,17 @@
         <if test="esteem != null and esteem != ''">
             esteem = #{esteem},
         </if>
-        update_time =  now()
+        update_time =  #{updateTime}
         where
         id = #{id}
     </update>
 
     <!-- 根据id删除场馆评论 -->
     <update id="deleteById">
-        update venue_comment set is_deleted = 1 where id = #{id}
+        update venue_comment
+        set is_deleted = 1,
+        update_time =  #{date}
+        where id = #{id}
     </update>
 
     <select id="findByPageComment" resultType="com.sau.gym.model.vo.venue.VenueCommentVO">

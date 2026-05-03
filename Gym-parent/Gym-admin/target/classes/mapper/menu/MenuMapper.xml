@@ -26,14 +26,18 @@
             title,
             component,
             sort_value,
-            status
+            status,
+            create_time,
+            update_time
         ) values (
                      #{id},
                      #{parentId},
                      #{title},
                      #{component},
                      #{sortValue},
-                     #{status}
+                     #{status},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 
@@ -54,7 +58,7 @@
         <if test="status != null">
             status = #{status},
         </if>
-        update_time =  now()
+        update_time =  #{updateTime}
         where
         id = #{id}
     </update>
@@ -69,7 +73,7 @@
 
     <update id="deleteById">
         update menu set
-            update_time = now() ,
+            update_time = #{date} ,
             is_deleted = 1
         where
             id = #{id}
