@@ -30,4 +30,29 @@
         ORDER BY id ASC
     </select>
 
+    <!--查询所有启用且未删除的场地，并关联场馆信息。-->
+    <select id="selectEnabledCourts" resultType="com.sau.gym.model.vo.rag.RagCourtSyncVO">
+        SELECT
+            c.id AS courtId,
+            c.name AS courtName,
+            c.type AS type,
+            c.venue_id AS venueId,
+            v.venue_name AS venueName,
+            c.price AS price,
+            c.capacity AS capacity,
+            v.description AS description,
+            v.open_time AS openTime,
+            v.close_time AS closeTime,
+            c.status AS status,
+            c.is_deleted AS isDeleted,
+            c.update_time AS updateTime
+        FROM court c
+                 LEFT JOIN venue v ON c.venue_id = v.id
+        WHERE c.status = 1
+          AND c.is_deleted = 0
+          AND v.status = 1
+          AND v.is_deleted = 0
+        ORDER BY c.venue_id ASC, c.id ASC
+    </select>
+
 </mapper>

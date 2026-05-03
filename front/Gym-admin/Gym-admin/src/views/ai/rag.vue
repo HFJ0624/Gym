@@ -23,6 +23,15 @@
             >
               重建知识库索引
             </el-button>
+
+            <el-button
+              type="success"
+              :loading="syncCourtLoading"
+              @click="handleSyncCourt"
+            >
+              同步场地知识
+            </el-button>
+            
             <el-button
                 type="success"
                 :loading="syncVenueLoading"
@@ -752,7 +761,8 @@ import {
   deleteKnowledgeDocument,
   rebuildRagKnowledge,
   testRagAsk,
-  syncVenueKnowledge
+  syncVenueKnowledge,
+  syncCourtKnowledge
 } from '@/api/rag'
 
 /**
@@ -1334,10 +1344,6 @@ const syncVenueLoading = ref(false)
 
 /**
  * 同步场馆数据到 RAG 知识库。
- *
- * 注意：
- * 这个操作只会同步到 MySQL 的 knowledge_document。
- * 同步后 indexed_status = 0，需要再点击“重建知识库索引”。
  */
 const handleSyncVenue = async () => {
   await ElMessageBox.confirm(
@@ -1362,6 +1368,40 @@ const handleSyncVenue = async () => {
     await loadTableData()
   } finally {
     syncVenueLoading.value = false
+  }
+}
+
+/**
+ * 同步场地知识加载状态。
+ */
+const syncCourtLoading = ref(false)
+
+/**
+ * 同步场地数据到 RAG 知识库。
+ */
+const handleSyncCourt = async () => {
+  await ElMessageBox.confirm(
+    '确定要从场地表同步场地知识吗？同步后需要重建知识库索引，前台 RAG 才能检索到最新内容。',
+    '同步确认',
+    {
+      type: 'warning',
+      confirmButtonText: '确定同步',
+      cancelButtonText: '取消'
+    }
+  )
+
+  syncCourtLoading.value = true
+
+  try {
+    await syncCourtKnowledge()
+    ElMessage.success('场地知识同步成功，请继续点击“重建知识库索引”')
+
+    /**
+     * 同步后刷新列表，可以看到新生成或更新的场地知识。
+     */
+    await loadTableData()
+  } finally {
+    syncCourtLoading.value = false
   }
 }
 </script>

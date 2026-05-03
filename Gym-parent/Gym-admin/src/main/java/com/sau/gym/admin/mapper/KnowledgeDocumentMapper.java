@@ -81,4 +81,16 @@ public interface KnowledgeDocumentMapper {
      * 用于同步场馆知识时覆盖旧内容。
      */
     int updateByVenueIdAndSourceType(KnowledgeDocument document);
+
+    /**
+     * 根据场地ID和来源类型查询知识文档。
+     * 用于判断某个场地的 RAG 知识是否已经存在。
+     */
+    KnowledgeDocument selectByCourtIdAndSourceType(@Param("courtId") Long courtId, @Param("sourceType") Integer sourceType);
+
+    /**
+     * 根据场地ID和来源类型更新知识文档。
+     * 用于同步场地知识时覆盖旧内容。
+     */
+    int updateByCourtIdAndSourceType(KnowledgeDocument document);
 }

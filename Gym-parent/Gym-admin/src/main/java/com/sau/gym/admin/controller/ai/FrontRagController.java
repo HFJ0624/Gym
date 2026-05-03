@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 /**
  * 作者:hfj
- * 功能:
+ * 功能:用户问答rag知识库
  * 日期: 2026/4/30 17:02
  */
 @RestController

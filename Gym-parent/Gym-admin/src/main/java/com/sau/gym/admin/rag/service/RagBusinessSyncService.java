@@ -12,4 +12,9 @@ public interface RagBusinessSyncService {
      * 4. 如果不存在，则新增
      */
     void syncVenueKnowledge();
+
+    /**
+     * 同步场地数据到 RAG 知识库。
+     */
+    void syncCourtKnowledge();
 }

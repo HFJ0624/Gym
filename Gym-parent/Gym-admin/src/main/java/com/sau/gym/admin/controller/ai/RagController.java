@@ -108,4 +108,13 @@ public class RagController {
         return Result.build(null, ResultCodeEnum.SUCCESS);
     }
 
+    /**
+     * 同步场地业务数据到 RAG 知识库。
+     */
+    @PostMapping("/sync/court")
+    public Result syncCourtKnowledge() {
+        ragBusinessSyncService.syncCourtKnowledge();
+        return Result.build(null, ResultCodeEnum.SUCCESS);
+    }
+
 }

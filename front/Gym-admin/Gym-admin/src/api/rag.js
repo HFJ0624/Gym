@@ -93,3 +93,13 @@ export function syncVenueKnowledge() {
         method: 'post'
     })
 }
+
+/**
+ * 同步场地数据到 RAG 知识库。
+ */
+export function syncCourtKnowledge() {
+    return request({
+        url: '/admin/rag/sync/court',
+        method: 'post'
+    })
+}

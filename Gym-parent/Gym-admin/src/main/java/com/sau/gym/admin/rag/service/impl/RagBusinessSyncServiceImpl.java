@@ -7,10 +7,12 @@ import com.sau.gym.admin.mapper.RagBusinessSyncMapper;
 import com.sau.gym.admin.rag.service.RagBusinessSyncService;
 import com.sau.gym.model.entity.rag.KnowledgeDocument;
 import com.sau.gym.model.entity.venue.Venue;
+import com.sau.gym.model.vo.rag.RagCourtSyncVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -213,5 +215,183 @@ public class RagBusinessSyncServiceImpl implements RagBusinessSyncService {
      */
     private boolean notEmpty(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    /**
+     * 同步场地数据到 RAG 知识库。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void syncCourtKnowledge() {
+        // 1. 查询启用且未删除的场地
+        List<RagCourtSyncVO> courtList = ragBusinessSyncMapper.selectEnabledCourts();
+
+        if (courtList == null || courtList.isEmpty()) {
+            return;
+        }
+
+        // 2. 遍历每个场地，生成 RAG 知识
+        for (RagCourtSyncVO court : courtList) {
+            syncSingleCourt(court);
+        }
+    }
+
+    /**
+     * 同步单个场地。
+     * @param court 场地同步数据
+     */
+    private void syncSingleCourt(RagCourtSyncVO court) {
+        if (court == null || court.getCourtId() == null) {
+            return;
+        }
+
+        // 1. 生成知识文档
+        KnowledgeDocument document = new KnowledgeDocument();
+
+        document.setTitle(buildCourtTitle(court));
+        document.setContent(buildCourtKnowledgeContent(court));
+
+        // 场地级知识
+        document.setKnowledgeScope(KnowledgeScopeEnum.COURT.getCode());
+
+        // 来源类型：场地介绍
+        document.setSourceType(KnowledgeSourceTypeEnum.COURT_INTRO.getCode());
+
+        document.setVenueId(court.getVenueId());
+        document.setVenueName(court.getVenueName());
+
+        document.setCourtId(court.getCourtId());
+        document.setCourtName(court.getCourtName());
+        document.setCourtType(court.getType());
+
+        document.setNoticeId(null);
+        document.setTopic("场地介绍");
+        document.setTags(buildCourtTags(court));
+
+        // 场地知识优先级比场馆知识稍高
+        document.setPriority(9);
+
+        // 默认启用
+        document.setEnabled(1);
+
+        // 2. 判断该场地知识是否已存在
+        KnowledgeDocument old = knowledgeDocumentMapper.selectByCourtIdAndSourceType(
+                court.getCourtId(),
+                KnowledgeSourceTypeEnum.COURT_INTRO.getCode()
+        );
+
+        Date date = new Date();
+        // 3. 不存在则新增，存在则更新
+        if (old == null) {
+            document.setCreateTime(date);
+            document.setUpdateTime(date);
+            knowledgeDocumentMapper.insert(document);
+        } else {
+            document.setUpdateTime(date);
+            knowledgeDocumentMapper.updateByCourtIdAndSourceType(document);
+        }
+    }
+
+    /**
+     * 构造场地知识标题。
+     */
+    private String buildCourtTitle(RagCourtSyncVO court) {
+        String venueName = court.getVenueName() == null ? "" : court.getVenueName();
+        String courtName = court.getCourtName() == null ? "场地" : court.getCourtName();
+
+        if (!venueName.isEmpty()) {
+            return venueName + "-" + courtName + "场地介绍";
+        }
+        return courtName + "场地介绍";
+    }
+
+    /**
+     * 构造场地知识正文。
+     * 这段文本是 RAG 检索的核心内容。
+     * 写得越自然，用户越容易通过自然语言问题命中。
+     */
+    private String buildCourtKnowledgeContent(RagCourtSyncVO court) {
+        StringBuilder builder = new StringBuilder();
+
+        if (notEmpty(court.getCourtName())) {
+            builder.append(court.getCourtName());
+        } else {
+            builder.append("该场地");
+        }
+
+        if (notEmpty(court.getVenueName())) {
+            builder.append("属于").append(court.getVenueName()).append("。");
+        } else {
+            builder.append("是平台中的一个可预约场地。");
+        }
+
+        if (notEmpty(court.getType())) {
+            builder.append("场地类型为")
+                    .append(court.getType())
+                    .append("。");
+        }
+
+        if (court.getCapacity() != null) {
+            builder.append("该场地容量约为")
+                    .append(court.getCapacity())
+                    .append("人。");
+        }
+
+        if (court.getPrice() != null) {
+            builder.append("该场地预约价格为每小时")
+                    .append(formatPrice(court.getPrice()))
+                    .append("元，最终价格以系统下单页面显示为准。");
+        }
+
+        if (court.getOpenTime() != null && court.getCloseTime() != null) {
+            builder.append("该场地开放时间为")
+                    .append(court.getOpenTime())
+                    .append("至")
+                    .append(court.getCloseTime())
+                    .append("。");
+        }
+
+        if (notEmpty(court.getDescription())) {
+            builder.append("场地说明：")
+                    .append(court.getDescription())
+                    .append("。");
+        }
+
+        builder.append("用户可以在平台中选择该场地、预约日期、开始时间和结束时间后提交预约订单。")
+                .append("提交订单后需要完成支付，支付成功后预约正式生效。")
+                .append("用户应按照预约时段入场使用，避免超时占用场地。");
+
+        return builder.toString();
+    }
+
+    /**
+     * 构造场地标签。
+     * tags 的作用：
+     * 1. 增强语义召回
+     * 2. 方便前端展示来源
+     */
+    private String buildCourtTags(RagCourtSyncVO court) {
+        StringBuilder builder = new StringBuilder();
+
+        appendTag(builder, court.getVenueName());
+        appendTag(builder, court.getCourtName());
+        appendTag(builder, court.getType());
+        appendTag(builder, "场地");
+        appendTag(builder, "预约");
+        appendTag(builder, "价格");
+        appendTag(builder, "开放时间");
+
+        return builder.toString();
+    }
+
+    /**
+     * 格式化价格。
+     */
+    private String formatPrice(BigDecimal price) {
+        if (price == null) {
+            return "";
+        }
+
+        return price.stripTrailingZeros().toPlainString();
     }
 }
