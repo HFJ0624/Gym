@@ -10,6 +10,7 @@ import com.sau.gym.model.entity.role.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,19 +41,24 @@ public class RoleServiceImpl implements RoleService {
     //角色添加
     @Override
     public void saveRole(Role role) {
+        Date date = new Date();
+        role.setCreateTime(date);
+        role.setUpdateTime(date);
         roleMapper.saveRole(role);
     }
 
     //角色修改
     @Override
     public void updateRole(Role role) {
+        role.setUpdateTime(new Date());
         roleMapper.updateRole(role);
     }
 
     //角色删除
     @Override
     public void deleteById(Long roleId) {
-        roleMapper.deleteById(roleId);
+        Date date = new Date();
+        roleMapper.deleteById(roleId,date);
     }
 
 

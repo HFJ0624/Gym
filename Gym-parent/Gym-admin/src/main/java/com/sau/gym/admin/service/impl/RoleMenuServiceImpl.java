@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +56,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
         //2.获取菜单的id
         List<Map<String, Number>> menuInfo = assignMenuDto.getMenuIdList();
+        Date date = new Date();
         if(menuInfo != null && menuInfo.size() > 0) {
-            roleMenuMapper.doAssign(assignMenuDto);
+            roleMenuMapper.doAssign(assignMenuDto,date);
         }
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,6 +50,9 @@ public class MenuServiceImpl implements MenuService {
     @Override
     public void save(Menu menu) {
         //添加新节点菜单方法
+        Date date = new Date();
+        menu.setCreateTime(date);
+        menu.setUpdateTime(date);
         menuMapper.save(menu);
 
         //新添加一个菜单，那么此时就需要将该菜单所对应的父级菜单设置为半开 is_half = 1
@@ -70,6 +74,7 @@ public class MenuServiceImpl implements MenuService {
     //修改菜单
     @Override
     public void updateById(Menu menu) {
+        menu.setUpdateTime(new Date());
         menuMapper.updateById(menu);
     }
 
@@ -82,8 +87,9 @@ public class MenuServiceImpl implements MenuService {
             throw new SauException(ResultCodeEnum.NODE_ERROR);
         }
 
+        Date date = new Date();
         //2.不存在子菜单直接删除
-        menuMapper.deleteById(id);
+        menuMapper.deleteById(id,date);
     }
 
     //动态显示该角色才有的菜单

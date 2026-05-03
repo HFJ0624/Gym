@@ -238,7 +238,8 @@ public class UserServiceImpl implements UserService {
         //2.分配新的角色数据
         List<Long> roleIdList = assignRoleDto.getRoleIdList();
         roleIdList.forEach(roleId ->{
-            roleUserMapper.doAssign(assignRoleDto.getUserId(),roleId);
+            Date date = new Date();
+            roleUserMapper.doAssign(assignRoleDto.getUserId(),roleId,date);
         });
     }
 

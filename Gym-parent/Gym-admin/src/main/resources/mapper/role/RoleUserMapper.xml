@@ -8,7 +8,7 @@
 
     <insert id="doAssign">
         insert into user_role(user_id , role_id , create_time , update_time , is_deleted)
-        values ( #{userId} , #{roleId} , now() , now() , 0)
+        values ( #{userId} , #{roleId} , #{date} ,  #{date} , 0)
     </insert>
 
     <!-- 查询指定用户所对应的角色数据 -->

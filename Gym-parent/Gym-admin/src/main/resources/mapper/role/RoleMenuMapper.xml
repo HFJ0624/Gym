@@ -17,7 +17,7 @@
         create_time , update_time , is_deleted , is_half
         ) values
         <foreach collection="menuIdList" item="menuInfo" separator=",">
-            (#{roleId} , #{menuInfo.id} , now() , now() , 0 , #{menuInfo.isHalf})
+            (#{roleId} , #{menuInfo.id} , #{date} , #{date} , 0 , #{menuInfo.isHalf})
         </foreach>
     </insert>
 

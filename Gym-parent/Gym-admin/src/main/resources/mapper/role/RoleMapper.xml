@@ -35,12 +35,16 @@
             id,
             role_name,
             role_code,
-            description
+            description,
+            create_time,
+            update_time
         ) values (
                      #{id},
                      #{roleName},
                      #{roleCode},
                      #{description}
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 
@@ -56,14 +60,17 @@
         <if test="description != null and description != ''">
             description = #{description},
         </if>
-        update_time =  now()
+        update_time = #{updateTime}
         where
         id = #{id}
     </update>
 
     <!-- 根据id删除角色数据 -->
     <update id="deleteById">
-        update role set is_deleted = 1 where id=#{roleId}
+        update role
+        set is_deleted = 1,
+        update_time = #{date}
+        where id = #{roleId}
     </update>
 
     <!-- 查询所有的角色数据 -->

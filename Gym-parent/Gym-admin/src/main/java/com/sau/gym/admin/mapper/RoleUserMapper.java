@@ -2,6 +2,7 @@ package com.sau.gym.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -11,7 +12,7 @@ public interface RoleUserMapper {
     void deleteByUserId(Long userId);
 
     //分配新的角色数据
-    void doAssign(Long userId, Long roleId);
+    void doAssign(Long userId, Long roleId, Date date);
 
     //查询当前登录用户的角色数据
     List<Long> findUserRoleByUserId(Long userId);

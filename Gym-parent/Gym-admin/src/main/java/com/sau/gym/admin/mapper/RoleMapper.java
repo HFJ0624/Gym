@@ -4,6 +4,7 @@ import com.sau.gym.model.dto.role.RoleDto;
 import com.sau.gym.model.entity.role.Role;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -19,7 +20,7 @@ public interface RoleMapper {
     void updateRole(Role role);
 
     //角色删除
-    void deleteById(Long roleId);
+    void deleteById(Long roleId, Date date);
 
     //查询所有角色
     List<Role> findAllRoles();

@@ -3,6 +3,7 @@ package com.sau.gym.admin.mapper;
 import com.sau.gym.model.dto.menu.AssignMenuDto;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -15,7 +16,7 @@ public interface RoleMenuMapper {
     void deleteByRoleId(Long roleId);
 
     //获取菜单的id
-    void doAssign(AssignMenuDto assignMenuDto);
+    void doAssign(AssignMenuDto assignMenuDto, Date date);
 
     //将该id的菜单设置为半开
     void updateSysRoleMenuIsHalf(Long id);
