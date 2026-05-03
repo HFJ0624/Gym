@@ -4,6 +4,7 @@ import com.sau.gym.model.dto.shopping.BeverageDto;
 import com.sau.gym.model.entity.shopping.Beverage;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -19,13 +20,13 @@ public interface BeverageMapper {
     void updateBeverage(Beverage beverage);
 
     //删除商品
-    void deleteById(Long beverageId);
+    void deleteById(Long beverageId, Date date);
 
     //前台查询商品的详情信息
     Beverage selectById(Long id);
 
     //更新库存
-    void updateStock(Long id,Integer stock);
+    void updateStock(Long id,Integer stock,Date date);
 
     //根据商品名查数据库商品信息
     Beverage selectByName(String productName);

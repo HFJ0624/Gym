@@ -31,7 +31,7 @@
         order by id
     </select>
 
-    <!-- 新增零食饮料 -->
+    <!-- 新增器械饮料 -->
     <insert id="saveOutfit">
         insert into outfit (
             id,
@@ -41,7 +41,9 @@
             cost,
             stock,
             image,
-            remark
+            remark,
+            create_time,
+            update_time
         ) values (
                      #{id},
                      #{name},
@@ -50,7 +52,9 @@
                      #{cost},
                      #{stock},
                      #{image},
-                     #{remark}
+                     #{remark},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 
@@ -81,13 +85,16 @@
         <if test="remark != null and remark != ''">
             remark = #{remark},
         </if>
-        update_time =  now()
+        update_time = #{updateTime}
         where
         id = #{id}
     </update>
 
     <update id="deleteById">
-        update outfit set is_deleted = 1 where id = #{id}
+        update outfit
+        set is_deleted = 1,
+        update_time = #{date}
+        where id = #{id}
     </update>
 
 </mapper>

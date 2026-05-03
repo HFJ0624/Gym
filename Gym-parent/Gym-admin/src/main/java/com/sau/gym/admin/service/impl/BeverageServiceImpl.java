@@ -9,6 +9,7 @@ import com.sau.gym.model.entity.shopping.Beverage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,19 +36,24 @@ public class BeverageServiceImpl implements BeverageService {
     //添加商品
     @Override
     public void saveBeverage(Beverage beverage) {
+        Date date = new Date();
+        beverage.setCreateTime(date);
+        beverage.setUpdateTime(date);
         beverageMapper.saveBeverage(beverage);
     }
 
     //修改商品
     @Override
     public void updateBeverage(Beverage beverage) {
+        beverage.setUpdateTime(new Date());
         beverageMapper.updateBeverage(beverage);
     }
 
     //删除商品
     @Override
     public void deleteById(Long beverageId) {
-        beverageMapper.deleteById(beverageId);
+        Date date = new Date();
+        beverageMapper.deleteById(beverageId,date);
     }
 
     //前台查询商品的详情信息

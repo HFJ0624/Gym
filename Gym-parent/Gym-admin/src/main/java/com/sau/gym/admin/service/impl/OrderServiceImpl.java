@@ -133,12 +133,14 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal surplus = userBalance.getBalance().subtract(totalPrice);
             userBalanceMapper.updateBalance(user.getId(),surplus,date);
 
+            Date dateTime;
             //更新库存
             for (Long cartId : cartIds){
                 cart = cartMapper.getByCartId(cartId);
                 beverage = beverageMapper.selectById(cart.getGoodsId());
                 //更新库存
-                beverageMapper.updateStock(beverage.getId(),beverage.getStock() - cart.getQuantity());
+                dateTime = new Date();
+                beverageMapper.updateStock(beverage.getId(),beverage.getStock() - cart.getQuantity(),dateTime);
             }
         }else {
             //余额不够支付,显示为待支付

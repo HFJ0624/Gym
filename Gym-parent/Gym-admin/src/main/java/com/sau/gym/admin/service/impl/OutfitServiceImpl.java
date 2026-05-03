@@ -9,6 +9,7 @@ import com.sau.gym.model.entity.shopping.Outfit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,18 +36,23 @@ public class OutfitServiceImpl implements OutfitService {
     //添加器材
     @Override
     public void saveOutfit(Outfit outfit) {
+        Date date = new Date();
+        outfit.setCreateTime(date);
+        outfit.setUpdateTime(date);
         outfitMapper.saveOutfit(outfit);
     }
 
     //修改器材
     @Override
     public void updateOutfit(Outfit outfit) {
+        outfit.setUpdateTime(new Date());
         outfitMapper.updateOutfit(outfit);
     }
 
     //删除器材
     @Override
     public void deleteById(Long id) {
-        outfitMapper.deleteById(id);
+        Date date = new Date();
+        outfitMapper.deleteById(id,date);
     }
 }

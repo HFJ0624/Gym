@@ -4,6 +4,7 @@ import com.sau.gym.model.dto.shopping.OutfitDto;
 import com.sau.gym.model.entity.shopping.Outfit;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -19,5 +20,5 @@ public interface OutfitMapper {
     void updateOutfit(Outfit outfit);
 
     //删除器材
-    void deleteById(Long id);
+    void deleteById(Long id, Date date);
 }
