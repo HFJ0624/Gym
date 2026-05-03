@@ -61,13 +61,14 @@ public class UserBalanceServiceImpl implements UserBalanceService {
         balanceRecord.setRemark("用户充值余额,充值金额:" + userBalanceDto.getAmount() + "元");
         balanceRecord.setType(1); //1充值余额
         balanceRecord.setAfterBalance(userBalance.getBalance().add(userBalanceDto.getAmount()));//变动后余额
-        balanceRecord.setCreateTime(new Date());
+        Date date = new Date();
+        balanceRecord.setCreateTime(date);
         balanceRecord.setOrderNo("暂无");
 
         //插入数据库
         balanceRecordMapper.insertOne(balanceRecord);
 
         //充值余额
-        userBalanceMapper.Recharge(userBalanceDto);
+        userBalanceMapper.Recharge(userBalanceDto,date);
     }
 }

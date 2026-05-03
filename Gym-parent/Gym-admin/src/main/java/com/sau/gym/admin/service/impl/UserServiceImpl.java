@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -190,6 +191,10 @@ public class UserServiceImpl implements UserService {
         String md5Password = DigestUtils.md5DigestAsHex(password.getBytes());
         user.setPassword(md5Password);
         user.setStatus(1);
+        //解决时间误差的问题(暂定)
+        Date date = new Date();
+        user.setCreateTime(date);
+        user.setUpdateTime(date);
 
         //保存用户
         userMapper.saveUser(user);
@@ -210,13 +215,16 @@ public class UserServiceImpl implements UserService {
     //修改用户信息
     @Override
     public void updateUser(User user) {
+        Date date = new Date();
+        user.setUpdateTime(date);
         userMapper.updateUser(user);
     }
 
     //根据用户Id删除用户信息
     @Override
     public void deleteById(Long userId) {
-        userMapper.deleteById(userId);
+        Date date = new Date();
+        userMapper.deleteById(userId,date);
     }
 
     //分配角色
@@ -248,6 +256,9 @@ public class UserServiceImpl implements UserService {
         String md5Password = DigestUtils.md5DigestAsHex(password.getBytes());
         user.setPassword(md5Password);
 
+        Date date = new Date();
+        user.setUpdateTime(date);
+        user.setCreateTime(date);
         //注册用户
         userMapper.register(user);
     }

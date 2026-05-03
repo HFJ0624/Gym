@@ -149,8 +149,9 @@ public class CourtBookingServiceImpl implements CourtBookingService {
             paymentRecord.setOrderType(1);
             paymentRecord.setPayChannel(1);
             paymentRecord.setPayNo(get20SerialNo());
-            paymentRecord.setPayTime(new Date());
-            paymentRecord.setCreateTime(new Date());
+            Date date = new Date();
+            paymentRecord.setPayTime(date);
+            paymentRecord.setCreateTime(date);
             paymentRecord.setUserId(bookingDto.getUserId());
             paymentRecord.setStatus(1);
             paymentRecord.setOrderNo(order_no);
@@ -161,7 +162,7 @@ public class CourtBookingServiceImpl implements CourtBookingService {
             //保存到数据库
             courtBookingMapper.saveCourtBook(courtBooking);
             //更新用户余额
-            userBalanceMapper.updateBalance(bookingDto.getUserId(),surplus);
+            userBalanceMapper.updateBalance(bookingDto.getUserId(),surplus,date);
 
             //监听事件:获取通知消息-用户下单预约消息
             eventPublisher.publishEvent(new NotificationEvent(
@@ -222,15 +223,16 @@ public class CourtBookingServiceImpl implements CourtBookingService {
         refundRecord.setOrderNo(courtBooking.getOrderNo());
         refundRecord.setStatus(1);
         refundRecord.setUserId(courtBooking.getUserId());
-        refundRecord.setCreateTime(new Date());
-        refundRecord.setRefundTime(new Date());
+        Date date = new Date();
+        refundRecord.setCreateTime(date);
+        refundRecord.setRefundTime(date);
         PaymentRecord paymentRecord =paymentRecordMapper.selectOne(courtBooking.getOrderNo());
         refundRecord.setPayNo(paymentRecord.getPayNo());
         refundRecord.setOrderNo(courtBooking.getOrderNo());
         refundRecordMapper.insertOne(refundRecord);
 
         //把订单余额返回给用户的余额
-        userBalanceMapper.updateBalance(user.getId(),courtBooking.getTotalPrice().add(userBalance.getBalance()));
+        userBalanceMapper.updateBalance(user.getId(),courtBooking.getTotalPrice().add(userBalance.getBalance()),date);
 
         //监听事件:获取通知消息-用户退款消息
         eventPublisher.publishEvent(new NotificationEvent(

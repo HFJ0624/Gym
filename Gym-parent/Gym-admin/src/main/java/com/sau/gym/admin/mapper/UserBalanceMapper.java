@@ -5,6 +5,7 @@ import com.sau.gym.model.entity.user.UserBalance;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Mapper
 public interface UserBalanceMapper {
@@ -16,8 +17,8 @@ public interface UserBalanceMapper {
     void insertOne(Long id);
 
     //前台用户充值余额
-    void Recharge(UserBalanceDto userBalanceDto);
+    void Recharge(UserBalanceDto userBalanceDto, Date date);
 
     //更新用户余额
-    void updateBalance(Long userId, BigDecimal surplus);
+    void updateBalance(Long userId, BigDecimal surplus,Date date);
 }

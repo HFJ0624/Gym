@@ -6,6 +6,7 @@ import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.vo.user.UserVo;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -27,7 +28,7 @@ public interface UserMapper {
     void updateUser(User user);
 
     //根据用户Id删除用户信息
-    void deleteById(Long id);
+    void deleteById(Long id, Date date);
 
     //注册用户
     void register(User user);

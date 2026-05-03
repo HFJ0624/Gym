@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,7 +48,8 @@ public class SignInServiceImpl implements SignInService {
         if (signIn.getStatus() == 1) {
             return "已到场，无需重复签到";
         }
-        int rows = signInMapper.updateStatusByToken(token);
+        Date date = new Date();
+        int rows = signInMapper.updateStatusByToken(token,date);
         return rows > 0 ? "已到场" : "签到失败";
     }
 

@@ -119,18 +119,19 @@ public class OrderServiceImpl implements OrderService {
             PaymentRecord paymentRecord = new PaymentRecord();
             paymentRecord.setPayNo(get20SerialNo());
             paymentRecord.setPayChannel(1); //余额支付
-            paymentRecord.setCreateTime(new Date());
+            Date date = new Date();
+            paymentRecord.setCreateTime(date);
             paymentRecord.setAmount(totalPrice);
             paymentRecord.setUserId(user.getId());
             paymentRecord.setOrderNo(order_no);
             paymentRecord.setStatus(1);
             paymentRecord.setOrderType(2);
-            paymentRecord.setPayTime(new Date());
+            paymentRecord.setPayTime(date);
             paymentRecordMapper.insertOne(paymentRecord);
 
             //更新余额
             BigDecimal surplus = userBalance.getBalance().subtract(totalPrice);
-            userBalanceMapper.updateBalance(user.getId(),surplus);
+            userBalanceMapper.updateBalance(user.getId(),surplus,date);
 
             //更新库存
             for (Long cartId : cartIds){

@@ -21,14 +21,14 @@
     <update id="Recharge">
         update user_balance
         set balance = balance + #{amount},
-            update_time = now()
+            update_time = #{date}
         where user_id = #{userId}
     </update>
 
     <update id="updateBalance">
         update user_balance
         set balance = #{surplus},
-            update_time = now()
+            update_time = #{date}
         where user_id = #{userId}
     </update>
 </mapper>

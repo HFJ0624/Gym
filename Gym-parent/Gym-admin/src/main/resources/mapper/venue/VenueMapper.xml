@@ -47,7 +47,9 @@
             description,
             open_time,
             close_time,
-            avatar
+            avatar,
+            create_time,
+            update_time
         ) values (
                      #{id},
                      #{venueName},
@@ -58,7 +60,9 @@
                      #{description},
                      #{openTime},
                      #{closeTime},
-                     #{avatar}
+                     #{avatar},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 
@@ -92,7 +96,7 @@
         <if test="avatar != null and avatar != ''">
             avatar = #{avatar},
         </if>
-        update_time =  now()
+        update_time =  #{updateTime}
         where
         id = #{id}
     </update>

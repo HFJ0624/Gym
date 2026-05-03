@@ -12,6 +12,7 @@ import com.sau.gym.model.entity.venue.Venue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,9 @@ public class VenueServiceImpl implements VenueService {
             throw new SauException(ResultCodeEnum.VENUE_NAME_EXIST);
         }
 
+        Date date = new Date();
+        venue.setCreateTime(date);
+        venue.setUpdateTime(date);
         //保存到数据库
         venueMapper.saveVenue(venue);
     }
@@ -60,6 +64,7 @@ public class VenueServiceImpl implements VenueService {
     //修改场馆
     @Override
     public void updateVenue(Venue venue) {
+        venue.setUpdateTime(new Date());
         venueMapper.updateVenue(venue);
     }
 
