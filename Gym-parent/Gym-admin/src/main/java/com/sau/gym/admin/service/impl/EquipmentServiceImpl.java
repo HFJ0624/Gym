@@ -9,6 +9,7 @@ import com.sau.gym.model.entity.equipment.Equipment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -37,12 +38,16 @@ public class EquipmentServiceImpl implements EquipmentService {
     //添加器械
     @Override
     public void saveEquipment(Equipment equipment) {
+        Date date = new Date();
+        equipment.setCreateTime(date);
+        equipment.setUpdateTime(date);
         equipmentMapper.saveEquipment(equipment);
     }
 
     //修改器械
     @Override
     public void updateEquipment(Equipment equipment) {
+        equipment.setUpdateTime(new Date());
         equipmentMapper.updateEquipment(equipment);
     }
 

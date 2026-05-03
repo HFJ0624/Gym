@@ -46,7 +46,9 @@
             quantity,
             description,
             image_url,
-            purchase_date
+            purchase_date,
+            create_time,
+            update_time
         ) values (
                      #{id},
                      #{gymName},
@@ -56,7 +58,9 @@
                      #{quantity},
                      #{description},
                      #{imageUrl},
-                     #{purchaseDate}
+                     #{purchaseDate},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 
@@ -87,7 +91,7 @@
         <if test="purchaseDate != null">
             purchase_date = #{purchaseDate},
         </if>
-        update_time =  now()
+        update_time =  #{updateTime}
         where
         id = #{id}
     </update>

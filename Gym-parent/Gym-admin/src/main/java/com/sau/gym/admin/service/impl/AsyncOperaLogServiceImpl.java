@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 /**
  * 作者:hfj
  * 功能:
@@ -22,6 +24,9 @@ public class AsyncOperaLogServiceImpl implements AsyncOperaLogService {
     @Async // 异步执行保存日志操作
     @Override
     public void saveSysOperLog(OperaLog operaLog) {
+        Date date = new Date();
+        operaLog.setCreateTime(date);
+        operaLog.setUpdateTime(date);
         operaLogMapper.insert(operaLog);
     }
 }

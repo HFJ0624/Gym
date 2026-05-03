@@ -6,7 +6,6 @@ import com.sau.gym.admin.mapper.OperaLogMapper;
 import com.sau.gym.admin.service.OperaLogService;
 import com.sau.gym.model.dto.system.OperaLogDto;
 import com.sau.gym.model.entity.system.OperaLog;
-import com.sau.gym.model.entity.venue.Venue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
