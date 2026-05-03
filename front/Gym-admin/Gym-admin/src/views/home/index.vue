@@ -70,7 +70,7 @@
     </div>
 
     <div class="content-row">
-      <div class="list-card full-width">
+      <div class="list-card">
         <div class="card-header">
           <span class="card-title">最新公告评论</span>
           <el-button type="primary" text @click="handleViewAllComments">查看全部</el-button>
@@ -91,6 +91,13 @@
           </div>
         </div>
       </div>
+
+      <div class="chart-card">
+        <div class="card-header">
+          <span class="card-title">营业额统计</span>
+        </div>
+        <div ref="barChart" class="chart-container"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -105,6 +112,7 @@ import { GetAllVenue } from '@/api/Venue'
 import { CountAllBook } from '@/api/CourtBook'
 import { FindAllNotice } from '@/api/Notice'
 import { GetRecentComment } from '@/api/NoticeComment'
+import { GetAllTurnover } from '@/api/order'
 import { 
   User, 
   OfficeBuilding, 
@@ -115,7 +123,9 @@ import {
 
 const appStore = useApp()
 const chart = ref(null)
+const barChart = ref(null)
 let myChart = null
+let myBarChart = null
 const router = useRouter()  
 
 const stats = ref({
@@ -168,12 +178,14 @@ const loadNoticeCount = async () => {
 
 onMounted(() => {
   myChart = echarts.init(chart.value)
+  myBarChart = echarts.init(barChart.value)
   loadData()
   loadVenueCount()
   loadNoticeCount()
   loadBookingCount()
   loadRecentNotices()
   loadRecentComments()
+  loadTurnoverData()
 })
 
 const loadData = async () => {
@@ -246,8 +258,55 @@ const renderChart = (dataList) => {
   myChart.setOption(option)
 }
 
+const loadTurnoverData = async () => {
+  try {
+    const res = await GetAllTurnover()
+    if (res.data) {
+      renderBarChart(res.data.dateList || [], res.data.money || [])
+    }
+  } catch (error) {
+    console.error('获取营业额数据失败:', error)
+  }
+}
+
+const renderBarChart = (dateList, moneyList) => {
+  const option = {
+    title: {
+      text: '营业额统计',
+      subtext: '按日期统计',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      }
+    },
+    xAxis: {
+      type: 'category',
+      data: dateList
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        data: moneyList,
+        type: 'bar',
+        showBackground: true,
+        backgroundStyle: {
+          color: 'rgba(180, 180, 180, 0.2)'
+        }
+      }
+    ]
+  }
+
+  myBarChart.setOption(option)
+}
+
 onUnmounted(() => {
   myChart?.dispose()
+  myBarChart?.dispose()
 })
 
 const getHomeStats = async () => {
@@ -365,7 +424,7 @@ const handleViewAllNotices = () => {
 }
 
 .chart-container {
-  height: 300px;
+  height: 400px;
 }
 
 .list-content {

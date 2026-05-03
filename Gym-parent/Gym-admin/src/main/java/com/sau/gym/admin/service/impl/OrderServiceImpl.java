@@ -15,8 +15,10 @@ import com.sau.gym.model.entity.shopping.Beverage;
 import com.sau.gym.model.entity.shopping.Cart;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.user.UserBalance;
+import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.order.OrderDetailVO;
 import com.sau.gym.model.vo.order.OrderVO;
+import com.sau.gym.model.vo.system.TurnoverVo;
 import com.sau.gym.utils.AuthContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,9 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * 作者:hfj
@@ -56,6 +58,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private PaymentRecordMapper paymentRecordMapper;
+
+    @Autowired
+    private CourtBookingMapper courtBookingMapper;
 
     //创建订单
     @Transactional
@@ -216,6 +221,60 @@ public class OrderServiceImpl implements OrderService {
         List<OrderVO> list = orderMapper.findByPage(ordersDto);
         PageInfo<OrderVO> pageInfo = new PageInfo<>(list);
         return pageInfo;
+    }
+
+    //统计七天的订单营业额数据
+    @Override
+    public Map<String, Object> getAllTurnover() {
+        // 日期集合（格式：MM-dd）和金额集合（Double）
+        List<String> dateList = new ArrayList<>();
+        List<Double> money = new ArrayList<>();
+
+        // 1. 获取订单和预约的7天营业额数据
+        List<TurnoverVo> orderList = orderMapper.getOrderTurnover();
+        List<TurnoverVo> courtBookingList = courtBookingMapper.getCourtBookTurnover();
+
+        // 2. 把两个List转成Map<日期(yyyy-MM-dd), 金额(BigDecimal)>，方便按天相加
+        Map<String, BigDecimal> orderMap = new HashMap<>();
+        for (TurnoverVo vo : orderList) {
+            orderMap.put(vo.getDay(), vo.getTurnover());
+        }
+
+        Map<String, BigDecimal> courtMap = new HashMap<>();
+        for (TurnoverVo vo : courtBookingList) {
+            courtMap.put(vo.getDay(), vo.getTurnover());
+        }
+
+        // 3. 生成最近7天的日期（今天 + 前6天），并计算每天的总营业额
+        LocalDate today = LocalDate.now();
+        // 日期格式化：和TurnoverVo里的day格式一致（yyyy-MM-dd）
+        DateTimeFormatter fullFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // 前端显示的格式（MM-dd）
+        DateTimeFormatter shortFormatter = DateTimeFormatter.ofPattern("MM-dd");
+
+        for (int i = 6; i >= 0; i--) {
+            // 从今天往前推6天，循环7次（i=6到0，对应前6天到今天）
+            LocalDate date = today.minusDays(i);
+            String fullDateStr = date.format(fullFormatter);
+            String shortDateStr = date.format(shortFormatter);
+
+            // 加入日期集合
+            dateList.add(shortDateStr);
+
+            // 取出订单和预约的金额，没有的话用0
+            BigDecimal orderAmount = orderMap.getOrDefault(fullDateStr, BigDecimal.ZERO);
+            BigDecimal courtAmount = courtMap.getOrDefault(fullDateStr, BigDecimal.ZERO);
+
+            // 金额相加，转成Double加入集合
+            BigDecimal totalAmount = orderAmount.add(courtAmount);
+            money.add(totalAmount.doubleValue());
+        }
+
+        // 4. 封装到Map返回
+        Map<String, Object> map = new HashMap<>();
+        map.put("dateList", dateList);
+        map.put("money", money);
+        return map;
     }
 
     /***

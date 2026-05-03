@@ -9,6 +9,9 @@ import com.sau.gym.model.vo.order.OrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * 作者:hfj
  * 功能:后台订单基本功能
@@ -26,5 +29,12 @@ public class OrderController {
     public Result<PageInfo<OrderVO>> findByPage(@PathVariable("current") Integer current, @PathVariable("limit") Integer limit,@RequestBody OrdersDto ordersDto){
         PageInfo<OrderVO> pageInfo = orderService.findByPage(current,limit,ordersDto);
         return Result.build(pageInfo, ResultCodeEnum.SUCCESS);
+    }
+
+    //统计七天的订单营业额数据
+    @GetMapping(value = "/getAllTurnover")
+    public Result<Map<String, Object>> getAllTurnover(){
+        Map<String,Object> map = orderService.getAllTurnover();
+        return Result.build(map,ResultCodeEnum.SUCCESS);
     }
 }

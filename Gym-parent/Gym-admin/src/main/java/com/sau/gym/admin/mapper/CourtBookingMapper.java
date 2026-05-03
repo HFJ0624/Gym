@@ -4,6 +4,7 @@ import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookEmailVO;
 import com.sau.gym.model.vo.court.CourtBookVO;
+import com.sau.gym.model.vo.system.TurnoverVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -48,4 +49,7 @@ public interface CourtBookingMapper {
      * 标记订单为已提醒
      */
     void updateRemindedStatus(@Param("orderId") Long orderId);
+
+    //获取前一星期的营业额数据
+    List<TurnoverVo> getCourtBookTurnover();
 }

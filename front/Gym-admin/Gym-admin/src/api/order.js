@@ -10,3 +10,11 @@ export const GetOrderListByPage = (pageNum, pageSize, queryDto) => {
         data: queryDto,
     })
 }
+
+// 统计前七天的营业额金额
+export const GetAllTurnover = () => {
+    return request({
+        url: `${base_url}/getAllTurnover`,
+        method: 'get',
+    })
+}

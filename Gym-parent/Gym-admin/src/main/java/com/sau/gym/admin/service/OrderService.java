@@ -7,6 +7,8 @@ import com.sau.gym.model.entity.order.Order;
 import com.sau.gym.model.vo.order.OrderDetailVO;
 import com.sau.gym.model.vo.order.OrderVO;
 
+import java.util.Map;
+
 public interface OrderService {
 
     //创建订单
@@ -17,4 +19,7 @@ public interface OrderService {
 
     //订单查询列表
     PageInfo<OrderVO> findByPage(Integer current, Integer limit, OrdersDto ordersDto);
+
+    //统计七天的订单营业额数据
+    Map<String, Object> getAllTurnover();
 }

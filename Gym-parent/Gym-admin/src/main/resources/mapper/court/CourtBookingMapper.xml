@@ -157,4 +157,25 @@
         where id = #{orderId}
     </update>
 
+    <select id="getCourtBookTurnover" resultType="com.sau.gym.model.vo.system.TurnoverVo">
+        SELECT
+            date_point AS `day`,
+            IFNULL(SUM(vb.total_price), 0) AS turnover
+        FROM (
+                 SELECT DATE_SUB(CURDATE(), INTERVAL 6 DAY) AS date_point UNION
+                 SELECT DATE_SUB(CURDATE(), INTERVAL 5 DAY) UNION
+                 SELECT DATE_SUB(CURDATE(), INTERVAL 4 DAY) UNION
+                 SELECT DATE_SUB(CURDATE(), INTERVAL 3 DAY) UNION
+                 SELECT DATE_SUB(CURDATE(), INTERVAL 2 DAY) UNION
+                 SELECT DATE_SUB(CURDATE(), INTERVAL 1 DAY) UNION
+                 SELECT CURDATE()
+             ) AS date_range
+                 LEFT JOIN court_booking vb
+                           ON date_range.date_point = DATE(vb.create_time)
+                               AND vb.status = 1
+                               AND vb.is_deleted = 0
+        GROUP BY date_point
+        ORDER BY date_point ASC
+    </select>
+
 </mapper>
