@@ -49,7 +49,9 @@
             sex,
             phone,
             email,
-            avatar
+            avatar,
+            create_time,
+            update_time
         ) values (
                      #{username},
                      #{password},
@@ -57,7 +59,9 @@
                      #{sex},
                      #{phone},
                      #{email},
-                     #{avatar}
+                     #{avatar},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 
@@ -92,14 +96,14 @@
         <if test="avatar != null and avatar != ''">
             avatar = #{avatar},
         </if>
-        update_time =  now()
+        update_time = #{updateTime}
         where
         id = #{id}
     </update>
 
     <update id="deleteById">
         update user set
-            update_time = now() ,
+            update_time = #{date},
             is_deleted = 1
         where
             id = #{id}
@@ -115,7 +119,9 @@
             email,
             role,
             avatar,
-            status
+            status,
+            create_time,
+            update_time
         ) values (
                      #{username},
                      #{password},
@@ -125,7 +131,9 @@
                      #{email},
                      #{role},
                      #{avatar},
-                     #{status}
+                     #{status},
+                     #{createTime},
+                     #{updateTime}
                  )
     </insert>
 

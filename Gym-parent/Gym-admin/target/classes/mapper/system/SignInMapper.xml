@@ -16,7 +16,7 @@
 
     <update id="updateStatusByToken">
         UPDATE sign_in
-        SET status = 1, sign_time = now()
+        SET status = 1, sign_time = #{date}
         WHERE token = #{token} AND status = 0 # 防重复签到
     </update>
 
