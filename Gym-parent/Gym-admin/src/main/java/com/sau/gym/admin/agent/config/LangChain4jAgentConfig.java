@@ -3,6 +3,7 @@ package com.sau.gym.admin.agent.config;
 import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
 import com.sau.gym.admin.agent.tool.GymBookingTools;
 import com.sau.gym.admin.agent.tool.GymQueryTools;
+import com.sau.gym.admin.agent.tool.GymRagTools;
 import com.sau.gym.admin.agent.tool.GymShoppingTools;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -74,12 +75,13 @@ public class LangChain4jAgentConfig {
             ChatMemoryProvider gymChatMemoryProvider,
             GymQueryTools gymQueryTools,
             GymBookingTools gymBookingTools,
-            GymShoppingTools gymShoppingTools
+            GymShoppingTools gymShoppingTools,
+            GymRagTools gymRagTools
     ) {
         return AiServices.builder(GymAgentAssistant.class)
                 .chatModel(gymChatModel)                  // 绑定模型
                 .chatMemoryProvider(gymChatMemoryProvider) // 绑定会话记忆
-                .tools(gymQueryTools, gymBookingTools, gymShoppingTools) // 注册工具
+                .tools(gymQueryTools, gymBookingTools, gymShoppingTools,gymRagTools) // 注册工具(查询工具,预约工具,下单工具,rag工具)
                 .build();
     }
 }

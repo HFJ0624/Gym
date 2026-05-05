@@ -23,49 +23,103 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useAuth } from '@/stores/auth'
+
+/**
+ * 接收页面上下文。
+ *
+ * 普通页面：
+ * <AiAssistant />
+ *
+ * 场馆详情页：
+ * <AiAssistant :venue-id="venueDetail.id" />
+ *
+ * 场地详情页：
+ * <AiAssistant :venue-id="courtDetail.venueId" :court-id="courtDetail.id" />
+ */
+const props = defineProps({
+  venueId: {
+    type: [Number, String],
+    default: null
+  },
+  courtId: {
+    type: [Number, String],
+    default: null
+  }
+})
 
 const showChat = ref(false)
 const inputMsg = ref('')
 const chatBody = ref(null)
 const authStore = useAuth()
 
-// 聊天消息列表
-const messages = ref([{
-  role: 'ai',
-  content: '你好！我是体育场馆AI客服，有什么可以帮你？'
-}])
+/**
+ * 当前登录用户ID。
+ */
+const userId = computed(() => authStore.user?.id)
 
-// ============== 核心1：获取当前登录用户ID（必须！记忆功能依赖） ==============
-const userId = ref(authStore.user?.id) 
+/**
+ * 聊天消息列表。
+ */
+const messages = ref([
+  {
+    role: 'ai',
+    content: '你好！我是体育场馆AI客服，有什么可以帮你？'
+  }
+])
+
+/**
+ * 发送消息。
+ */
 const send = async () => {
-  if (!inputMsg.value.trim()) return ElMessage.warning('请输入内容')
+  if (!inputMsg.value.trim()) {
+    return ElMessage.warning('请输入内容')
+  }
 
-  const msg = inputMsg.value
-  messages.value.push({ role: 'user', content: msg })
+  if (!userId.value) {
+    return ElMessage.warning('请先登录后再使用 AI 助手')
+  }
+
+  const msg = inputMsg.value.trim()
+
+  messages.value.push({
+    role: 'user',
+    content: msg
+  })
+
   inputMsg.value = ''
 
   try {
-    // ============== 核心2：传递 userId + message 给后端 ==============
-    const { data } = await axios.post('http://localhost:9601/front/agent/chat', null,{
-      params: {
-        userId: userId.value,
-        message: msg
+    const { data } = await axios.post(
+      'http://localhost:9601/front/agent/chat',
+      {
+        message: msg,
+        venueId: props.venueId ? Number(props.venueId) : null,
+        courtId: props.courtId ? Number(props.courtId) : null
+      },
+      {
+        params: {
+          userId: userId.value
+        }
       }
+    )
+
+    messages.value.push({
+      role: 'ai',
+      content: data.data || '暂时没有返回内容。'
     })
-    
-    messages.value.push({ role: 'ai', content: data.data })
   } catch (e) {
     ElMessage.error('连接 AI 服务失败')
     console.error(e)
   }
 
-  // ============== 核心3：修复滚动BUG（原变量名错误） ==============
   nextTick(() => {
-    chatBody.value.scrollTop = chatBody.value.scrollHeight
+    if (chatBody.value) {
+      chatBody.value.scrollTop = chatBody.value.scrollHeight
+    }
   })
 }
 </script>

@@ -1,4 +1,5 @@
 <template>
+  
   <div class="page" v-loading="loading">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item to="/index">首页</el-breadcrumb-item>
@@ -83,16 +84,20 @@
       </div>
     </div>
   </div>
+  <!-- 人工智能助手 -->
+  <AiAssistant :venue-id="currentVenueId" :court-id="currentCourtId"/>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 // 后续需要导入后端API接口
 import { GetCourtDetail, BookCourt } from '@/api/court'
 // 从Pinia store中获取用户信息
 import { useAuth } from '@/stores/auth'
+// 人工智能助手组件
+import AiAssistant from '@/components/AiAssistant.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -111,6 +116,14 @@ const courtInfo = ref({
   venueName: '',
   location: '',
   phone: ''
+})
+
+const currentVenueId = computed(() => {
+  return route.query.venueId ? Number(route.query.venueId) : null
+})
+
+const currentCourtId = computed(() => {
+  return route.params.id ? Number(route.params.id) : null
 })
 
 // 预约表单数据

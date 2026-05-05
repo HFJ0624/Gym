@@ -1,6 +1,7 @@
 package com.sau.gym.admin.controller.ai;
 
 import com.sau.gym.admin.agent.service.AgentService;
+import com.sau.gym.model.dto.agent.AgentChatDto;
 import com.sau.gym.model.entity.base.Result;
 import com.sau.gym.model.entity.base.ResultCodeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,8 @@ public class AgentController {
 
     //构建agent智能聊天
     @PostMapping("/chat")
-    public Result chat(@RequestParam Long userId, @RequestParam String message) {
-        String reply = agentService.chat(userId, message);
+    public Result chat(@RequestParam Long userId, @RequestBody AgentChatDto agentChatDto) {
+        String reply = agentService.chat(userId, agentChatDto);
         return Result.build(reply, ResultCodeEnum.SUCCESS);
     }
 }

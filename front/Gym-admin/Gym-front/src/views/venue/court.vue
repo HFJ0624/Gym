@@ -43,17 +43,27 @@
         </div>
       </div>
     </div>
+    <AiAssistant :venue-id="currentVenueId" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {GetAllCourt} from '@/api/court'
+import AiAssistant from '@/components/AiAssistant.vue'
 
 const router = useRouter()
 const route = useRoute()
 const loading = ref(false)
+
+/**
+ * 当前页面场馆ID。
+ * 从地址栏路由参数中获取。
+ */
+const currentVenueId = computed(() => {
+  return route.params.id ? Number(route.params.id) : null
+})
 
 // 场馆信息
 const venue = ref({

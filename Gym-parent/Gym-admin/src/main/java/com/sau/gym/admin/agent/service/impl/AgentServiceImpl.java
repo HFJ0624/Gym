@@ -9,6 +9,7 @@ import com.sau.gym.admin.agent.tool.GymShoppingTools;
 import com.sau.gym.admin.mapper.ChatRecordMapper;
 import com.sau.gym.admin.mapper.UserMapper;
 import com.sau.gym.admin.agent.service.AgentService;
+import com.sau.gym.model.dto.agent.AgentChatDto;
 import com.sau.gym.model.entity.chat.ChatRecord;
 import com.sau.gym.model.entity.user.User;
 import org.springframework.stereotype.Service;
@@ -46,26 +47,39 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public String chat(Long userId, String userMessage) {
+    public String chat(Long userId, AgentChatDto agentChatDto) {
+        String message = agentChatDto.getMessage();
+
+        if (message == null || message.trim().isEmpty()) {
+            throw new RuntimeException("消息不能为空");
+        }
+
+        //去掉空白部分
+        message = message.trim();
+
         String reply;
+
         try {
-            // 1. 优先处理确认/取消
-            reply = handlePendingAction(userId, userMessage);
+            //1. 优先处理确认/取消类指令。
+            reply = handlePendingAction(userId, message);
             if (reply != null) {
-                saveChatRecord(userId, userMessage, reply);
+                saveChatRecord(userId, message, reply);
                 return reply;
             }
 
+            //2. 构造带页面上下文的Agent输入。
+            String agentInput = buildAgentInput(message, agentChatDto.getVenueId(), agentChatDto.getCourtId());
+
             // 2. 走 LangChain4j agent
-            reply = gymAgentAssistant.chat(userId, userMessage);
+            reply = gymAgentAssistant.chat(userId, agentInput);
 
             // 3. 落库
-            saveChatRecord(userId, userMessage, reply);
+            saveChatRecord(userId, message, reply);
             return reply;
         } catch (Exception e) {
             e.printStackTrace();
             reply = "AI服务异常，请稍后再试。";
-            saveChatRecord(userId, userMessage, reply);
+            saveChatRecord(userId, message, reply);
             return reply;
         }
     }
@@ -125,5 +139,37 @@ public class AgentServiceImpl implements AgentService {
         record.setCreateTime(LocalDateTime.now());
 
         chatRecordMapper.insertChatRecord(record);
+    }
+
+    /**
+     * 构造传给 Agent 的输入内容。
+     * @param userMessage 用户原始消息
+     * @param venueId 当前页面场馆ID，可为空
+     * @param courtId 当前页面场地ID，可为空
+     * @return 增强后的 Agent 输入
+     */
+    private String buildAgentInput(String userMessage, Long venueId, Long courtId) {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("用户问题：")
+                .append(userMessage)
+                .append("\n");
+
+        if (venueId != null) {
+            builder.append("当前页面场馆ID：")
+                    .append(venueId)
+                    .append("\n");
+        }
+
+        if (courtId != null) {
+            builder.append("当前页面场地ID：")
+                    .append(courtId)
+                    .append("\n");
+        }
+
+        builder.append("如果用户问题中的“这个场馆”“这个场地”“这里”指代不明确，")
+                .append("请优先使用上述页面上下文。");
+
+        return builder.toString();
     }
 }

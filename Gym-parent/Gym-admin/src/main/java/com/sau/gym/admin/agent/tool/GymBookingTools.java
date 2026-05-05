@@ -127,7 +127,7 @@ public class GymBookingTools {
         // 6. 计算时长和总价
         // 你当前 court price 如果就是“每小时价格”，那这里应该按小时数计算总价
         long minutes = Duration.between(start, end).toMinutes();
-        if (minutes <= 60) {
+        if (minutes < 60) {
             return "预约时长必须大于1小时";
         }
 
