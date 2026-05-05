@@ -23,10 +23,10 @@ spring:
       max-request-size: 2MB # 单次请求最大大小（多文件上传总大小），建议和单文件一致
 
     # Redis的相关配置
-    data:
-      redis:
-        host: 192.168.10.100
-        port: 6379
+  data:
+    redis:
+      host: 192.168.10.100
+      port: 6379
   #  password: 1234
 
 # mybatis的配置
@@ -63,3 +63,8 @@ gym:
     accessKey: admin
     secreKey: admin123456
     bucketName: gym-bucket
+
+  agent:
+    draft:
+      # Agent 草稿过期时间，单位：分钟
+      ttl-minutes: 15

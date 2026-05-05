@@ -1,6 +1,9 @@
 package com.sau.gym.admin.agent.service.impl;
 
 import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
+import com.sau.gym.admin.agent.context.AgentTraceContext;
+import com.sau.gym.admin.agent.context.AgentTraceInfo;
+import com.sau.gym.admin.agent.service.AgentToolLogService;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
 import com.sau.gym.admin.agent.store.PendingDraftType;
@@ -12,6 +15,7 @@ import com.sau.gym.admin.agent.service.AgentService;
 import com.sau.gym.model.dto.agent.AgentChatDto;
 import com.sau.gym.model.entity.chat.ChatRecord;
 import com.sau.gym.model.entity.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,6 +35,10 @@ public class AgentServiceImpl implements AgentService {
     private final GymShoppingTools gymShoppingTools;
     private final ChatRecordMapper chatRecordMapper;
     private final UserMapper userMapper;
+
+    @Autowired
+    private AgentToolLogService agentToolLogService;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -57,9 +65,15 @@ public class AgentServiceImpl implements AgentService {
         //去掉空白部分
         message = message.trim();
 
+        //为本次 Agent对话生成一个traceId
+        String traceId = UUID.randomUUID().toString().replace("-", "");
         String reply;
 
         try {
+
+            //设置 Agent 调用链上下文,AOP 记录工具日志时，会从 ThreadLocal 里读取
+            AgentTraceContext.set(new AgentTraceInfo(traceId, userId, message));
+
             //1. 优先处理确认/取消类指令。
             reply = handlePendingAction(userId, message);
             if (reply != null) {
@@ -81,31 +95,87 @@ public class AgentServiceImpl implements AgentService {
             reply = "AI服务异常，请稍后再试。";
             saveChatRecord(userId, message, reply);
             return reply;
+        }finally {
+            //必须清理 ThreadLocal,Tomcat 线程会复用，如果不 clear,下一次请求可能读到上一次用户的 trace 信息。
+            AgentTraceContext.clear();
         }
     }
 
-    private String handlePendingAction(Long userId, String userMessage) {
-        PendingDraft draft = agentDraftStore.get(userId);
-        if (draft == null) {
+    private String handlePendingAction(Long userId, String message) {
+
+        if (message == null) {
             return null;
         }
 
-        String msg = userMessage == null ? "" : userMessage.trim();
+        String text = message.trim();
 
-        if (isCancel(msg)) {
+        //确认预约
+        if (text.startsWith("确认预约")) {
+            long start = System.currentTimeMillis();
+
+            String token = extractConfirmToken(text, "确认预约");
+            String reply = gymBookingTools.confirmPendingBooking(userId, token);
+
+            agentToolLogService.record(
+                    "confirmPendingBooking",
+                    "用户确认预约草稿，执行真实预约业务",
+                    this.getClass().getName(),
+                    "handlePendingAction",
+                    "{\"message\":\"" + text + "\"}",
+                    reply,
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - start
+            );
+
+            return reply;
+        }
+
+        //确认商品下单
+        if (text.startsWith("确认下单")) {
+            long start = System.currentTimeMillis();
+
+            String token = extractConfirmToken(text, "确认下单");
+            String reply = gymShoppingTools.confirmPendingShopping(userId, token);
+
+            agentToolLogService.record(
+                    "confirmPendingShopping",
+                    "用户确认商品下单草稿，执行真实商品下单业务",
+                    this.getClass().getName(),
+                    "handlePendingAction",
+                    "{\"message\":\"" + text + "\"}",
+                    reply,
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - start
+            );
+
+            return reply;
+        }
+
+        //取消当前待确认草稿
+        if ("取消".equals(text) || "取消操作".equals(text)) {
+            long start = System.currentTimeMillis();
+
             agentDraftStore.clear(userId);
-            return "已取消本次待确认操作。";
+
+            String reply = "已取消当前待确认操作。";
+
+            agentToolLogService.record(
+                    "clearPendingDraft",
+                    "用户取消当前待确认草稿",
+                    this.getClass().getName(),
+                    "handlePendingAction",
+                    "{\"message\":\"" + text + "\"}",
+                    reply,
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - start
+            );
+
+            return reply;
         }
 
-        if (isConfirmBooking(msg) && draft.type() == PendingDraftType.BOOKING) {
-            return gymBookingTools.confirmPendingBooking(userId);
-        }
-
-        if (isConfirmShopping(msg) && draft.type() == PendingDraftType.SHOPPING) {
-            return gymShoppingTools.confirmPendingShopping(userId);
-        }
-
-        // 有草稿但用户没有明确确认/取消，则继续交给模型
         return null;
     }
 
@@ -171,5 +241,22 @@ public class AgentServiceImpl implements AgentService {
                 .append("请优先使用上述页面上下文。");
 
         return builder.toString();
+    }
+
+    /**
+     * 从用户输入中提取确认码。
+     */
+    private String extractConfirmToken(String text, String prefix) {
+        if (text == null || prefix == null) {
+            return null;
+        }
+
+        String token = text.substring(prefix.length()).trim();
+
+        if (token.isEmpty()) {
+            return null;
+        }
+
+        return token;
     }
 }

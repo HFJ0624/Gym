@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sau.gym.admin.mapper.AgentToolLogMapper">
+
+    <!-- 新增 Agent 工具调用日志 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO agent_tool_log (
+            trace_id,
+            user_id,
+            user_message,
+            tool_name,
+            tool_desc,
+            tool_class,
+            method_name,
+            arguments_json,
+            result_text,
+            status,
+            error_message,
+            duration_ms,
+            create_time
+        )
+        VALUES (
+                   #{traceId},
+                   #{userId},
+                   #{userMessage},
+                   #{toolName},
+                   #{toolDesc},
+                   #{toolClass},
+                   #{methodName},
+                   #{argumentsJson},
+                   #{resultText},
+                   #{status},
+                   #{errorMessage},
+                   #{durationMs},
+                   NOW()
+               )
+    </insert>
+
+</mapper>
