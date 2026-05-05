@@ -56,9 +56,8 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
         //2.获取菜单的id
         List<Map<String, Number>> menuInfo = assignMenuDto.getMenuIdList();
-        Date date = new Date();
         if(menuInfo != null && menuInfo.size() > 0) {
-            roleMenuMapper.doAssign(assignMenuDto,date);
+            roleMenuMapper.doAssign(assignMenuDto);
         }
     }
 }

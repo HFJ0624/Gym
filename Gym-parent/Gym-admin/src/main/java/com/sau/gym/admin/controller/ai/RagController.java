@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * 日期: 2026/4/28 15:56
  */
 @RestController
-@RequestMapping("/admin/rag")
+@RequestMapping("/admin/ai/rag")
 public class RagController {
 
     @Autowired

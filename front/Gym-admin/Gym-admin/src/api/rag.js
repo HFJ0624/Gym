@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function pageKnowledgeDocument(data) {
     return request({
-        url: '/admin/rag/document/page',
+        url: '/admin/ai/rag/document/page',
         method: 'post',
         data
     })
@@ -16,7 +16,7 @@ export function pageKnowledgeDocument(data) {
  */
 export function getKnowledgeDocumentDetail(id) {
     return request({
-        url: `/admin/rag/document/${id}`,
+        url: `/admin/ai/rag/document/${id}`,
         method: 'get'
     })
 }
@@ -26,7 +26,7 @@ export function getKnowledgeDocumentDetail(id) {
  */
 export function saveKnowledgeDocument(data) {
     return request({
-        url: '/admin/rag/document',
+        url: '/admin/ai/rag/document',
         method: 'post',
         data
     })
@@ -37,7 +37,7 @@ export function saveKnowledgeDocument(data) {
  */
 export function updateKnowledgeDocument(data) {
     return request({
-        url: '/admin/rag/document',
+        url: '/admin/ai/rag/document',
         method: 'put',
         data
     })
@@ -48,7 +48,7 @@ export function updateKnowledgeDocument(data) {
  */
 export function updateKnowledgeDocumentEnabled(id, enabled) {
     return request({
-        url: `/admin/rag/document/${id}/enabled/${enabled}`,
+        url: `/admin/ai/rag/document/${id}/enabled/${enabled}`,
         method: 'put'
     })
 }
@@ -58,7 +58,7 @@ export function updateKnowledgeDocumentEnabled(id, enabled) {
  */
 export function deleteKnowledgeDocument(id) {
     return request({
-        url: `/admin/rag/document/${id}`,
+        url: `/admin/ai/rag/document/${id}`,
         method: 'delete'
     })
 }
@@ -68,7 +68,7 @@ export function deleteKnowledgeDocument(id) {
  */
 export function rebuildRagKnowledge() {
     return request({
-        url: '/admin/rag/rebuild',
+        url: '/admin/ai/rag/rebuild',
         method: 'post'
     })
 }
@@ -89,7 +89,7 @@ export function testRagAsk(data) {
  */
 export function syncVenueKnowledge() {
     return request({
-        url: '/admin/rag/sync/venue',
+        url: '/admin/ai/rag/sync/venue',
         method: 'post'
     })
 }
@@ -99,7 +99,7 @@ export function syncVenueKnowledge() {
  */
 export function syncCourtKnowledge() {
     return request({
-        url: '/admin/rag/sync/court',
+        url: '/admin/ai/rag/sync/court',
         method: 'post'
     })
 }

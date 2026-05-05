@@ -37,4 +37,68 @@
                )
     </insert>
 
+    <!-- 管理台分页查询工具调用日志 -->
+    <select id="selectPage" resultType="com.sau.gym.model.entity.agent.AgentToolLog">
+        SELECT
+        id,
+        trace_id AS traceId,
+        user_id AS userId,
+        user_message AS userMessage,
+        tool_name AS toolName,
+        tool_desc AS toolDesc,
+        tool_class AS toolClass,
+        method_name AS methodName,
+        arguments_json AS argumentsJson,
+        result_text AS resultText,
+        status,
+        error_message AS errorMessage,
+        duration_ms AS durationMs,
+        create_time AS createTime
+        FROM agent_tool_log
+        WHERE 1 = 1
+
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+
+        <if test="traceId != null and traceId != ''">
+            AND trace_id = #{traceId}
+        </if>
+
+        <if test="toolName != null and toolName != ''">
+            AND tool_name LIKE CONCAT('%', #{toolName}, '%')
+        </if>
+
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+
+        <if test="userMessage != null and userMessage != ''">
+            AND user_message LIKE CONCAT('%', #{userMessage}, '%')
+        </if>
+
+        ORDER BY id DESC
+    </select>
+
+    <!-- 根据ID查询日志详情 -->
+    <select id="selectById" resultType="com.sau.gym.model.entity.agent.AgentToolLog">
+        SELECT
+            id,
+            trace_id AS traceId,
+            user_id AS userId,
+            user_message AS userMessage,
+            tool_name AS toolName,
+            tool_desc AS toolDesc,
+            tool_class AS toolClass,
+            method_name AS methodName,
+            arguments_json AS argumentsJson,
+            result_text AS resultText,
+            status,
+            error_message AS errorMessage,
+            duration_ms AS durationMs,
+            create_time AS createTime
+        FROM agent_tool_log
+        WHERE id = #{id}
+    </select>
+
 </mapper>

@@ -16,7 +16,7 @@ public interface RoleMenuMapper {
     void deleteByRoleId(Long roleId);
 
     //获取菜单的id
-    void doAssign(AssignMenuDto assignMenuDto, Date date);
+    void doAssign(AssignMenuDto assignMenuDto);
 
     //将该id的菜单设置为半开
     void updateSysRoleMenuIsHalf(Long id);
