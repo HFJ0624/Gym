@@ -6,6 +6,7 @@ import com.sau.gym.admin.agent.service.AgentToolLogManageService;
 import com.sau.gym.admin.mapper.AgentToolLogMapper;
 import com.sau.gym.model.dto.agent.AgentToolLogQueryDto;
 import com.sau.gym.model.entity.agent.AgentToolLog;
+import com.sau.gym.model.vo.agent.AgentToolLogStatsVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -67,5 +68,49 @@ public class AgentToolLogManageServiceImpl implements AgentToolLogManageService 
         }
 
         return log;
+    }
+
+
+    @Override
+    public AgentToolLogStatsVO stats(AgentToolLogQueryDto queryDto) {
+        queryDto = normalizeQuery(queryDto);
+
+        AgentToolLogStatsVO stats = agentToolLogMapper.selectStats(queryDto);
+
+        if (stats == null) {
+            stats = new AgentToolLogStatsVO();
+            stats.setTotalCount(0L);
+            stats.setSuccessCount(0L);
+            stats.setFailCount(0L);
+            stats.setSlowCount(0L);
+            stats.setTraceCount(0L);
+        }
+
+        return stats;
+    }
+
+    /***
+     *
+     * @param queryDto agent工具日志请求类
+     * @return 规范化查询参数
+     */
+    private AgentToolLogQueryDto normalizeQuery(AgentToolLogQueryDto queryDto) {
+        if (queryDto == null) {
+            queryDto = new AgentToolLogQueryDto();
+        }
+
+        if (queryDto.getPageNum() == null || queryDto.getPageNum() <= 0) {
+            queryDto.setPageNum(1);
+        }
+
+        if (queryDto.getPageSize() == null || queryDto.getPageSize() <= 0) {
+            queryDto.setPageSize(10);
+        }
+
+        if (queryDto.getSlowThresholdMs() == null || queryDto.getSlowThresholdMs() <= 0) {
+            queryDto.setSlowThresholdMs(3000L);
+        }
+
+        return queryDto;
     }
 }

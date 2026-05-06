@@ -2,6 +2,7 @@ package com.sau.gym.admin.mapper;
 
 import com.sau.gym.model.dto.agent.AgentToolLogQueryDto;
 import com.sau.gym.model.entity.agent.AgentToolLog;
+import com.sau.gym.model.vo.agent.AgentToolLogStatsVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,4 +29,9 @@ public interface AgentToolLogMapper {
      * @return 日志详情
      */
     AgentToolLog selectById(@Param("id") Long id);
+
+    /**
+     * 查询 Agent 工具调用统计。
+     */
+    AgentToolLogStatsVO selectStats(AgentToolLogQueryDto queryDto);
 }

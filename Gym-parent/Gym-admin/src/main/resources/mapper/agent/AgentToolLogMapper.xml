@@ -101,4 +101,59 @@
         WHERE id = #{id}
     </select>
 
+    <!-- Agent 工具调用统计 -->
+    <select id="selectStats" parameterType="com.sau.gym.model.dto.agent.AgentToolLogQueryDto"
+            resultType="com.sau.gym.model.vo.agent.AgentToolLogStatsVO">
+        SELECT
+        COUNT(*) AS totalCount,
+
+        SUM(
+        CASE
+        WHEN status = 'SUCCESS' THEN 1
+        ELSE 0
+        END
+        ) AS successCount,
+
+        SUM(
+        CASE
+        WHEN status = 'FAIL' THEN 1
+        ELSE 0
+        END
+        ) AS failCount,
+
+        SUM(
+        CASE
+        WHEN duration_ms &gt; #{slowThresholdMs} THEN 1
+        ELSE 0
+        END
+        ) AS slowCount,
+
+        COUNT(DISTINCT trace_id) AS traceCount,
+
+        ROUND(IFNULL(AVG(duration_ms), 0), 2) AS avgDurationMs
+
+        FROM agent_tool_log
+        WHERE 1 = 1
+
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+
+        <if test="traceId != null and traceId != ''">
+            AND trace_id = #{traceId}
+        </if>
+
+        <if test="toolName != null and toolName != ''">
+            AND tool_name LIKE CONCAT('%', #{toolName}, '%')
+        </if>
+
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+
+        <if test="userMessage != null and userMessage != ''">
+            AND user_message LIKE CONCAT('%', #{userMessage}, '%')
+        </if>
+    </select>
+
 </mapper>

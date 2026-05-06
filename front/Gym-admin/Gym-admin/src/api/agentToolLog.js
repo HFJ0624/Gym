@@ -20,3 +20,14 @@ export function getAgentToolLogDetail(id) {
         method: 'get'
     })
 }
+
+/**
+ * 查询 Agent 工具调用统计。
+ */
+export function getAgentToolLogStats(data) {
+    return request({
+        url: '/admin/ai/toolLog/stats',
+        method: 'post',
+        data
+    })
+}

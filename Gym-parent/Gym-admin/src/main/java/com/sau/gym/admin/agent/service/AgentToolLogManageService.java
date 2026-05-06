@@ -3,6 +3,7 @@ package com.sau.gym.admin.agent.service;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.model.dto.agent.AgentToolLogQueryDto;
 import com.sau.gym.model.entity.agent.AgentToolLog;
+import com.sau.gym.model.vo.agent.AgentToolLogStatsVO;
 
 public interface AgentToolLogManageService {
 
@@ -21,4 +22,11 @@ public interface AgentToolLogManageService {
      * @return 日志详情
      */
     AgentToolLog detail(Long id);
+
+    /***
+     *
+     * @param queryDto 请求类
+     * @return 查询工具调用统计
+     */
+    AgentToolLogStatsVO stats(AgentToolLogQueryDto queryDto);
 }

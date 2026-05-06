@@ -33,4 +33,7 @@ public class AgentToolLogQueryDto {
 
     @Schema(description = "用户原始输入关键字")
     private String userMessage;
+
+    @Schema(description = "慢调用阈值，单位毫秒")
+    private Long slowThresholdMs = 3000L;
 }
