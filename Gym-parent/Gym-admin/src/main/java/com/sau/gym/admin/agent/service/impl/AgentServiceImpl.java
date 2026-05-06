@@ -3,6 +3,8 @@ package com.sau.gym.admin.agent.service.impl;
 import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
 import com.sau.gym.admin.agent.context.AgentTraceContext;
 import com.sau.gym.admin.agent.context.AgentTraceInfo;
+import com.sau.gym.admin.agent.memory.AgentBusinessContext;
+import com.sau.gym.admin.agent.service.AgentContextEnhanceService;
 import com.sau.gym.admin.agent.service.AgentDirectRouteService;
 import com.sau.gym.admin.agent.service.AgentToolLogService;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
@@ -46,6 +48,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final AgentDirectRouteService agentDirectRouteService;
 
+    private final AgentContextEnhanceService contextEnhanceService;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -53,7 +57,8 @@ public class AgentServiceImpl implements AgentService {
                             GymShoppingTools gymShoppingTools,
                             ChatRecordMapper chatRecordMapper,
                             UserMapper userMapper,
-                            AgentDirectRouteService agentDirectRouteService
+                            AgentDirectRouteService agentDirectRouteService,
+                            AgentContextEnhanceService contextEnhanceService
                             ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
@@ -62,6 +67,7 @@ public class AgentServiceImpl implements AgentService {
         this.chatRecordMapper = chatRecordMapper;
         this.userMapper = userMapper;
         this.agentDirectRouteService = agentDirectRouteService;
+        this.contextEnhanceService = contextEnhanceService;
     }
 
     @Override
@@ -81,6 +87,9 @@ public class AgentServiceImpl implements AgentService {
 
         try {
 
+            //1.在处理本轮消息前，先读取并更新业务上下文。
+            AgentBusinessContext agentBusinessContext = contextEnhanceService.prepareBeforeAgent(userId, message, agentChatDto);
+
             //设置 Agent 调用链上下文,AOP 记录工具日志时，会从 ThreadLocal 里读取
             AgentTraceContext.set(new AgentTraceInfo(traceId, userId, message));
 
@@ -91,15 +100,18 @@ public class AgentServiceImpl implements AgentService {
                 return reply;
             }
 
+            Long effectiveVenueId = contextEnhanceService.getEffectiveVenueId(agentChatDto, agentBusinessContext);
+            Long effectiveCourtId = contextEnhanceService.getEffectiveCourtId(agentChatDto, agentBusinessContext);
+
             //尝试走直达路由,命中后不会请求大模型,优化模型速度压力
-            reply = agentDirectRouteService.tryHandle(userId, message, agentChatDto.getVenueId(), agentChatDto.getCourtId());
+            reply = agentDirectRouteService.tryHandle(userId, message, effectiveVenueId, effectiveCourtId);
             if (reply != null) {
                 saveChatRecord(userId, message, reply);
                 return reply;
             }
 
-            //2. 构造带页面上下文的Agent输入。
-            String agentInput = buildAgentInput(message, agentChatDto.getVenueId(), agentChatDto.getCourtId());
+            //2. 构造带业务上下文的 Agent 输入。上下文存在redis里面
+            String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext);
 
             // 2. 走 LangChain4j agent
             reply = gymAgentAssistant.chat(userId, agentInput);
@@ -203,21 +215,6 @@ public class AgentServiceImpl implements AgentService {
         return null;
     }
 
-    private boolean isCancel(String msg) {
-        return "取消".equals(msg)
-                || "算了".equals(msg)
-                || "不用了".equals(msg)
-                || "放弃".equals(msg);
-    }
-
-    private boolean isConfirmBooking(String msg) {
-        return "确认预约".equals(msg) || "确认".equals(msg);
-    }
-
-    private boolean isConfirmShopping(String msg) {
-        return "确认下单".equals(msg) || "确认".equals(msg);
-    }
-
     private void saveChatRecord(Long userId, String userMessage, String aiReply) {
         ChatRecord record = new ChatRecord();
         record.setUserId(userId);
@@ -237,32 +234,67 @@ public class AgentServiceImpl implements AgentService {
 
     /**
      * 构造传给 Agent 的输入内容。
-     * @param userMessage 用户原始消息
-     * @param venueId 当前页面场馆ID，可为空
-     * @param courtId 当前页面场地ID，可为空
-     * @return 增强后的 Agent 输入
+     *
+     * 这里要明确区分三类信息：
+     * 1. 用户原始问题
+     * 2. 当前页面上下文
+     * 3. Redis 中保存的业务上下文
+     *
+     * 这些内容最终都会传给大模型。
      */
-    private String buildAgentInput(String userMessage, Long venueId, Long courtId) {
+    private String buildAgentInput(String userMessage,
+                                   AgentChatDto agentChatDto,
+                                   AgentBusinessContext businessContext) {
         StringBuilder builder = new StringBuilder();
 
-        builder.append("用户问题：")
+        //Redis 业务上下文。
+        String contextPrompt = contextEnhanceService.buildContextPrompt(businessContext);
+        if (contextPrompt != null && !contextPrompt.trim().isEmpty()) {
+            builder.append(contextPrompt).append("\n");
+        }
+
+        //当前页面上下文。这个上下文来自前端本次请求。例如用户正在某个场馆详情页聊天，前端就可以传 venueId。
+        builder.append("【当前页面上下文】\n");
+
+        if (agentChatDto != null && agentChatDto.getVenueId() != null) {
+            builder.append("当前页面场馆ID：")
+                    .append(agentChatDto.getVenueId())
+                    .append("\n");
+        }
+
+        if (agentChatDto != null && agentChatDto.getCourtId() != null) {
+            builder.append("当前页面场地ID：")
+                    .append(agentChatDto.getCourtId())
+                    .append("\n");
+        }
+
+        if ((agentChatDto == null || agentChatDto.getVenueId() == null)
+                && businessContext != null
+                && businessContext.getLastVenueId() != null) {
+            builder.append("本次请求未传当前场馆ID，可参考最近场馆ID：")
+                    .append(businessContext.getLastVenueId())
+                    .append("\n");
+        }
+
+        if ((agentChatDto == null || agentChatDto.getCourtId() == null)
+                && businessContext != null
+                && businessContext.getLastCourtId() != null) {
+            builder.append("本次请求未传当前场地ID，可参考最近场地ID：")
+                    .append(businessContext.getLastCourtId())
+                    .append("\n");
+        }
+
+        //用户原始问题。
+        builder.append("\n【用户问题】\n")
                 .append(userMessage)
                 .append("\n");
 
-        if (venueId != null) {
-            builder.append("当前页面场馆ID：")
-                    .append(venueId)
-                    .append("\n");
-        }
-
-        if (courtId != null) {
-            builder.append("当前页面场地ID：")
-                    .append(courtId)
-                    .append("\n");
-        }
-
-        builder.append("如果用户问题中的“这个场馆”“这个场地”“这里”指代不明确，")
-                .append("请优先使用上述页面上下文。");
+        //强约束规则。这里要再次提醒模型：上下文不代表可以编造结果。预约动作必须走工具和后端 Service。
+        builder.append("\n【处理要求】\n")
+                .append("1. 如果用户说“这个场馆”“这个场地”“这里”“刚才那个”，优先结合业务上下文和页面上下文。\n")
+                .append("2. 如果上下文中已有场馆ID、场地ID、日期、开始时间、结束时间，可以用于生成预约草稿。\n")
+                .append("3. 如果缺少必要信息，不要编造，应继续追问用户。\n")
+                .append("4. 涉及预约、下单等真实业务动作，必须调用工具，不允许直接声称操作成功。\n");
 
         return builder.toString();
     }
