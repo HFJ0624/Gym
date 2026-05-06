@@ -1,4 +1,4 @@
-package com.sau.gym.admin.controller.ai;
+package com.sau.gym.admin.controller.rag;
 
 
 import com.sau.gym.admin.rag.service.RagQaService;

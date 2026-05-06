@@ -361,4 +361,25 @@
           AND source_type = #{sourceType}
     </update>
 
+    <update id="updateIndexSuccess">
+        UPDATE knowledge_document
+        SET
+            indexed_status = 1,
+            indexed_time = NOW(),
+            index_error = NULL,
+            indexed_chunk_count = #{chunkCount},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateIndexFail">
+        UPDATE knowledge_document
+        SET
+            indexed_status = 2,
+            indexed_time = NOW(),
+            index_error = #{errorMessage},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
 </mapper>

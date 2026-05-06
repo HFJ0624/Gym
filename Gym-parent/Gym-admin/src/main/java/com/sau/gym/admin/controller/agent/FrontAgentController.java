@@ -1,4 +1,4 @@
-package com.sau.gym.admin.controller.ai;
+package com.sau.gym.admin.controller.agent;
 
 import com.sau.gym.admin.agent.service.AgentService;
 import com.sau.gym.model.dto.agent.AgentChatDto;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping(value = "/front/agent")
-public class AgentController {
+public class FrontAgentController {
 
     @Autowired
     private AgentService agentService;

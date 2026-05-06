@@ -328,6 +328,15 @@
             </el-button>
 
             <el-button
+              type="primary"
+              link
+              :loading="row.reindexLoading"
+              @click="handleReindex(row)"
+            >
+              重新索引
+            </el-button>
+
+            <el-button
               type="danger"
               link
               @click="handleDelete(row)"
@@ -762,7 +771,8 @@ import {
   rebuildRagKnowledge,
   testRagAsk,
   syncVenueKnowledge,
-  syncCourtKnowledge
+  syncCourtKnowledge,
+  reindexKnowledgeDocument,
 } from '@/api/rag'
 
 /**
@@ -1247,15 +1257,6 @@ function cleanFormParams(params) {
 
 /**
  * 兼容不同 request 封装。
- *
- * 有的项目返回：
- * res.data
- *
- * 有的项目返回：
- * res.data.data
- *
- * 有的项目拦截器直接返回：
- * data
  */
 function unwrapData(res) {
   if (!res) {
@@ -1266,6 +1267,13 @@ function unwrapData(res) {
     return res.data.data
   }
 
+  if (res.code !== undefined && res.data !== undefined) {
+    return res.data
+  }
+
+  /**
+   * 普通对象。
+   */
   if (res.data !== undefined) {
     return res.data
   }
@@ -1404,6 +1412,65 @@ const handleSyncCourt = async () => {
     syncCourtLoading.value = false
   }
 }
+
+/**
+ * 单条知识重新索引。
+ */
+const handleReindex = async row => {
+  if (!row || !row.id) {
+    ElMessage.warning('知识ID不存在，无法重新索引')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确认重新索引知识【${row.title || row.id}】吗？这会删除该知识旧向量并重新写入。`,
+      '重新索引确认',
+      {
+        type: 'warning',
+        confirmButtonText: '重新索引',
+        cancelButtonText: '取消'
+      }
+    )
+  } catch (e) {
+    return
+  }
+
+  row.reindexLoading = true
+
+  try {
+    const res = await reindexKnowledgeDocument(row.id)
+    const data = unwrapData(res)
+
+    if (data?.success) {
+      ElMessage.success(`索引成功，写入 ${data.indexedChunkCount || 0} 个切片`)
+      try {
+        await loadTableData()
+      } catch (refreshError) {
+        console.error('刷新知识列表失败:', refreshError)
+        ElMessage.warning('索引已成功，但刷新列表失败，请手动刷新页面')
+      }
+      
+      return
+    }
+
+    /**
+     * 后端正常返回，但 success = false。
+     */
+    ElMessage.error(data?.message || '索引失败')
+  } catch (e) {
+    /**
+     * 只有 reindexKnowledgeDocument 接口本身异常，
+     * 才提示“重新索引失败”。
+     */
+    console.error('重新索引失败:', e)
+    ElMessage.error('重新索引失败')
+  } finally {
+    row.reindexLoading = false
+  }
+}
+
+
 </script>
 
 <style scoped>

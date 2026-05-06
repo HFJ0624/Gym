@@ -93,4 +93,14 @@ public interface KnowledgeDocumentMapper {
      * 用于同步场地知识时覆盖旧内容。
      */
     int updateByCourtIdAndSourceType(KnowledgeDocument document);
+
+    /**
+     * 更新索引成功状态。
+     */
+    int updateIndexSuccess(@Param("id") Long id, @Param("chunkCount") Integer chunkCount);
+
+    /**
+     * 更新索引失败状态。
+     */
+    int updateIndexFail(@Param("id") Long id, @Param("errorMessage") String errorMessage);
 }

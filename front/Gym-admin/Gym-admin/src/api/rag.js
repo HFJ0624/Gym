@@ -103,3 +103,13 @@ export function syncCourtKnowledge() {
         method: 'post'
     })
 }
+
+/**
+ * 单条知识重新索引。
+ */
+export function reindexKnowledgeDocument(id) {
+    return request({
+        url: `/admin/ai/rag/document/${id}/reindex`,
+        method: 'post'
+    })
+}

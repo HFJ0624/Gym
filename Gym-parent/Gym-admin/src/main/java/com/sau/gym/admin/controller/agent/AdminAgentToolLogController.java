@@ -1,4 +1,4 @@
-package com.sau.gym.admin.controller.ai;
+package com.sau.gym.admin.controller.agent;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.agent.service.AgentToolLogManageService;
@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/admin/ai/toolLog")
-public class AgentToolLogController {
+public class AdminAgentToolLogController {
 
     private final AgentToolLogManageService agentToolLogManageService;
 
-    public AgentToolLogController(AgentToolLogManageService agentToolLogManageService) {
+    public AdminAgentToolLogController(AgentToolLogManageService agentToolLogManageService) {
         this.agentToolLogManageService = agentToolLogManageService;
     }
 

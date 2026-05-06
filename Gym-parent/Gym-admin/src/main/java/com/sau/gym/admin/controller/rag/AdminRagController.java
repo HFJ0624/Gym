@@ -1,4 +1,4 @@
-package com.sau.gym.admin.controller.ai;
+package com.sau.gym.admin.controller.rag;
 
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.rag.service.RagBusinessSyncService;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/admin/ai/rag")
-public class RagController {
+public class AdminRagController {
 
     @Autowired
     private RagKnowledgeIngestService ragKnowledgeIngestService;
