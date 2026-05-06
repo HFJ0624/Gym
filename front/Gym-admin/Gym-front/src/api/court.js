@@ -25,3 +25,14 @@ export function BookCourt(bookingData) {
         data: bookingData
     })
 }
+
+/**
+ * 查询某个场地某天的可预约时段。
+ */
+export function getAvailableSlots(params) {
+    return request({
+        url: '/front/courtBook/availableSlots',
+        method: 'get',
+        params
+    })
+}

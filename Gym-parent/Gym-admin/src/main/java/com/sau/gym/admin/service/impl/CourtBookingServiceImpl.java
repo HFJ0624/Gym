@@ -168,7 +168,7 @@ public class CourtBookingServiceImpl implements CourtBookingService {
             eventPublisher.publishEvent(new NotificationEvent(
                     bookingDto.getUserId(),
                     "预约订单已创建",
-                    "您的预约订单已创建，已完成支付。订单号：" + order_no,
+                    "您的" + court.getName()  +"预约订单已创建，已完成支付。订单号：" + order_no,
                     NotificationTypeEnum.BOOKING.getCode(),
                     courtBooking.getId(),
                     order_no,
