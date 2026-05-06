@@ -3,6 +3,7 @@ package com.sau.gym.admin.agent.service.impl;
 import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
 import com.sau.gym.admin.agent.context.AgentTraceContext;
 import com.sau.gym.admin.agent.context.AgentTraceInfo;
+import com.sau.gym.admin.agent.service.AgentDirectRouteService;
 import com.sau.gym.admin.agent.service.AgentToolLogService;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
@@ -18,8 +19,12 @@ import com.sau.gym.model.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 作者:hfj
@@ -39,19 +44,24 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private AgentToolLogService agentToolLogService;
 
+    private final AgentDirectRouteService agentDirectRouteService;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
                             GymBookingTools gymBookingTools,
                             GymShoppingTools gymShoppingTools,
                             ChatRecordMapper chatRecordMapper,
-                            UserMapper userMapper) {
+                            UserMapper userMapper,
+                            AgentDirectRouteService agentDirectRouteService
+                            ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
         this.gymBookingTools = gymBookingTools;
         this.gymShoppingTools = gymShoppingTools;
         this.chatRecordMapper = chatRecordMapper;
         this.userMapper = userMapper;
+        this.agentDirectRouteService = agentDirectRouteService;
     }
 
     @Override
@@ -81,6 +91,13 @@ public class AgentServiceImpl implements AgentService {
                 return reply;
             }
 
+            //尝试走直达路由,命中后不会请求大模型,优化模型速度压力
+            reply = agentDirectRouteService.tryHandle(userId, message, agentChatDto.getVenueId(), agentChatDto.getCourtId());
+            if (reply != null) {
+                saveChatRecord(userId, message, reply);
+                return reply;
+            }
+
             //2. 构造带页面上下文的Agent输入。
             String agentInput = buildAgentInput(message, agentChatDto.getVenueId(), agentChatDto.getCourtId());
 
@@ -92,8 +109,15 @@ public class AgentServiceImpl implements AgentService {
             return reply;
         } catch (Exception e) {
             e.printStackTrace();
-            reply = "AI服务异常，请稍后再试。";
+
+            if (e.getMessage() != null && e.getMessage().contains("timed out")) {
+                reply = "AI模型响应超时，请稍后重试，或把问题描述得更简短一些。";
+            } else {
+                reply = "AI服务异常，请稍后再试。";
+            }
+
             saveChatRecord(userId, message, reply);
+
             return reply;
         }finally {
             //必须清理 ThreadLocal,Tomcat 线程会复用，如果不 clear,下一次请求可能读到上一次用户的 trace 信息。
