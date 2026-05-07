@@ -138,6 +138,13 @@
             <version>3.5.1</version>
         </dependency>
 
+        <!-- HanLP 中文自然语言处理组件 -->
+        <dependency>
+            <groupId>com.hankcs</groupId>
+            <artifactId>hanlp</artifactId>
+            <version>portable-1.8.6</version>
+        </dependency>
+
     </dependencies>
 
 </project>

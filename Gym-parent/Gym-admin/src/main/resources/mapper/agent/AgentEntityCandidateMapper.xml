@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sau.gym.admin.mapper.AgentEntityCandidateMapper">
+
+    <resultMap id="AgentEntityCandidateMap" type="com.sau.gym.admin.agent.model.AgentEntityCandidate">
+        <result property="type" column="type"/>
+        <result property="venueId" column="venue_id"/>
+        <result property="venueName" column="venue_name"/>
+        <result property="courtId" column="court_id"/>
+        <result property="courtName" column="court_name"/>
+        <result property="courtType" column="court_type"/>
+        <result property="matchName" column="match_name"/>
+        <result property="normalizedMatchName" column="normalized_match_name"/>
+        <result property="alias" column="alias"/>
+    </resultMap>
+
+    <!--  场馆真实名称候选  -->
+    <select id="selectVenueNameCandidates" resultMap="AgentEntityCandidateMap">
+        SELECT
+            'VENUE' AS type,
+            v.id AS venue_id,
+            v.venue_name AS venue_name,
+
+            NULL AS court_id,
+            NULL AS court_name,
+            NULL AS court_type,
+
+            v.venue_name AS match_name,
+            NULL AS normalized_match_name,
+
+            0 AS alias
+        FROM venue v
+        WHERE v.is_deleted = 0
+          AND v.status = 1
+    </select>
+
+
+    <!--  场馆别名候选  -->
+    <select id="selectVenueAliasCandidates" resultMap="AgentEntityCandidateMap">
+        SELECT
+            'VENUE' AS type,
+            v.id AS venue_id,
+            v.venue_name AS venue_name,
+
+            NULL AS court_id,
+            NULL AS court_name,
+            NULL AS court_type,
+
+            va.alias_name AS match_name,
+            va.normalized_alias AS normalized_match_name,
+
+            1 AS alias
+        FROM venue_alias va
+                 INNER JOIN venue v ON va.venue_id = v.id
+        WHERE va.enabled = 1
+          AND v.is_deleted = 0
+          AND v.status = 1
+    </select>
+
+    <!--  场地真实名称候选  -->
+    <select id="selectCourtNameCandidates" resultMap="AgentEntityCandidateMap">
+        SELECT
+            'COURT' AS type,
+            v.id AS venue_id,
+            v.venue_name AS venue_name,
+
+            c.id AS court_id,
+            c.name AS court_name,
+            c.type AS court_type,
+
+            c.name AS match_name,
+            NULL AS normalized_match_name,
+
+            0 AS alias
+        FROM court c
+                 INNER JOIN venue v ON c.venue_id = v.id
+        WHERE c.is_deleted = 0
+          AND c.status = 1
+          AND v.is_deleted = 0
+          AND v.status = 1
+    </select>
+
+    <!--  场地别名候选  -->
+    <select id="selectCourtAliasCandidates" resultMap="AgentEntityCandidateMap">
+        SELECT
+            'COURT' AS type,
+            v.id AS venue_id,
+            v.venue_name AS venue_name,
+
+            c.id AS court_id,
+            c.name AS court_name,
+            c.type AS court_type,
+
+            ca.alias_name AS match_name,
+            ca.normalized_alias AS normalized_match_name,
+
+            1 AS alias
+        FROM court_alias ca
+                 INNER JOIN court c ON ca.court_id = c.id
+                 INNER JOIN venue v ON c.venue_id = v.id
+        WHERE ca.enabled = 1
+          AND c.is_deleted = 0
+          AND c.status = 1
+          AND v.is_deleted = 0
+          AND v.status = 1
+    </select>
+
+</mapper>

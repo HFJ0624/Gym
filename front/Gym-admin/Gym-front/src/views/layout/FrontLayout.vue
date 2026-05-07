@@ -2,7 +2,7 @@
   <div class="layout">
     <header class="header">
       <div class="inner">
-        <div class="logo" @click="go('/index')">体育场馆预约</div>
+        <div class="logo" @click="go('/index')">智能体育场馆预约</div>
         <nav class="nav">
           <router-link class="item" to="/index" :class="{ active: isActive('/index') }">首页</router-link>
           <router-link class="item" to="/venues" :class="{ active: isActive('/venues') }">场馆</router-link>
@@ -44,7 +44,16 @@
       <router-view />
     </main>
 
-    <footer class="footer">© 2026 体育场馆预约系统</footer>
+    <footer class="footer">
+      <div class="copyright">© 2026 智能体育场馆预约系统 版权所有</div>
+      <div class="info-row">
+        <span>客服热线:400-123-4567</span>
+        <span>联系邮箱:342586916@qq.com</span>
+        <span>工作时间:周一至周五 09:00-18:00</span> 
+        <span>场馆地址:泉州市惠安县体育中心综合楼</span>
+        <span>ICP备案:粤ICP备12345678号</span>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -53,15 +62,12 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/stores/auth'
 import { useCart } from '@/stores/cart'
-import { ShoppingCart, Bell } from '@element-plus/icons-vue'
 import { getUnreadNotificationCount } from '@/api/notification'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuth()
 const cartStore = useCart()
-
-// 先用死数据（你后续可在登录后调用 /front/me 并 auth.setUser）
 const username = computed(() => auth.user?.username || '用户')
 const avatar = computed(() => auth.user?.avatar)
 const cartCount = computed(() => cartStore.totalQuantity)
@@ -204,6 +210,20 @@ onMounted(() => {
   text-align: center;
   padding: 24px 0;
   font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.copyright {
+  margin-bottom: 4px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 </style>
 

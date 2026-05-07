@@ -1,9 +1,11 @@
 package com.sau.gym.admin.agent.service.impl;
 
 import com.sau.gym.admin.agent.memory.AgentBusinessContext;
+import com.sau.gym.admin.agent.model.AgentEntityResolveResult;
 import com.sau.gym.admin.agent.model.BookingTimeInfo;
 import com.sau.gym.admin.agent.parser.BookingTimeParser;
 import com.sau.gym.admin.agent.service.AgentContextEnhanceService;
+import com.sau.gym.admin.agent.service.AgentEntityResolveService;
 import com.sau.gym.admin.agent.store.AgentBusinessContextStore;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
@@ -25,12 +27,17 @@ public class AgentContextEnhanceServiceImpl implements AgentContextEnhanceServic
     private final BookingTimeParser bookingTimeParser;
     private final AgentDraftStore agentDraftStore;
 
+    private final AgentEntityResolveService agentEntityResolveService;
+
     public AgentContextEnhanceServiceImpl(AgentBusinessContextStore contextStore,
                                           BookingTimeParser bookingTimeParser,
-                                          AgentDraftStore agentDraftStore) {
+                                          AgentDraftStore agentDraftStore,
+                                          AgentEntityResolveService agentEntityResolveService
+                                          ) {
         this.contextStore = contextStore;
         this.bookingTimeParser = bookingTimeParser;
         this.agentDraftStore = agentDraftStore;
+        this.agentEntityResolveService = agentEntityResolveService;
     }
 
     /**
@@ -62,15 +69,22 @@ public class AgentContextEnhanceServiceImpl implements AgentContextEnhanceServic
         context.setLastUserMessage(message);
         context.setUpdatedAt(LocalDateTime.now());
 
-        /*
-         * 1. 合并前端页面上下文
-         *
-         * 如果用户当前在场馆详情页或者场地详情页，
-         * 前端可以把 venueId / courtId 一起传给后端。
-         *
-         * 本次请求传来的页面上下文优先级较高，
-         * 所以直接覆盖 Redis 中的旧值。
-         */
+        //场馆/场地别名解析。
+        AgentEntityResolveResult resolveResult = agentEntityResolveService.resolve(message);
+        if (resolveResult != null && resolveResult.isResolved() && !resolveResult.isAmbiguous()) {
+            if (resolveResult.getVenueId() != null) {
+                context.setLastVenueId(resolveResult.getVenueId());
+                context.setLastVenueName(resolveResult.getVenueName());
+            }
+
+            if (resolveResult.getCourtId() != null) {
+                context.setLastCourtId(resolveResult.getCourtId());
+                context.setLastCourtName(resolveResult.getCourtName());
+                context.setLastCourtType(resolveResult.getCourtType());
+            }
+        }
+
+        //合并前端页面上下文
         if (dto != null) {
             if (dto.getVenueId() != null) {
                 context.setLastVenueId(dto.getVenueId());
@@ -81,17 +95,7 @@ public class AgentContextEnhanceServiceImpl implements AgentContextEnhanceServic
             }
         }
 
-        /*
-         * 2. 从用户消息中解析预约日期和时间段
-         *
-         * 例如：
-         * - 明天晚上7点到9点
-         * - 后天下午3点到5点
-         * - 今天19:00到21:00
-         *
-         * 这里依赖你已有的 BookingTimeParser。
-         * 如果解析不到，timeInfo 可以为 null，不影响主流程。
-         */
+        //从用户消息中解析预约日期和时间段
         BookingTimeInfo timeInfo = bookingTimeParser.parse(message);
 
         if (timeInfo != null) {
@@ -108,12 +112,8 @@ public class AgentContextEnhanceServiceImpl implements AgentContextEnhanceServic
             }
         }
 
-        /*
-         * 3. 粗粒度记录最近业务意图
-         *
-         * 这里不是最终的意图识别，只是为了辅助上下文。
-         * 真正执行什么业务，仍然以 Agent 工具调用和后端 Service 为准。
-         */
+        //粗粒度记录最近业务意图
+        //这里不是最终的意图识别，只是为了辅助上下文。
         context.setLastIntent(guessIntent(message));
 
         // 保存上下文到 Redis
@@ -170,13 +170,7 @@ public class AgentContextEnhanceServiceImpl implements AgentContextEnhanceServic
             return;
         }
 
-        /*
-         * 注意：
-         * 这里的 key 必须和 GymBookingTools 里保存草稿时的 key 保持一致。
-         *
-         * 如果你的草稿里叫 bookingDate，而不是 date，
-         * 那这里就要改成 data.get("bookingDate")。
-         */
+        //解析草稿的字段值
         Long venueId = toLong(data.get("venueId"));
         String venueName = toStringValue(data.get("venueName"));
 
@@ -188,10 +182,7 @@ public class AgentContextEnhanceServiceImpl implements AgentContextEnhanceServic
         String startTime = toStringValue(data.get("startTime"));
         String endTime = toStringValue(data.get("endTime"));
 
-        /*
-         * 只有草稿中存在对应值时才覆盖上下文。
-         * 避免草稿缺字段时，把原来 Redis 中有效的上下文覆盖成 null。
-         */
+        //只有草稿中存在对应值时才覆盖上下文。避免草稿缺字段时，把原来 Redis 中有效的上下文覆盖成 null。
         if (venueId != null) {
             context.setLastVenueId(venueId);
         }
@@ -291,6 +282,12 @@ public class AgentContextEnhanceServiceImpl implements AgentContextEnhanceServic
 
         builder.append("如果用户说“这个场馆”“这个场地”“这里”“刚才那个”，")
                 .append("优先结合上述业务上下文理解。\n");
+
+        builder.append("如果用户输入中出现了场馆简称、场地简称或口语化名称，")
+                .append("系统会尝试解析为标准场馆ID和场地ID。\n");
+
+        builder.append("如果存在多个可能场地，不要直接替用户选择，")
+                .append("应追问用户具体选择哪个场地。\n");
 
         builder.append("如果上下文仍然不足以完成预约，不要编造信息，应继续追问用户。\n");
 
