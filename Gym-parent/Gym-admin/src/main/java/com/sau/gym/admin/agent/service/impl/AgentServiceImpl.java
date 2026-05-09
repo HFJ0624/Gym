@@ -4,9 +4,7 @@ import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
 import com.sau.gym.admin.agent.context.AgentTraceContext;
 import com.sau.gym.admin.agent.context.AgentTraceInfo;
 import com.sau.gym.admin.agent.memory.AgentBusinessContext;
-import com.sau.gym.admin.agent.service.AgentContextEnhanceService;
-import com.sau.gym.admin.agent.service.AgentDirectRouteService;
-import com.sau.gym.admin.agent.service.AgentToolLogService;
+import com.sau.gym.admin.agent.service.*;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
 import com.sau.gym.admin.agent.store.PendingDraftType;
@@ -14,7 +12,6 @@ import com.sau.gym.admin.agent.tool.GymBookingTools;
 import com.sau.gym.admin.agent.tool.GymShoppingTools;
 import com.sau.gym.admin.mapper.ChatRecordMapper;
 import com.sau.gym.admin.mapper.UserMapper;
-import com.sau.gym.admin.agent.service.AgentService;
 import com.sau.gym.model.dto.agent.AgentChatDto;
 import com.sau.gym.model.entity.chat.ChatRecord;
 import com.sau.gym.model.entity.user.User;
@@ -50,6 +47,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final AgentContextEnhanceService contextEnhanceService;
 
+    private final AgentCancelBookingService agentCancelBookingService;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -58,7 +57,8 @@ public class AgentServiceImpl implements AgentService {
                             ChatRecordMapper chatRecordMapper,
                             UserMapper userMapper,
                             AgentDirectRouteService agentDirectRouteService,
-                            AgentContextEnhanceService contextEnhanceService
+                            AgentContextEnhanceService contextEnhanceService,
+                            AgentCancelBookingService agentCancelBookingService
                             ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
@@ -68,6 +68,7 @@ public class AgentServiceImpl implements AgentService {
         this.userMapper = userMapper;
         this.agentDirectRouteService = agentDirectRouteService;
         this.contextEnhanceService = contextEnhanceService;
+        this.agentCancelBookingService = agentCancelBookingService;
     }
 
     @Override
@@ -177,6 +178,35 @@ public class AgentServiceImpl implements AgentService {
             agentToolLogService.record(
                     "confirmPendingShopping",
                     "用户确认商品下单草稿，执行真实商品下单业务",
+                    this.getClass().getName(),
+                    "handlePendingAction",
+                    "{\"message\":\"" + text + "\"}",
+                    reply,
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - start
+            );
+
+            return reply;
+        }
+
+        //确认取消预约
+        if (text.startsWith("确认取消预约") || text.startsWith("确认取消")) {
+            long start = System.currentTimeMillis();
+
+            String token;
+
+            if (text.startsWith("确认取消预约")) {
+                token = extractConfirmToken(text, "确认取消预约");
+            } else {
+                token = extractConfirmToken(text, "确认取消");
+            }
+
+            String reply = agentCancelBookingService.confirmCancelBooking(userId, token);
+
+            agentToolLogService.record(
+                    "confirmCancelBooking",
+                    "用户确认取消预约草稿，执行真实取消预约业务",
                     this.getClass().getName(),
                     "handlePendingAction",
                     "{\"message\":\"" + text + "\"}",

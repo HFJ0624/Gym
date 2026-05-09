@@ -178,4 +178,76 @@
         ORDER BY date_point ASC
     </select>
 
+    <!--  Agent 查询当前用户的预约订单。  -->
+    <select id="selectAgentUserBookings" resultType="com.sau.gym.admin.agent.model.AgentCancelableBookingVO">
+        SELECT
+            cb.id AS bookingId,
+            cb.order_no AS orderNo,
+            cb.user_id AS userId,
+
+            v.venue_name AS venueName,
+
+            c.id AS courtId,
+            c.name AS courtName,
+            c.type AS courtType,
+
+            cb.booking_date AS bookingDate,
+            cb.start_time AS startTime,
+            cb.end_time AS endTime,
+            cb.total_price AS totalPrice,
+            cb.status AS status,
+            cb.remark AS remark,
+            cb.create_time AS createTime
+        FROM court_booking cb
+                 LEFT JOIN court c ON cb.court_id = c.id
+                 LEFT JOIN venue v ON c.venue_id = v.id
+        WHERE cb.user_id = #{userId}
+          AND cb.is_deleted = 0
+        ORDER BY cb.booking_date DESC, cb.start_time DESC, cb.id DESC
+    </select>
+
+
+    <!--  Agent 查询当前用户某条预约详情。  -->
+    <select id="selectAgentBookingDetail"
+            resultType="com.sau.gym.admin.agent.model.AgentCancelableBookingVO">
+        SELECT
+            cb.id AS bookingId,
+            cb.order_no AS orderNo,
+            cb.user_id AS userId,
+
+            v.venue_name AS venueName,
+
+            c.id AS courtId,
+            c.name AS courtName,
+            c.type AS courtType,
+
+            cb.booking_date AS bookingDate,
+            cb.start_time AS startTime,
+            cb.end_time AS endTime,
+            cb.total_price AS totalPrice,
+            cb.status AS status,
+            cb.remark AS remark,
+            cb.create_time AS createTime
+        FROM court_booking cb
+                 LEFT JOIN court c ON cb.court_id = c.id
+                 LEFT JOIN venue v ON c.venue_id = v.id
+        WHERE cb.id = #{bookingId}
+          AND cb.user_id = #{userId}
+          AND cb.is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <!--  Agent 取消预约订单。  -->
+    <update id="updateAgentCancelBooking">
+        UPDATE court_booking
+        SET
+            status = 2,
+            remark = CONCAT(IFNULL(remark, ''), '；Agent取消：', #{cancelRemark}),
+            update_time = NOW()
+        WHERE id = #{bookingId}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+          AND status IN (0, 1)
+    </update>
+
 </mapper>

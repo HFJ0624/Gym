@@ -58,10 +58,10 @@ public class SimpleTextChunker {
                 break;
             }
 
-            // 下一段向前重叠 overlap 字符，避免上下文断裂
+            //下一段向前重叠overlap字符,避免上下文断裂
             start = end - overlap;
 
-            // 防止 overlap 设置异常导致死循环
+            // 防止overlap设置异常导致死循环
             if (start < 0) {
                 start = end;
             }

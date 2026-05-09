@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sau.gym.admin.mapper.BookingRefundRequestMapper">
+
+    <!--
+       查询某个预约是否已经有退款申请。
+       用于防止重复生成退款申请。
+   -->
+    <select id="countByBookingId" resultType="int">
+        SELECT COUNT(1)
+        FROM booking_refund_request
+        WHERE booking_id = #{bookingId}
+          AND is_deleted = 0
+    </select>
+
+
+    <!--  插入退款申请  -->
+    <insert id="insertRefundRequest"
+            parameterType="com.sau.gym.model.entity.venue.BookingRefundRequest"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO booking_refund_request (
+            booking_id,
+            order_no,
+            user_id,
+            refund_amount,
+            reason,
+            status,
+            create_time,
+            update_time,
+            is_deleted
+        )
+        VALUES (
+                   #{bookingId},
+                   #{orderNo},
+                   #{userId},
+                   #{refundAmount},
+                   #{reason},
+                   #{status},
+                   NOW(),
+                   NOW(),
+                   0
+               )
+    </insert>
+
+</mapper>

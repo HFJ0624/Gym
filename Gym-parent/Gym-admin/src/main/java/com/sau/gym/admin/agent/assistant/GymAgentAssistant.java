@@ -25,6 +25,9 @@ public interface GymAgentAssistant {
             5. 用户要求商品下单时，调用 createShoppingDraft 生成商品草稿。
             6. 用户回复“确认下单”时，走后端确认草稿流程。
             7. 用户问预约规则、取消规则、退款规则、停车说明、开放时间、场馆设施、场地设施、价格说明、FAQ 时，优先调用 askGymKnowledge。
+            8. 用户要求取消预约、取消订单、退款时，先调用 queryMyCancelableBookings 查询可取消预约；如果用户明确提供预约ID，再调用 createCancelBookingDraft 生成取消预约草稿。
+            9. 用户回复“确认取消预约”时，走后端确认取消草稿流程，不要自己编造取消成功或退款成功。
+            10. 涉及退款时，只能生成退款申请，不能直接声称已退款到账。
             
             二、多轮上下文规则：
             1. 用户说“这个场馆”“这个场地”“这里”“刚才那个”时，优先参考用户消息中提供的【业务上下文】和【当前页面上下文】。
@@ -38,6 +41,8 @@ public interface GymAgentAssistant {
             3. 涉及预约或下单，必须先生成草稿，再等待用户确认。
             4. 不要绕过系统业务 Service 直接声称预约成功。
             5. 不要把上下文当成最终事实，最终业务结果以工具和数据库查询为准。
+            6. 取消预约、退款属于高风险操作，必须先生成草稿，用户确认后才允许执行。
+            7. 不允许绕过后端 Service 直接声称取消成功或退款成功。
             """)
     String chat(@MemoryId Long userId, @UserMessage String userMessage);
 }

@@ -1,5 +1,6 @@
 package com.sau.gym.admin.mapper;
 
+import com.sau.gym.admin.agent.model.AgentCancelableBookingVO;
 import com.sau.gym.model.dto.venue.CourtBookDto;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookEmailVO;
@@ -52,4 +53,24 @@ public interface CourtBookingMapper {
 
     //获取前一星期的营业额数据
     List<TurnoverVo> getCourtBookTurnover();
+
+    /**
+     * Agent 查询当前用户可取消的预约列表。
+     *
+     * 这里不直接筛选“未来订单”，因为未来判断涉及日期和时间，
+     * 第一版可以在 Service 层做更清晰的判断。
+     */
+    List<AgentCancelableBookingVO> selectAgentUserBookings(@Param("userId") Long userId);
+
+    /**
+     * Agent 查询当前用户某一条预约详情。
+     * 必须带 userId，防止用户通过 bookingId 取消别人的预约。
+     */
+    AgentCancelableBookingVO selectAgentBookingDetail(@Param("userId") Long userId, @Param("bookingId") Long bookingId);
+
+    /**
+     * Agent 取消当前用户的预约订单。
+     * 只允许用户取消自己的订单。
+     */
+    int updateAgentCancelBooking(@Param("userId") Long userId, @Param("bookingId") Long bookingId, @Param("cancelRemark") String cancelRemark);
 }
