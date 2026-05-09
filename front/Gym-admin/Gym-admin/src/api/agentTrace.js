@@ -44,3 +44,13 @@ export function getAgentTraceSteps(traceId) {
         method: 'get'
     })
 }
+
+/**
+ * 查询 Agent Trace 统计数据。
+ */
+export function getAgentTraceStats() {
+    return request({
+        url: '/admin/agent/trace/stats',
+        method: 'get'
+    })
+}

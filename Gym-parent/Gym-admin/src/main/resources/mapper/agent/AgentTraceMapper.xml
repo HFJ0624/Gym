@@ -190,4 +190,30 @@
         AND step_type = 'TOOL_CALL'
     </select>
 
+    <!-- 查询 Trace 统计数据 -->
+    <select id="selectTraceStats"
+            resultType="com.sau.gym.model.vo.agent.AgentTraceStatsVO">
+        SELECT
+            COUNT(1) AS totalCount,
+
+            SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) AS successCount,
+
+            SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) AS failedCount,
+
+            SUM(CASE WHEN status = 'RUNNING' THEN 1 ELSE 0 END) AS runningCount,
+
+            CASE
+                WHEN COUNT(1) = 0 THEN 0
+                ELSE ROUND(SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) * 100.0 / COUNT(1), 2)
+                END AS successRate,
+
+            ROUND(IFNULL(AVG(total_cost_ms), 0), 2) AS avgCostMs,
+
+            IFNULL(MAX(total_cost_ms), 0) AS maxCostMs,
+
+            ROUND(IFNULL(AVG(tool_count), 0), 2) AS avgToolCount
+        FROM agent_trace
+        WHERE is_deleted = 0
+    </select>
+
 </mapper>

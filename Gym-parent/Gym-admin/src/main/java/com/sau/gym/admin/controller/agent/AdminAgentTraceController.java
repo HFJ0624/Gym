@@ -66,4 +66,12 @@ public class AdminAgentTraceController {
         List<AgentTraceStep> steps = agentTraceService.steps(traceId);
         return Result.build(steps, ResultCodeEnum.SUCCESS);
     }
+
+    /**
+     * 查询 Trace 统计数据。
+     */
+    @GetMapping("/stats")
+    public Result stats() {
+        return Result.build(agentTraceService.stats(), ResultCodeEnum.SUCCESS);
+    }
 }

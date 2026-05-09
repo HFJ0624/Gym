@@ -1,5 +1,6 @@
 package com.sau.gym.admin.rag.service.impl;
 
+import com.sau.gym.admin.agent.trace.AgentTraceContext;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
@@ -258,6 +259,9 @@ public class RagQaServiceImpl implements RagQaService {
 
     /**
      * 保存 RAG 检索日志。
+     *
+     * 这里会把当前 Agent TraceId 一起写入 rag_search_log，
+     * 这样后台 Trace 详情页就可以联动展示本次对话触发的 RAG 检索记录。
      */
     private void saveSearchLog(String question,
                                String answer,
@@ -268,6 +272,11 @@ public class RagQaServiceImpl implements RagQaService {
             User user = AuthContextUtil.get();
 
             RagSearchLog log = new RagSearchLog();
+
+            //从ThreadLocal里获取当前Agent TraceId。
+            //如果这次 RAG 调用不是从 Agent 触发的，traceId 可能为空，这是允许的。
+            log.setTraceId(AgentTraceContext.getTraceId());
+
             log.setUserId(user == null ? null : user.getId());
             log.setQuestion(question);
             log.setAnswer(answer);
@@ -278,7 +287,7 @@ public class RagQaServiceImpl implements RagQaService {
 
             ragSearchLogMapper.insert(log);
         } catch (Exception e) {
-            // 日志失败不能影响用户问答，所以这里只打印，不抛出
+            //日志失败不能影响用户问答。
             System.out.println("[RAG] 保存检索日志失败：" + e.getMessage());
         }
     }

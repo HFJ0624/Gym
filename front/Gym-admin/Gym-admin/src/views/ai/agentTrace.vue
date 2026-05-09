@@ -1,6 +1,45 @@
 <template>
   <div class="agent-trace-page">
+
+    <!-- Trace 统计卡片 -->
+    <el-row :gutter="12" class="stats-row">
+      <el-col :span="6">
+        <el-card shadow="never" class="stats-card">
+          <div class="stats-label">总调用次数</div>
+          <div class="stats-value">{{ stats.totalCount }}</div>
+          <div>统计总次数</div>
+        </el-card>
+      </el-col>
+
+      <el-col :span="6">
+        <el-card shadow="never" class="stats-card success">
+          <div class="stats-label">成功率</div>
+          <div class="stats-value">{{ stats.successRate }}%</div>
+          <div class="stats-sub">
+            成功 {{ stats.successCount }} / 失败 {{ stats.failedCount }}
+          </div>
+        </el-card>
+      </el-col>
+
+      <el-col :span="6">
+        <el-card shadow="never" class="stats-card">
+          <div class="stats-label">平均耗时</div>
+          <div class="stats-value">{{ stats.avgCostMs }} ms</div>
+          <div class="stats-sub">最大耗时 {{ stats.maxCostMs }} ms</div>
+        </el-card>
+      </el-col>
+
+      <el-col :span="6">
+        <el-card shadow="never" class="stats-card">
+          <div class="stats-label">平均工具数</div>
+          <div class="stats-value">{{ stats.avgToolCount }}</div>
+          <div class="stats-sub">运行中 {{ stats.runningCount }}</div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-card shadow="never">
+
       <template #header>
         <div class="page-header">
           <div>
@@ -10,7 +49,7 @@
             </div>
           </div>
 
-          <el-button type="primary" @click="loadData">
+          <el-button type="primary" @click="refreshPage">
             刷新
           </el-button>
         </div>
@@ -68,11 +107,22 @@
         stripe
         style="width: 100%"
       >
-        <el-table-column label="Trace ID" min-width="220">
+        <el-table-column label="Trace ID" min-width="260">
           <template #default="{ row }">
-            <el-text type="primary" truncated>
-              {{ row.traceId }}
-            </el-text>
+            <div class="trace-id-cell">
+              <el-text type="primary" truncated>
+                {{ row.traceId }}
+              </el-text>
+
+              <el-button
+                type="primary"
+                link
+                size="small"
+                @click.stop="copyTraceId(row.traceId)"
+              >
+                复制
+              </el-button>
+            </div>
           </template>
         </el-table-column>
 
@@ -170,9 +220,20 @@
 
             <el-descriptions :column="2" border>
               <el-descriptions-item label="Trace ID">
-                <el-text type="primary">
-                  {{ detailDrawer.trace.traceId }}
-                </el-text>
+                <div class="trace-id-cell">
+                  <el-text type="primary">
+                    {{ detailDrawer.trace.traceId }}
+                  </el-text>
+
+                  <el-button
+                    type="primary"
+                    link
+                    size="small"
+                    @click="copyTraceId(detailDrawer.trace.traceId)"
+                  >
+                    复制
+                  </el-button>
+                </div>
               </el-descriptions-item>
 
               <el-descriptions-item label="状态">
@@ -302,6 +363,7 @@
               stripe
               size="small"
               style="width: 100%"
+              :row-class-name="getToolLogRowClassName"
             >
               <el-table-column label="工具名称" min-width="160">
                 <template #default="{ row }">
@@ -335,9 +397,19 @@
                 </template>
               </el-table-column>
 
-              <el-table-column label="耗时" width="100" align="center">
+              <el-table-column label="耗时" width="120" align="center">
                 <template #default="{ row }">
-                  {{ row.durationMs || 0 }} ms
+                  <el-tag
+                    v-if="isSlowTool(row)"
+                    type="warning"
+                    size="small"
+                  >
+                    {{ row.durationMs || 0 }} ms
+                  </el-tag>
+
+                  <span v-else>
+                    {{ row.durationMs || 0 }} ms
+                  </span>
                 </template>
               </el-table-column>
 
@@ -356,6 +428,110 @@
               v-if="!detailDrawer.toolLogLoading && detailDrawer.toolLogs.length === 0"
               description="本次 Trace 暂无工具调用日志"
             />
+          </el-card>
+
+          <!-- RAG 检索日志 -->
+          <el-card shadow="never" class="detail-card">
+            <template #header>
+              <div class="section-title">
+                RAG 检索日志
+                <el-tag size="small" type="info" style="margin-left: 8px">
+                  {{ detailDrawer.ragLogs.length }} 条
+                </el-tag>
+              </div>
+            </template>
+
+            <div v-loading="detailDrawer.ragLogLoading">
+              <el-empty
+                v-if="!detailDrawer.ragLogs || detailDrawer.ragLogs.length === 0"
+                description="本次 Trace 暂无 RAG 检索日志"
+              />
+
+              <el-collapse v-else>
+                <el-collapse-item
+                  v-for="log in detailDrawer.ragLogs"
+                  :key="log.id"
+                  :name="log.id"
+                >
+                  <template #title>
+                    <div class="rag-title">
+                      <span class="rag-question">
+                        {{ log.question }}
+                      </span>
+
+                      <el-tag size="small" type="success">
+                        max {{ log.maxScore || '-' }}
+                      </el-tag>
+
+                      <el-tag size="small" type="info">
+                        min {{ log.minScore || '-' }}
+                      </el-tag>
+                    </div>
+                  </template>
+
+                  <el-descriptions :column="2" border>
+                    <el-descriptions-item label="日志ID">
+                      {{ log.id }}
+                    </el-descriptions-item>
+
+                    <el-descriptions-item label="Trace ID">
+                      <div class="trace-id-cell">
+                        <el-text type="primary">
+                          {{ log.traceId || '-' }}
+                        </el-text>
+
+                        <el-button
+                          v-if="log.traceId"
+                          type="primary"
+                          link
+                          size="small"
+                          @click="copyTraceId(log.traceId)"
+                        >
+                          复制
+                        </el-button>
+                      </div>
+                    </el-descriptions-item>
+
+                    <el-descriptions-item label="用户ID">
+                      {{ log.userId || '-' }}
+                    </el-descriptions-item>
+
+                    <el-descriptions-item label="创建时间">
+                      {{ log.createTime || '-' }}
+                    </el-descriptions-item>
+
+                    <el-descriptions-item label="用户问题" :span="2">
+                      <pre class="text-block">{{ log.question || '-' }}</pre>
+                    </el-descriptions-item>
+
+                    <el-descriptions-item label="模型回答" :span="2">
+                      <pre class="text-block">{{ log.answer || '-' }}</pre>
+                    </el-descriptions-item>
+
+                    <el-descriptions-item label="命中来源" :span="2">
+                      <el-table
+                        :data="parseMatchedSources(log.matchedSources)"
+                        border
+                        size="small"
+                        style="width: 100%"
+                      >
+                        <el-table-column prop="docId" label="文档ID" width="90" />
+                        <el-table-column prop="title" label="标题" min-width="160" />
+                        <el-table-column prop="venueName" label="场馆" min-width="140" />
+                        <el-table-column prop="courtName" label="场地" min-width="140" />
+                        <el-table-column prop="courtType" label="类型" width="100" />
+                        <el-table-column label="分数" width="110">
+                          <template #default="{ row }">
+                            {{ row.score || '-' }}
+                          </template>
+                        </el-table-column>
+                        <el-table-column prop="contentPreview" label="命中文本" min-width="260" />
+                      </el-table>
+                    </el-descriptions-item>
+                  </el-descriptions>
+                </el-collapse-item>
+              </el-collapse>
+            </div>
           </el-card>
 
           <!-- 工具日志详情弹窗 -->
@@ -447,15 +623,21 @@
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
+import { CopyDocument } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import {
   getAgentTracePage,
-  getAgentTraceDetail
+  getAgentTraceDetail,
+  getAgentTraceStats
 } from '@/api/agentTrace'
 import {
   pageAgentToolLog,
   getAgentToolLogDetail
 } from '@/api/agentToolLog'
+
+import {
+  getRagSearchLogsByTraceId
+} from '@/api/ragSearchLog'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -483,8 +665,51 @@ const detailDrawer = reactive({
   /**
    * 工具日志加载状态。
    */
-  toolLogLoading: false
+  toolLogLoading: false,
+
+   /**
+   * 当前 Trace 关联的 RAG 检索日志。
+   */
+  ragLogs: [],
+
+  /**
+   * RAG 日志加载状态。
+   */
+  ragLogLoading: false
 })
+
+const stats = reactive({
+  totalCount: 0,
+  successCount: 0,
+  failedCount: 0,
+  runningCount: 0,
+  successRate: 0,
+  avgCostMs: 0,
+  maxCostMs: 0,
+  avgToolCount: 0
+})
+
+/**
+ * 加载 Trace 统计卡片数据。
+ */
+async function loadStats() {
+  try {
+    const res = await getAgentTraceStats()
+    const data = unwrapResult(res) || {}
+
+    stats.totalCount = data.totalCount || 0
+    stats.successCount = data.successCount || 0
+    stats.failedCount = data.failedCount || 0
+    stats.runningCount = data.runningCount || 0
+    stats.successRate = data.successRate || 0
+    stats.avgCostMs = data.avgCostMs || 0
+    stats.maxCostMs = data.maxCostMs || 0
+    stats.avgToolCount = data.avgToolCount || 0
+  } catch (e) {
+    console.error(e)
+    ElMessage.error('加载 Trace 统计失败')
+  }
+}
 
 const toolLogDialog = reactive({
   visible: false,
@@ -596,7 +821,13 @@ function handleSizeChange(size) {
 }
 
 /**
- * 打开详情抽屉。
+ * 打开 Trace 详情抽屉。
+ *
+ * 同时加载：
+ * 1. Trace 主信息
+ * 2. Trace 步骤
+ * 3. 工具调用日志
+ * 4. RAG 检索日志
  */
 async function openDetail(row) {
   if (!row || !row.traceId) {
@@ -606,42 +837,44 @@ async function openDetail(row) {
   detailDrawer.visible = true
   detailDrawer.loading = true
   detailDrawer.toolLogLoading = true
+  detailDrawer.ragLogLoading = true
+
   detailDrawer.trace = null
   detailDrawer.steps = []
   detailDrawer.toolLogs = []
+  detailDrawer.ragLogs = []
 
   try {
-    /**
-     * 同时请求 Trace 详情和工具日志。
-     *
-     * 工具日志通过 traceId 关联。
-     */
-    const [traceRes, toolLogRes] = await Promise.all([
+    const [traceRes, toolLogRes, ragLogRes] = await Promise.all([
       getAgentTraceDetail(row.traceId),
       pageAgentToolLog({
         pageNum: 1,
         pageSize: 100,
         traceId: row.traceId
-      })
+      }),
+      getRagSearchLogsByTraceId(row.traceId)
     ])
 
     const traceData = unwrapResult(traceRes) || {}
     const toolLogData = unwrapResult(toolLogRes) || {}
+    const ragLogData = unwrapResult(ragLogRes) || []
 
     detailDrawer.trace = traceData.trace || null
     detailDrawer.steps = traceData.steps || []
 
-    /**
-     * PageInfo 常见字段是 list。
-     * 这里兼容 records。
-     */
     detailDrawer.toolLogs = toolLogData.list || toolLogData.records || []
+
+    /**
+     * ragLogData 后端返回的是 List<RagSearchLog>。
+     */
+    detailDrawer.ragLogs = Array.isArray(ragLogData) ? ragLogData : []
   } catch (e) {
     console.error(e)
     ElMessage.error('加载 Agent Trace 详情失败')
   } finally {
     detailDrawer.loading = false
     detailDrawer.toolLogLoading = false
+    detailDrawer.ragLogLoading = false
   }
 }
 
@@ -665,6 +898,77 @@ async function openToolLogDetail(row) {
     ElMessage.error('加载工具日志详情失败')
   } finally {
     toolLogDialog.loading = false
+  }
+}
+
+/**
+ * 复制 traceId。
+ */
+async function copyTraceId(traceId) {
+  if (!traceId) {
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(traceId)
+    ElMessage.success('traceId 已复制')
+  } catch (e) {
+    /**
+     * 兼容部分浏览器不支持 navigator.clipboard 的情况。
+     */
+    const input = document.createElement('input')
+    input.value = traceId
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    document.body.removeChild(input)
+
+    ElMessage.success('traceId 已复制')
+  }
+}
+
+/**
+ * 工具日志行样式。
+ *
+ * 失败工具：红色背景
+ * 慢工具：黄色背景
+ */
+function getToolLogRowClassName({ row }) {
+  if (!row) {
+    return ''
+  }
+
+  if (row.status === 'FAIL' || row.status === 'FAILED') {
+    return 'tool-log-failed-row'
+  }
+
+  if ((row.durationMs || 0) >= 3000) {
+    return 'tool-log-slow-row'
+  }
+
+  return ''
+}
+
+/**
+ * 工具耗时是否慢。
+ */
+function isSlowTool(row) {
+  return row && (row.durationMs || 0) >= 3000
+}
+
+/**
+ * 解析 RAG matchedSources。
+ */
+function parseMatchedSources(matchedSources) {
+  if (!matchedSources) {
+    return []
+  }
+
+  try {
+    const list = JSON.parse(matchedSources)
+    return Array.isArray(list) ? list : []
+  } catch (e) {
+    return []
   }
 }
 
@@ -810,8 +1114,16 @@ function formatText(value) {
   }
 }
 
+async function refreshPage() {
+  await Promise.all([
+    loadStats(),
+    loadData()
+  ])
+}
+
 onMounted(() => {
   loadData()
+  loadStats()
 })
 </script>
 
@@ -934,5 +1246,68 @@ onMounted(() => {
 
 .step-collapse {
   margin-top: 12px;
+}
+.stats-row {
+  margin-bottom: 16px;
+}
+
+.stats-card {
+  border-radius: 8px;
+}
+
+.stats-card.success {
+  border-color: #d1f3d1;
+}
+
+.stats-label {
+  font-size: 13px;
+  color: #909399;
+}
+
+.stats-value {
+  margin-top: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #303133;
+}
+
+.stats-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.trace-id-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rag-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.rag-question {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/**
+ * 工具失败行高亮。
+ */
+:deep(.tool-log-failed-row) {
+  background-color: #fef0f0 !important;
+}
+
+/**
+ * 慢工具调用行高亮。
+ */
+:deep(.tool-log-slow-row) {
+  background-color: #fdf6ec !important;
 }
 </style>

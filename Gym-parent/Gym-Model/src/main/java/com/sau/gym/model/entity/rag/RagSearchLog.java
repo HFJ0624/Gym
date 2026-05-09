@@ -40,4 +40,7 @@ public class RagSearchLog {
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
+
+    @Schema(description = "Agent调用链ID")
+    private String traceId;
 }

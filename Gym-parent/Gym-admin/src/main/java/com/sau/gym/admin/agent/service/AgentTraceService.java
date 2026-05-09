@@ -3,6 +3,7 @@ package com.sau.gym.admin.agent.service;
 import com.github.pagehelper.PageInfo;
 import com.sau.gym.admin.agent.model.AgentTrace;
 import com.sau.gym.admin.agent.model.AgentTraceStep;
+import com.sau.gym.model.vo.agent.AgentTraceStatsVO;
 
 import java.util.List;
 
@@ -48,4 +49,9 @@ public interface AgentTraceService {
      * 查询 Trace 步骤。
      */
     List<AgentTraceStep> steps(String traceId);
+
+    /**
+     * 查询 Trace 统计数据。
+     */
+    AgentTraceStatsVO stats();
 }

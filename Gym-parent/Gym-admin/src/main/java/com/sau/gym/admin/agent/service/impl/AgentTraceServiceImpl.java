@@ -7,6 +7,7 @@ import com.sau.gym.admin.agent.model.AgentTraceStep;
 import com.sau.gym.admin.agent.service.AgentTraceService;
 import com.sau.gym.admin.agent.trace.AgentTraceContext;
 import com.sau.gym.admin.mapper.AgentTraceMapper;
+import com.sau.gym.model.vo.agent.AgentTraceStatsVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -143,6 +144,11 @@ public class AgentTraceServiceImpl implements AgentTraceService {
     @Override
     public List<AgentTraceStep> steps(String traceId) {
         return agentTraceMapper.selectStepsByTraceId(traceId);
+    }
+
+    @Override
+    public AgentTraceStatsVO stats() {
+        return agentTraceMapper.selectTraceStats();
     }
 
     /**

@@ -2,6 +2,7 @@ package com.sau.gym.admin.mapper;
 
 import com.sau.gym.admin.agent.model.AgentTrace;
 import com.sau.gym.admin.agent.model.AgentTraceStep;
+import com.sau.gym.model.vo.agent.AgentTraceStatsVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -52,4 +53,12 @@ public interface AgentTraceMapper {
      * 如果暂时没有工具埋点，这个值可能为 0。
      */
     int countToolSteps(@Param("traceId") String traceId);
+
+    /**
+     * 查询 Trace 统计数据。
+     *
+     * 第一版统计全量数据。
+     * 后续可以扩展今日统计、时间范围统计。
+     */
+    AgentTraceStatsVO selectTraceStats();
 }
