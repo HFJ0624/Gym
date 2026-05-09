@@ -2,6 +2,7 @@ const Layout = () => import('@/layout/index.vue')
 const rag = () => import('@/views/ai/rag.vue')
 const agentToolLog = () => import('@/views/ai/agentToolLog.vue')
 const agentTrace = () => import('@/views/ai/agentTrace.vue')
+const ragEval = () => import('@/views/ai/ragEval.vue')
 
 export default [
     {
@@ -39,6 +40,16 @@ export default [
                 component: agentTrace,
                 meta: {
                     title: 'agent调用链',
+                },
+                icon: 'Message',
+                hidden: false
+            },
+            {
+                path: '/ragEval',
+                name: 'ragEval',   
+                component: ragEval,
+                meta: {
+                    title: 'rag评估',
                 },
                 icon: 'Message',
                 hidden: false

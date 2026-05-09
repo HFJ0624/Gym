@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sau.gym.admin.mapper.RagEvalMapper">
+
+    <resultMap id="RagEvalCaseMap"
+               type="com.sau.gym.model.entity.rag.RagEvalCase">
+        <id property="id" column="id"/>
+        <result property="question" column="question"/>
+        <result property="expectedDocIds" column="expected_doc_ids"/>
+        <result property="expectedKeywords" column="expected_keywords"/>
+        <result property="expectedNoAnswer" column="expected_no_answer"/>
+        <result property="category" column="category"/>
+        <result property="enabled" column="enabled"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <resultMap id="RagEvalRunMap"
+               type="com.sau.gym.model.entity.rag.RagEvalRun">
+        <id property="id" column="id"/>
+        <result property="runNo" column="run_no"/>
+        <result property="topK" column="top_k"/>
+        <result property="minScore" column="min_score"/>
+        <result property="totalCount" column="total_count"/>
+        <result property="answerableCount" column="answerable_count"/>
+        <result property="noAnswerExpectedCount" column="no_answer_expected_count"/>
+        <result property="top1HitCount" column="top1_hit_count"/>
+        <result property="topkHitCount" column="topk_hit_count"/>
+        <result property="sourceCorrectCount" column="source_correct_count"/>
+        <result property="noAnswerCount" column="no_answer_count"/>
+        <result property="noAnswerCorrectCount" column="no_answer_correct_count"/>
+        <result property="top1HitRate" column="top1_hit_rate"/>
+        <result property="topkHitRate" column="topk_hit_rate"/>
+        <result property="sourceCorrectRate" column="source_correct_rate"/>
+        <result property="noAnswerRate" column="no_answer_rate"/>
+        <result property="noAnswerAccuracy" column="no_answer_accuracy"/>
+        <result property="avgMaxScore" column="avg_max_score"/>
+        <result property="avgCostMs" column="avg_cost_ms"/>
+        <result property="status" column="status"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="createTime" column="create_time"/>
+        <result property="finishTime" column="finish_time"/>
+    </resultMap>
+
+    <resultMap id="RagEvalResultMap"
+               type="com.sau.gym.model.entity.rag.RagEvalResult">
+        <id property="id" column="id"/>
+        <result property="runId" column="run_id"/>
+        <result property="caseId" column="case_id"/>
+        <result property="question" column="question"/>
+        <result property="expectedDocIds" column="expected_doc_ids"/>
+        <result property="expectedKeywords" column="expected_keywords"/>
+        <result property="expectedNoAnswer" column="expected_no_answer"/>
+        <result property="retrievedDocIds" column="retrieved_doc_ids"/>
+        <result property="matchedSources" column="matched_sources"/>
+        <result property="maxScore" column="max_score"/>
+        <result property="top1Hit" column="top1_hit"/>
+        <result property="topkHit" column="topk_hit"/>
+        <result property="sourceCorrect" column="source_correct"/>
+        <result property="actualNoAnswer" column="actual_no_answer"/>
+        <result property="noAnswerCorrect" column="no_answer_correct"/>
+        <result property="answerText" column="answer_text"/>
+        <result property="costMs" column="cost_ms"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insertCase"
+            parameterType="com.sau.gym.model.entity.rag.RagEvalCase"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO rag_eval_case (
+            question,
+            expected_doc_ids,
+            expected_keywords,
+            expected_no_answer,
+            category,
+            enabled,
+            remark,
+            create_time,
+            update_time,
+            is_deleted
+        )
+        VALUES (
+                   #{question},
+                   #{expectedDocIds},
+                   #{expectedKeywords},
+                   #{expectedNoAnswer},
+                   #{category},
+                   #{enabled},
+                   #{remark},
+                   NOW(),
+                   NOW(),
+                   0
+               )
+    </insert>
+
+    <update id="updateCase">
+        UPDATE rag_eval_case
+        SET
+            question = #{question},
+            expected_doc_ids = #{expectedDocIds},
+            expected_keywords = #{expectedKeywords},
+            expected_no_answer = #{expectedNoAnswer},
+            category = #{category},
+            enabled = #{enabled},
+            remark = #{remark},
+            update_time = NOW()
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="deleteCase">
+        UPDATE rag_eval_case
+        SET is_deleted = 1,
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectCasePage" resultMap="RagEvalCaseMap">
+        SELECT
+        id,
+        question,
+        expected_doc_ids,
+        expected_keywords,
+        expected_no_answer,
+        category,
+        enabled,
+        remark,
+        create_time,
+        update_time,
+        is_deleted
+        FROM rag_eval_case
+        WHERE is_deleted = 0
+
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+
+        <if test="enabled != null">
+            AND enabled = #{enabled}
+        </if>
+
+        <if test="keyword != null and keyword != ''">
+            AND question LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectEnabledCases" resultMap="RagEvalCaseMap">
+        SELECT
+        id,
+        question,
+        expected_doc_ids,
+        expected_keywords,
+        expected_no_answer,
+        category,
+        enabled,
+        remark,
+        create_time,
+        update_time,
+        is_deleted
+        FROM rag_eval_case
+        WHERE is_deleted = 0
+        AND enabled = 1
+
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+
+        ORDER BY id ASC
+    </select>
+
+    <insert id="insertRun"
+            parameterType="com.sau.gym.model.entity.rag.RagEvalRun"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO rag_eval_run (
+            run_no,
+            top_k,
+            min_score,
+            status,
+            create_time
+        )
+        VALUES (
+                   #{runNo},
+                   #{topK},
+                   #{minScore},
+                   #{status},
+                   NOW()
+               )
+    </insert>
+
+    <update id="updateRunResult">
+        UPDATE rag_eval_run
+        SET
+            total_count = #{totalCount},
+            answerable_count = #{answerableCount},
+            no_answer_expected_count = #{noAnswerExpectedCount},
+            top1_hit_count = #{top1HitCount},
+            topk_hit_count = #{topkHitCount},
+            source_correct_count = #{sourceCorrectCount},
+            no_answer_count = #{noAnswerCount},
+            no_answer_correct_count = #{noAnswerCorrectCount},
+            top1_hit_rate = #{top1HitRate},
+            topk_hit_rate = #{topkHitRate},
+            source_correct_rate = #{sourceCorrectRate},
+            no_answer_rate = #{noAnswerRate},
+            no_answer_accuracy = #{noAnswerAccuracy},
+            avg_max_score = #{avgMaxScore},
+            avg_cost_ms = #{avgCostMs},
+            status = #{status},
+            error_message = #{errorMessage},
+            finish_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertResult"
+            parameterType="com.sau.gym.model.entity.rag.RagEvalResult"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO rag_eval_result (
+            run_id,
+            case_id,
+            question,
+            expected_doc_ids,
+            expected_keywords,
+            expected_no_answer,
+            retrieved_doc_ids,
+            matched_sources,
+            max_score,
+            top1_hit,
+            topk_hit,
+            source_correct,
+            actual_no_answer,
+            no_answer_correct,
+            answer_text,
+            cost_ms,
+            error_message,
+            create_time
+        )
+        VALUES (
+                   #{runId},
+                   #{caseId},
+                   #{question},
+                   #{expectedDocIds},
+                   #{expectedKeywords},
+                   #{expectedNoAnswer},
+                   #{retrievedDocIds},
+                   #{matchedSources},
+                   #{maxScore},
+                   #{top1Hit},
+                   #{topkHit},
+                   #{sourceCorrect},
+                   #{actualNoAnswer},
+                   #{noAnswerCorrect},
+                   #{answerText},
+                   #{costMs},
+                   #{errorMessage},
+                   NOW()
+               )
+    </insert>
+
+    <select id="selectRunPage" resultMap="RagEvalRunMap">
+        SELECT *
+        FROM rag_eval_run
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectRunById" resultMap="RagEvalRunMap">
+        SELECT *
+        FROM rag_eval_run
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectResultsByRunId" resultMap="RagEvalResultMap">
+        SELECT *
+        FROM rag_eval_result
+        WHERE run_id = #{runId}
+        ORDER BY id ASC
+    </select>
+
+
+</mapper>
