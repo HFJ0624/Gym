@@ -44,4 +44,118 @@
                )
     </insert>
 
+    <!--
+        后台分页查询退款申请
+
+        keyword 支持：
+        1. 订单号
+        2. 用户名
+        3. 场地名
+    -->
+    <select id="findRefundPage"
+            resultType="com.sau.gym.model.vo.refund.BookingRefundRequestVO">
+        SELECT
+        r.id AS id,
+        r.booking_id AS bookingId,
+        r.order_no AS orderNo,
+        r.user_id AS userId,
+
+        u.username AS username,
+        u.phone AS phone,
+
+        v.venue_name AS venueName,
+        c.name AS courtName,
+        c.type AS courtType,
+
+        r.refund_amount AS refundAmount,
+        r.reason AS reason,
+        r.status AS status,
+        r.audit_user_id AS auditUserId,
+        r.audit_remark AS auditRemark,
+        r.audit_time AS auditTime,
+        r.create_time AS createTime
+        FROM booking_refund_request r
+        LEFT JOIN user u ON r.user_id = u.id
+        LEFT JOIN court_booking cb ON r.booking_id = cb.id
+        LEFT JOIN court c ON cb.court_id = c.id
+        LEFT JOIN venue v ON c.venue_id = v.id
+        WHERE r.is_deleted = 0
+
+        <if test="status != null">
+            AND r.status = #{status}
+        </if>
+
+        <if test="keyword != null and keyword != ''">
+            AND (
+            r.order_no LIKE CONCAT('%', #{keyword}, '%')
+            OR u.username LIKE CONCAT('%', #{keyword}, '%')
+            OR c.name LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+
+        ORDER BY r.create_time DESC
+    </select>
+
+
+    <select id="selectRefundDetail" resultType="com.sau.gym.model.vo.refund.BookingRefundRequestVO">
+        SELECT
+            r.id AS id,
+            r.booking_id AS bookingId,
+            r.order_no AS orderNo,
+            r.user_id AS userId,
+
+            u.username AS username,
+            u.phone AS phone,
+
+            v.venue_name AS venueName,
+            c.name AS courtName,
+            c.type AS courtType,
+
+            r.refund_amount AS refundAmount,
+            r.reason AS reason,
+            r.status AS status,
+            r.audit_user_id AS auditUserId,
+            r.audit_remark AS auditRemark,
+            r.audit_time AS auditTime,
+            r.create_time AS createTime
+        FROM booking_refund_request r
+                 LEFT JOIN user u ON r.user_id = u.id
+                 LEFT JOIN court_booking cb ON r.booking_id = cb.id
+                 LEFT JOIN court c ON cb.court_id = c.id
+                 LEFT JOIN venue v ON c.venue_id = v.id
+        WHERE r.id = #{id}
+          AND r.is_deleted = 0
+        LIMIT 1
+    </select>
+
+
+    <!--  审核通过  -->
+    <update id="approveRefund">
+        UPDATE booking_refund_request
+        SET
+            status = 1,
+            audit_user_id = #{auditUserId},
+            audit_remark = #{auditRemark},
+            audit_time = NOW(),
+            update_time = NOW()
+        WHERE id = #{id}
+          AND status = 0
+          AND is_deleted = 0
+    </update>
+
+
+    <!--  审核拒绝  -->
+    <update id="rejectRefund">
+        UPDATE booking_refund_request
+        SET
+            status = 2,
+            audit_user_id = #{auditUserId},
+            audit_remark = #{auditRemark},
+            audit_time = NOW(),
+            update_time = NOW()
+        WHERE id = #{id}
+          AND status = 0
+          AND is_deleted = 0
+    </update>
+
 </mapper>

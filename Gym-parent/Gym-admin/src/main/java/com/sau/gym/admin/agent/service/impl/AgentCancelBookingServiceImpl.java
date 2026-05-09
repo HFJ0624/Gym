@@ -8,6 +8,7 @@ import com.sau.gym.admin.agent.store.PendingDraftType;
 import com.sau.gym.admin.agent.util.AgentConfirmTokenUtil;
 import com.sau.gym.admin.mapper.BookingRefundRequestMapper;
 import com.sau.gym.admin.mapper.CourtBookingMapper;
+import com.sau.gym.admin.service.CourtBookingService;
 import com.sau.gym.model.entity.venue.BookingRefundRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,12 +39,16 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
     private final BookingRefundRequestMapper refundRequestMapper;
     private final AgentDraftStore draftStore;
 
+    private final CourtBookingService courtBookingService;
+
     public AgentCancelBookingServiceImpl(CourtBookingMapper courtBookingMapper,
                                          BookingRefundRequestMapper refundRequestMapper,
-                                         AgentDraftStore draftStore) {
+                                         AgentDraftStore draftStore,
+                                         CourtBookingService courtBookingService) {
         this.courtBookingMapper = courtBookingMapper;
         this.refundRequestMapper = refundRequestMapper;
         this.draftStore = draftStore;
+        this.courtBookingService = courtBookingService;
     }
 
     /**
@@ -177,7 +182,6 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
 
     /**
      * 用户确认取消预约。
-     *
      * 使用事务：
      * 1. 更新预约状态
      * 2. 插入退款申请
@@ -238,28 +242,13 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
             throw new RuntimeException("取消预约失败，订单可能已被处理，请刷新后重试。");
         }
 
-        boolean needRefund = needRefundRequest(booking);
-
-        /*
-         * 如果涉及金额，则生成退款申请。
-         * 注意：这里不直接退钱，只生成待审核申请。
-         */
-        if (needRefund) {
-            int exists = refundRequestMapper.countByBookingId(bookingId);
-
-            if (exists <= 0) {
-                BookingRefundRequest request = new BookingRefundRequest();
-
-                request.setBookingId(booking.getBookingId());
-                request.setOrderNo(booking.getOrderNo());
-                request.setUserId(userId);
-                request.setRefundAmount(booking.getTotalPrice());
-                request.setReason(reason);
-                request.setStatus(0);
-
-                refundRequestMapper.insertRefundRequest(request);
-            }
-        }
+        //调用统一取消预约逻辑
+        courtBookingService.cancelOrderByUserId(
+                userId,
+                bookingId,
+                reason,
+                "AGENT"
+        );
 
         draftStore.clear(userId);
 
@@ -269,7 +258,7 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
                 + "场地：" + nullToEmpty(booking.getCourtName()) + "\n"
                 + "日期：" + booking.getBookingDate() + "\n"
                 + "时间：" + booking.getStartTime() + " - " + booking.getEndTime() + "\n"
-                + "退款处理：" + (needRefund ? "已生成退款申请，等待后台审核。" : "该预约无需退款。");
+                + "退款处理：已生成退款申请，等待后台审核。";
     }
 
     /**

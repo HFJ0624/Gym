@@ -2,6 +2,7 @@ const Layout = () => import('@/layout/index.vue')
 const venueBook = () => import('@/views/booking/venueBook.vue')
 const courtBook = () => import('@/views/booking/courtBook.vue')
 const signIn = () => import('@/views/booking/signIn.vue')
+const refund = () => import('@/views/booking/refund.vue')
 
 export default [
     {
@@ -39,6 +40,16 @@ export default [
                 component: signIn,
                 meta: {
                     title: '签到查看',
+                },
+                icon: 'List',
+                hidden: false
+            }, 
+            {
+                path: '/refund',
+                name: 'refund',
+                component: refund,
+                meta: {
+                    title: '退款申请',
                 },
                 icon: 'List',
                 hidden: false

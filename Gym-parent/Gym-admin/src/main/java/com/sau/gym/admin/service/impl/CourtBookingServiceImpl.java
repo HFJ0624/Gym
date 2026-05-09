@@ -16,6 +16,7 @@ import com.sau.gym.model.entity.finance.PaymentRecord;
 import com.sau.gym.model.entity.finance.RefundRecord;
 import com.sau.gym.model.entity.user.User;
 import com.sau.gym.model.entity.user.UserBalance;
+import com.sau.gym.model.entity.venue.BookingRefundRequest;
 import com.sau.gym.model.entity.venue.Court;
 import com.sau.gym.model.entity.venue.CourtBooking;
 import com.sau.gym.model.vo.court.CourtBookVO;
@@ -62,6 +63,9 @@ public class CourtBookingServiceImpl implements CourtBookingService {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private BookingRefundRequestMapper bookingRefundRequestMapper;
 
     //场地预约的查询功能
     @Override
@@ -204,41 +208,90 @@ public class CourtBookingServiceImpl implements CourtBookingService {
     }
 
     //前台用户取消预约订单
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public void cancelOrder(Long orderId) {
-        //获取订单信息
+    public void cancelOrder(Long orderId,String reason) {
+        User user = AuthContextUtil.get();
+
+        if (user == null || user.getId() == null) {
+            throw new SauException(ResultCodeEnum.LOGIN_AUTH);
+        }
+
+        cancelOrderByUserId(
+                user.getId(),
+                orderId,
+                reason,
+                "FRONT"
+        );
+    }
+
+    /**
+     * 统一取消预约入口
+     * 前台用户取消预约、Agent 确认取消预约，都走这个方法。
+     * 为什么要统一：
+     * 1. 避免前台取消和 Agent 取消各写一套逻辑
+     * 2. 避免退款申请重复生成
+     * 3. 避免有的入口直接退款，有的入口生成退款申请，导致业务不一致
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void cancelOrderByUserId(Long userId, Long orderId, String reason, String source) {
+        if (userId == null) {
+            throw new SauException(ResultCodeEnum.LOGIN_AUTH);
+        }
+
+        if (orderId == null) {
+            throw new SauException(ResultCodeEnum.DATA_ERROR);
+        }
+
+        //1. 查询预约订单
         CourtBooking courtBooking = courtBookingMapper.selectById(orderId);
 
-        //取消订单
+        if (courtBooking == null || courtBooking.getIsDeleted() == 1) {
+            throw new SauException(ResultCodeEnum.DATA_ERROR);
+        }
+
+        //2. 校验订单是否属于当前用户
+        if (!userId.equals(courtBooking.getUserId())) {
+            throw new SauException(ResultCodeEnum.ILLEGAL_REQUEST);
+        }
+
+        //3. 校验订单状态
+        if (courtBooking.getStatus() == null
+                || courtBooking.getStatus() == 2
+                || courtBooking.getStatus() == 3) {
+            throw new SauException(ResultCodeEnum.DATA_ERROR);
+        }
+
+        //4. 更新订单状态为已取消
         courtBookingMapper.cancelOrder(orderId);
 
-        User user = AuthContextUtil.get();
-        UserBalance userBalance = userBalanceMapper.GetBalanceById(user.getId());
+        //5. 如果订单金额大于 0，则生成退款申请
+        //这里不直接退余额。后台审核通过后，才执行真正退款。
+        if (courtBooking.getTotalPrice() != null
+                && courtBooking.getTotalPrice().compareTo(BigDecimal.ZERO) > 0) {
 
-        //插入退款流水表
-        RefundRecord refundRecord = new RefundRecord();
-        refundRecord.setRefundAmount(courtBooking.getTotalPrice());
-        refundRecord.setOrderType(1);
-        refundRecord.setOrderNo(courtBooking.getOrderNo());
-        refundRecord.setStatus(1);
-        refundRecord.setUserId(courtBooking.getUserId());
-        Date date = new Date();
-        refundRecord.setCreateTime(date);
-        refundRecord.setRefundTime(date);
-        PaymentRecord paymentRecord =paymentRecordMapper.selectOne(courtBooking.getOrderNo());
-        refundRecord.setPayNo(paymentRecord.getPayNo());
-        refundRecord.setOrderNo(courtBooking.getOrderNo());
-        refundRecordMapper.insertOne(refundRecord);
+            int exists = bookingRefundRequestMapper.countByBookingId(orderId);
 
-        //把订单余额返回给用户的余额
-        userBalanceMapper.updateBalance(user.getId(),courtBooking.getTotalPrice().add(userBalance.getBalance()),date);
+            if (exists <= 0) {
+                BookingRefundRequest request = new BookingRefundRequest();
 
-        //监听事件:获取通知消息-用户退款消息
+                request.setBookingId(courtBooking.getId());
+                request.setOrderNo(courtBooking.getOrderNo());
+                request.setUserId(userId);
+                request.setRefundAmount(courtBooking.getTotalPrice());
+                request.setReason(reason);
+                request.setStatus(0);
+
+                bookingRefundRequestMapper.insertRefundRequest(request);
+            }
+        }
+
+        //6. 发布通知
         eventPublisher.publishEvent(new NotificationEvent(
-                user.getId(),
+                userId,
                 "预约已取消",
-                "您的预约订单已取消。订单号：" + courtBooking.getOrderNo(),
+                "您的预约订单已取消，退款申请已提交，等待后台审核。订单号：" + courtBooking.getOrderNo(),
                 NotificationTypeEnum.BOOKING.getCode(),
                 courtBooking.getId(),
                 courtBooking.getOrderNo(),

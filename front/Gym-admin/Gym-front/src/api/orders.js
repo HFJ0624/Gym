@@ -10,11 +10,11 @@ export function getCourtOrder(userId, pageNum, pageSize) {
 }
 
 // 取消预约
-export function cancelOrder(orderId) {
+export function cancelOrder(orderId, reason) {
   return request({
     url: '/front/order/cancel',
     method: 'post',
-    params: { orderId }
+    params: { orderId, reason }
   })
 }
 

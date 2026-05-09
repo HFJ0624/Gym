@@ -27,5 +27,17 @@ public interface CourtBookingService {
     List<CourtBooking> countAllBook();
 
     //前台用户取消预约订单
-    void cancelOrder(Long orderId);
+    void cancelOrder(Long orderId,String reason);
+
+    /**
+     * 统一取消预约入口。
+     * 说明：
+     * 前台取消预约、Agent 取消预约，都应该走这个方法。
+     *
+     * @param userId 当前操作用户ID
+     * @param orderId 预约订单ID
+     * @param reason 取消原因
+     * @param source 来源：FRONT / AGENT
+     */
+    void cancelOrderByUserId(Long userId, Long orderId, String reason, String source);
 }

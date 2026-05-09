@@ -78,6 +78,35 @@
         @current-change="load"
       />
     </div>
+
+    <!-- 取消预约对话框 -->
+    <el-dialog
+      v-model="cancelDialogVisible"
+      title="取消预约"
+      width="400px"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="cancelForm" label-width="80px">
+        <el-form-item label="取消原因">
+          <el-input
+            v-model="cancelForm.reason"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入取消预约的原因"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="cancelDialogVisible = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="canceling"
+          @click="confirmCancel"
+        >
+          确认取消
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -93,6 +122,12 @@ const loading = ref(false)
 const cancelingId = ref('')
 const auth = useAuth()
 const userId = auth.user?.id
+
+// 取消预约对话框相关
+const cancelDialogVisible = ref(false)
+const cancelForm = ref({ reason: '' })
+const canceling = ref(false)
+const currentCancelOrder = ref(null)
 
 // 分页参数
 const pageParams = ref({ page: 1, limit: 5 })
@@ -167,21 +202,31 @@ const load = async () => {
   }
 }
 
-// 取消订单
-const onCancel = async (o) => {
-  await ElMessageBox.confirm('确认取消该预约吗？取消后不可恢复。', '提示', { 
-    type: 'warning',
-    confirmButtonText: '确认',
-    cancelButtonText: '取消'
-  })
-  cancelingId.value = o.id
+// 打开取消预约对话框
+const onCancel = (o) => {
+  currentCancelOrder.value = o
+  cancelForm.value = { reason: '' }
+  cancelDialogVisible.value = true
+}
+
+// 确认取消预约
+const confirmCancel = async () => {
+  if (!cancelForm.value.reason.trim()) {
+    ElMessage.warning('请输入取消原因')
+    return
+  }
+  
+  canceling.value = true
+  cancelingId.value = currentCancelOrder.value.id
   try {
-    await cancelOrder(o.id)
+    await cancelOrder(currentCancelOrder.value.id, cancelForm.value.reason)
     ElMessage.success('取消成功')
+    cancelDialogVisible.value = false
     load()
   } catch (err) {
     ElMessage.error('取消失败')
   } finally {
+    canceling.value = false
     cancelingId.value = ''
   }
 }

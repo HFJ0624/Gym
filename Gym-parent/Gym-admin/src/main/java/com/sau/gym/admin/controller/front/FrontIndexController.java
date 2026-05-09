@@ -134,8 +134,8 @@ public class FrontIndexController {
     //前台用户取消预约订单
     @Log(title = "前台用户取消预约订单",businessType = 2,operatorType = OperatorType.MOBILE)
     @PostMapping(value = "/order/cancel")
-    public Result cancelOrder(@RequestParam Long orderId){
-        courtBookingService.cancelOrder(orderId);
+    public Result cancelOrder(@RequestParam("orderId") Long orderId,@RequestParam("reason")String reason){
+        courtBookingService.cancelOrder(orderId,reason);
         return Result.build(null,ResultCodeEnum.SUCCESS);
     }
 }

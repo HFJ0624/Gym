@@ -39,7 +39,9 @@ public enum ResultCodeEnum {
 
     TIME_ERROR(225,"开始时间不能晚于结束时间"),
 
-    TIME_LESS(226,"预约时长不能小于1小时")
+    TIME_LESS(226,"预约时长不能小于1小时"),
+
+    ILLEGAL_REQUEST(227,"非法请求"),
     ;
 
     //业务状态码
