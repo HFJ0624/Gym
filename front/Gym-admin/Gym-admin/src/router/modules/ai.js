@@ -1,6 +1,7 @@
 const Layout = () => import('@/layout/index.vue')
 const rag = () => import('@/views/ai/rag.vue')
 const agentToolLog = () => import('@/views/ai/agentToolLog.vue')
+const agentTrace = () => import('@/views/ai/agentTrace.vue')
 
 export default [
     {
@@ -28,6 +29,16 @@ export default [
                 component: agentToolLog,
                 meta: {
                     title: 'agent工具日志',
+                },
+                icon: 'Message',
+                hidden: false
+            },
+            {
+                path: '/trace',
+                name: 'trace',
+                component: agentTrace,
+                meta: {
+                    title: 'agent调用链',
                 },
                 icon: 'Message',
                 hidden: false

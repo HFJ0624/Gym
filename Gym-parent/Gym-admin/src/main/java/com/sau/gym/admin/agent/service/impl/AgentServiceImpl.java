@@ -1,15 +1,14 @@
 package com.sau.gym.admin.agent.service.impl;
 
 import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
-import com.sau.gym.admin.agent.context.AgentTraceContext;
-import com.sau.gym.admin.agent.context.AgentTraceInfo;
+
+import com.sau.gym.admin.agent.trace.AgentTraceInfo;
 import com.sau.gym.admin.agent.memory.AgentBusinessContext;
 import com.sau.gym.admin.agent.service.*;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
-import com.sau.gym.admin.agent.store.PendingDraft;
-import com.sau.gym.admin.agent.store.PendingDraftType;
 import com.sau.gym.admin.agent.tool.GymBookingTools;
 import com.sau.gym.admin.agent.tool.GymShoppingTools;
+import com.sau.gym.admin.agent.trace.AgentTraceContext;
 import com.sau.gym.admin.mapper.ChatRecordMapper;
 import com.sau.gym.admin.mapper.UserMapper;
 import com.sau.gym.model.dto.agent.AgentChatDto;
@@ -18,12 +17,8 @@ import com.sau.gym.model.entity.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 作者:hfj
@@ -49,6 +44,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final AgentCancelBookingService agentCancelBookingService;
 
+    private final AgentTraceService agentTraceService;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -58,7 +55,8 @@ public class AgentServiceImpl implements AgentService {
                             UserMapper userMapper,
                             AgentDirectRouteService agentDirectRouteService,
                             AgentContextEnhanceService contextEnhanceService,
-                            AgentCancelBookingService agentCancelBookingService
+                            AgentCancelBookingService agentCancelBookingService,
+                            AgentTraceService agentTraceService
                             ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
@@ -69,6 +67,7 @@ public class AgentServiceImpl implements AgentService {
         this.agentDirectRouteService = agentDirectRouteService;
         this.contextEnhanceService = contextEnhanceService;
         this.agentCancelBookingService = agentCancelBookingService;
+        this.agentTraceService = agentTraceService;
     }
 
     @Override
@@ -79,47 +78,191 @@ public class AgentServiceImpl implements AgentService {
             throw new RuntimeException("消息不能为空");
         }
 
-        //去掉空白部分
+        //去掉首尾空白
         message = message.trim();
 
-        //为本次 Agent对话生成一个traceId
+        //为本次Agent对话生成 traceId。
         String traceId = UUID.randomUUID().toString().replace("-", "");
-        String reply;
+
+        String reply = null;
+
+        long traceStart = System.currentTimeMillis();
 
         try {
 
-            //1.在处理本轮消息前，先读取并更新业务上下文。
-            AgentBusinessContext agentBusinessContext = contextEnhanceService.prepareBeforeAgent(userId, message, agentChatDto);
-
-            //设置 Agent 调用链上下文,AOP 记录工具日志时，会从 ThreadLocal 里读取
+            //1.设置当前线程Trace上下文。
             AgentTraceContext.set(new AgentTraceInfo(traceId, userId, message));
 
-            //1. 优先处理确认/取消类指令。
+            //2. 创建agent_trace主记录。
+            agentTraceService.startTrace(traceId, userId, null, message);
+
+            agentTraceService.addStep(
+                    "TRACE_START",
+                    "收到用户消息",
+                    null,
+                    message,
+                    "SUCCESS",
+                    null,
+                    0L
+            );
+
+            //3. 在处理本轮消息前，读取并更新业务上下文。
+            long contextStart = System.currentTimeMillis();
+
+            AgentBusinessContext agentBusinessContext =
+                    contextEnhanceService.prepareBeforeAgent(userId, message, agentChatDto);
+
+            agentTraceService.addStep(
+                    "CONTEXT_PREPARE",
+                    "业务上下文增强完成",
+                    message,
+                    agentBusinessContext == null ? null : agentBusinessContext.toString(),
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - contextStart
+            );
+
+            //4.优先处理确认/取消类指令。(用户回复确认预约和取消等不用走大模型)
+            long pendingStart = System.currentTimeMillis();
+
             reply = handlePendingAction(userId, message);
+
             if (reply != null) {
+                agentTraceService.addStep(
+                        "PENDING_ACTION",
+                        "命中确认/取消类指令",
+                        message,
+                        reply,
+                        "SUCCESS",
+                        null,
+                        System.currentTimeMillis() - pendingStart
+                );
+
                 saveChatRecord(userId, message, reply);
+
+                agentTraceService.addStep(
+                        "FINAL_REPLY",
+                        "返回确认/取消类指令结果",
+                        null,
+                        reply,
+                        "SUCCESS",
+                        null,
+                        0L
+                );
+
+                agentTraceService.finishSuccess(
+                        traceId,
+                        reply,
+                        System.currentTimeMillis() - traceStart
+                );
+
                 return reply;
             }
 
-            Long effectiveVenueId = contextEnhanceService.getEffectiveVenueId(agentChatDto, agentBusinessContext);
-            Long effectiveCourtId = contextEnhanceService.getEffectiveCourtId(agentChatDto, agentBusinessContext);
+            // 5. 获取有效场馆ID和场地ID。先查看前端是否传入,没有在解析用户本次输入结果,没有再Redis历史上下文
+            Long effectiveVenueId =
+                    contextEnhanceService.getEffectiveVenueId(agentChatDto, agentBusinessContext);
 
-            //尝试走直达路由,命中后不会请求大模型,优化模型速度压力
-            reply = agentDirectRouteService.tryHandle(userId, message, effectiveVenueId, effectiveCourtId);
+            Long effectiveCourtId =
+                    contextEnhanceService.getEffectiveCourtId(agentChatDto, agentBusinessContext);
+
+            //6.尝试走直达路由。命中后不请求大模型，减少模型调用成本和响应时间。
+            long directStart = System.currentTimeMillis();
+
+            reply = agentDirectRouteService.tryHandle(
+                    userId,
+                    message,
+                    effectiveVenueId,
+                    effectiveCourtId
+            );
+
             if (reply != null) {
+                agentTraceService.addStep(
+                        "DIRECT_ROUTE",
+                        "命中直达路由",
+                        "effectiveVenueId=" + effectiveVenueId + ", effectiveCourtId=" + effectiveCourtId + ", message=" + message,
+                        reply,
+                        "SUCCESS",
+                        null,
+                        System.currentTimeMillis() - directStart
+                );
+
                 saveChatRecord(userId, message, reply);
+
+                agentTraceService.addStep(
+                        "FINAL_REPLY",
+                        "返回直达路由结果",
+                        null,
+                        reply,
+                        "SUCCESS",
+                        null,
+                        0L
+                );
+
+                agentTraceService.finishSuccess(
+                        traceId,
+                        reply,
+                        System.currentTimeMillis() - traceStart
+                );
+
                 return reply;
             }
 
-            //2. 构造带业务上下文的 Agent 输入。上下文存在redis里面
+            //7. 构造带业务上下文的Agent输入。(这里会把Redis里的业务上下文拼到用户输入前面)
             String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext);
 
-            // 2. 走 LangChain4j agent
+            //8.调用LangChain4j Agent。
+            long llmStart = System.currentTimeMillis();
+
             reply = gymAgentAssistant.chat(userId, agentInput);
 
-            // 3. 落库
+            agentTraceService.addStep(
+                    "LLM_CALL",
+                    "调用 LangChain4j Agent 完成",
+                    agentInput,
+                    reply,
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - llmStart
+            );
+
+            //9.Agent调用完成后刷新业务上下文。
+            long refreshStart = System.currentTimeMillis();
+
+            contextEnhanceService.refreshAfterAgent(userId);
+
+            agentTraceService.addStep(
+                    "CONTEXT_REFRESH",
+                    "Agent 调用后刷新业务上下文",
+                    null,
+                    "refreshAfterAgent done",
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - refreshStart
+            );
+
+            //10.保存聊天记录。
             saveChatRecord(userId, message, reply);
+
+            //11.记录最终回复并结束Trace。
+            agentTraceService.addStep(
+                    "FINAL_REPLY",
+                    "返回最终回复",
+                    null,
+                    reply,
+                    "SUCCESS",
+                    null,
+                    0L
+            );
+
+            agentTraceService.finishSuccess(
+                    traceId,
+                    reply,
+                    System.currentTimeMillis() - traceStart
+            );
+
             return reply;
+
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -129,11 +272,36 @@ public class AgentServiceImpl implements AgentService {
                 reply = "AI服务异常，请稍后再试。";
             }
 
+            //异常也要保存聊天记录。
             saveChatRecord(userId, message, reply);
 
+            //异常也要写入 Trace。
+            try {
+                agentTraceService.addStep(
+                        "TRACE_FAILED",
+                        "Agent 调用异常",
+                        message,
+                        null,
+                        "FAILED",
+                        e.getMessage(),
+                        System.currentTimeMillis() - traceStart
+                );
+
+                agentTraceService.finishFailed(
+                        traceId,
+                        reply,
+                        e.getMessage(),
+                        System.currentTimeMillis() - traceStart
+                );
+            } catch (Exception traceException) {
+                //Trace 记录失败不能影响用户正常返回。
+                traceException.printStackTrace();
+            }
+
             return reply;
-        }finally {
-            //必须清理 ThreadLocal,Tomcat 线程会复用，如果不 clear,下一次请求可能读到上一次用户的 trace 信息。
+
+        } finally {
+            //必须清理ThreadLocal。
             AgentTraceContext.clear();
         }
     }

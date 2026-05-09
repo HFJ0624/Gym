@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sau.gym.admin.mapper.AgentTraceMapper">
+
+    <resultMap id="AgentTraceMap" type="com.sau.gym.admin.agent.model.AgentTrace">
+        <id property="id" column="id"/>
+        <result property="traceId" column="trace_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="userMessage" column="user_message"/>
+        <result property="finalReply" column="final_reply"/>
+        <result property="status" column="status"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="totalCostMs" column="total_cost_ms"/>
+        <result property="toolCount" column="tool_count"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <resultMap id="AgentTraceStepMap"
+               type="com.sau.gym.admin.agent.model.AgentTraceStep">
+        <id property="id" column="id"/>
+        <result property="traceId" column="trace_id"/>
+        <result property="stepType" column="step_type"/>
+        <result property="stepName" column="step_name"/>
+        <result property="inputData" column="input_data"/>
+        <result property="outputData" column="output_data"/>
+        <result property="status" column="status"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="costMs" column="cost_ms"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insertTrace" parameterType="com.sau.gym.admin.agent.model.AgentTrace"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO agent_trace (
+        trace_id,
+        user_id,
+        username,
+        user_message,
+        status,
+        total_cost_ms,
+        tool_count,
+        create_time,
+        update_time,
+        is_deleted
+        )
+        VALUES (
+        #{traceId},
+        #{userId},
+        #{username},
+        #{userMessage},
+        #{status},
+        0,
+        0,
+        NOW(),
+        NOW(),
+        0
+        )
+    </insert>
+
+    <insert id="insertStep"
+            parameterType="com.sau.gym.admin.agent.model.AgentTraceStep"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO agent_trace_step (
+        trace_id,
+        step_type,
+        step_name,
+        input_data,
+        output_data,
+        status,
+        error_message,
+        cost_ms,
+        sort_order,
+        create_time
+        )
+        VALUES (
+        #{traceId},
+        #{stepType},
+        #{stepName},
+        #{inputData},
+        #{outputData},
+        #{status},
+        #{errorMessage},
+        #{costMs},
+        #{sortOrder},
+        NOW()
+        )
+    </insert>
+
+    <update id="finishTrace">
+        UPDATE agent_trace
+        SET
+        final_reply = #{finalReply},
+        status = #{status},
+        error_message = #{errorMessage},
+        total_cost_ms = #{totalCostMs},
+        tool_count = #{toolCount},
+        update_time = NOW()
+        WHERE trace_id = #{traceId}
+        AND is_deleted = 0
+    </update>
+
+    <select id="selectTracePage" resultMap="AgentTraceMap">
+        SELECT
+        id,
+        trace_id,
+        user_id,
+        username,
+        user_message,
+        final_reply,
+        status,
+        error_message,
+        total_cost_ms,
+        tool_count,
+        create_time,
+        update_time,
+        is_deleted
+        FROM agent_trace
+        WHERE is_deleted = 0
+
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+
+        <if test="keyword != null and keyword != ''">
+            AND (
+            trace_id LIKE CONCAT('%', #{keyword}, '%')
+            OR username LIKE CONCAT('%', #{keyword}, '%')
+            OR user_message LIKE CONCAT('%', #{keyword}, '%')
+            OR final_reply LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectTraceByTraceId" resultMap="AgentTraceMap">
+        SELECT
+        id,
+        trace_id,
+        user_id,
+        username,
+        user_message,
+        final_reply,
+        status,
+        error_message,
+        total_cost_ms,
+        tool_count,
+        create_time,
+        update_time,
+        is_deleted
+        FROM agent_trace
+        WHERE trace_id = #{traceId}
+        AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectStepsByTraceId" resultMap="AgentTraceStepMap">
+        SELECT
+        id,
+        trace_id,
+        step_type,
+        step_name,
+        input_data,
+        output_data,
+        status,
+        error_message,
+        cost_ms,
+        sort_order,
+        create_time
+        FROM agent_trace_step
+        WHERE trace_id = #{traceId}
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="countToolSteps" resultType="int">
+        SELECT COUNT(1)
+        FROM agent_trace_step
+        WHERE trace_id = #{traceId}
+        AND step_type = 'TOOL_CALL'
+    </select>
+
+</mapper>

@@ -6,6 +6,9 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 
 
+/**
+ * 大模型提示词
+ */
 public interface GymAgentAssistant {
 
     /***

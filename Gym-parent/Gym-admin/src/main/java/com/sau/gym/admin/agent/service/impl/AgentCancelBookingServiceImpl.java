@@ -9,7 +9,6 @@ import com.sau.gym.admin.agent.util.AgentConfirmTokenUtil;
 import com.sau.gym.admin.mapper.BookingRefundRequestMapper;
 import com.sau.gym.admin.mapper.CourtBookingMapper;
 import com.sau.gym.admin.service.CourtBookingService;
-import com.sau.gym.model.entity.venue.BookingRefundRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -78,10 +77,7 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
 
             boolean cancelable = isCancelable(booking);
 
-            /*
-             * 第一版只展示可取消预约。
-             * 如果你想展示全部预约，可以把这个 if 去掉，然后在文本里标明状态。
-             */
+            //只展示可取消预约。
             if (!cancelable) {
                 continue;
             }
@@ -153,10 +149,7 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
         data.put("reason", finalReason);
         data.put("needRefund", needRefund);
 
-        /*
-         * 保存取消预约草稿到 Redis。
-         * 用户必须带确认码确认后，才会真正取消预约。
-         */
+        //保存取消预约草稿到 Redis。用户必须带确认码确认后，才会真正取消预约。
         draftStore.save(userId, new PendingDraft(
                 PendingDraftType.CANCEL_BOOKING,
                 data,
@@ -217,10 +210,7 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
             return "取消草稿数据异常：缺少预约ID。";
         }
 
-        /*
-         * 再查一次数据库。
-         * 不能完全相信 Redis 草稿，因为订单状态可能已经变化。
-         */
+        //再查一次数据库。不能完全相信 Redis 草稿，因为订单状态可能已经变化。
         AgentCancelableBookingVO booking = courtBookingMapper.selectAgentBookingDetail(userId, bookingId);
 
         if (booking == null) {
@@ -233,9 +223,7 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
             return "该预约当前已不能取消，订单状态：" + statusText(booking.getStatus()) + "。已清除取消草稿。";
         }
 
-        /*
-         * 更新预约状态为已取消。
-         */
+        //更新预约状态为已取消。
         int rows = courtBookingMapper.updateAgentCancelBooking(userId, bookingId, reason);
 
         if (rows <= 0) {
@@ -263,7 +251,6 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
 
     /**
      * 判断预约是否允许取消。
-     *
      * 第一版规则：
      * 1. 已取消不能取消
      * 2. 已完成不能取消
@@ -298,10 +285,6 @@ public class AgentCancelBookingServiceImpl implements AgentCancelBookingService 
 
         LocalDateTime bookingStart = LocalDateTime.of(bookingDate, startTime);
 
-        /*
-         * 如果预约已经开始，不允许通过 Agent 取消。
-         * 后续可以改成：开始前 2 小时才允许取消。
-         */
         return bookingStart.isAfter(LocalDateTime.now());
     }
 
