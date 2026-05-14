@@ -2,6 +2,7 @@ package com.sau.gym.admin.agent.service.impl;
 
 import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
 
+import com.sau.gym.admin.agent.security.AgentSafetyCheckResult;
 import com.sau.gym.admin.agent.trace.AgentTraceInfo;
 import com.sau.gym.admin.agent.memory.AgentBusinessContext;
 import com.sau.gym.admin.agent.service.*;
@@ -46,6 +47,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final AgentTraceService agentTraceService;
 
+    private final AgentSafetyService agentSafetyService;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -56,7 +59,8 @@ public class AgentServiceImpl implements AgentService {
                             AgentDirectRouteService agentDirectRouteService,
                             AgentContextEnhanceService contextEnhanceService,
                             AgentCancelBookingService agentCancelBookingService,
-                            AgentTraceService agentTraceService
+                            AgentTraceService agentTraceService,
+                            AgentSafetyService agentSafetyService
                             ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
@@ -68,6 +72,7 @@ public class AgentServiceImpl implements AgentService {
         this.contextEnhanceService = contextEnhanceService;
         this.agentCancelBookingService = agentCancelBookingService;
         this.agentTraceService = agentTraceService;
+        this.agentSafetyService = agentSafetyService;
     }
 
     @Override
@@ -106,7 +111,47 @@ public class AgentServiceImpl implements AgentService {
                     0L
             );
 
-            //3. 在处理本轮消息前，读取并更新业务上下文。
+            //3. 用户输入安全检查。主要防：提示词注入 越权请求 删除类危险请求 绕过确认流程
+            long safetyStart = System.currentTimeMillis();
+
+            AgentSafetyCheckResult safetyResult = agentSafetyService.checkUserMessage(userId, message);
+
+            if (!safetyResult.isAllowed()) {
+                reply = safetyResult.getReason();
+
+                agentTraceService.addStep(
+                        "SAFETY_CHECK",
+                        "用户输入安全检查未通过",
+                        message,
+                        reply,
+                        "FAILED",
+                        safetyResult.getReason(),
+                        System.currentTimeMillis() - safetyStart
+                );
+
+                saveChatRecord(userId, message, reply);
+
+                agentTraceService.finishFailed(
+                        traceId,
+                        reply,
+                        safetyResult.getReason(),
+                        System.currentTimeMillis() - traceStart
+                );
+
+                return reply;
+            }
+
+            agentTraceService.addStep(
+                    "SAFETY_CHECK",
+                    "用户输入安全检查通过",
+                    message,
+                    "allowed",
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - safetyStart
+            );
+
+            //4. 在处理本轮消息前，读取并更新业务上下文。
             long contextStart = System.currentTimeMillis();
 
             AgentBusinessContext agentBusinessContext =
@@ -122,7 +167,7 @@ public class AgentServiceImpl implements AgentService {
                     System.currentTimeMillis() - contextStart
             );
 
-            //4.优先处理确认/取消类指令。(用户回复确认预约和取消等不用走大模型)
+            //5.优先处理确认/取消类指令。(用户回复确认预约和取消等不用走大模型)
             long pendingStart = System.currentTimeMillis();
 
             reply = handlePendingAction(userId, message);
@@ -159,14 +204,14 @@ public class AgentServiceImpl implements AgentService {
                 return reply;
             }
 
-            // 5. 获取有效场馆ID和场地ID。先查看前端是否传入,没有在解析用户本次输入结果,没有再Redis历史上下文
+            // 6. 获取有效场馆ID和场地ID。先查看前端是否传入,没有在解析用户本次输入结果,没有再Redis历史上下文
             Long effectiveVenueId =
                     contextEnhanceService.getEffectiveVenueId(agentChatDto, agentBusinessContext);
 
             Long effectiveCourtId =
                     contextEnhanceService.getEffectiveCourtId(agentChatDto, agentBusinessContext);
 
-            //6.尝试走直达路由。命中后不请求大模型，减少模型调用成本和响应时间。
+            //7.尝试走直达路由。命中后不请求大模型，减少模型调用成本和响应时间。
             long directStart = System.currentTimeMillis();
 
             reply = agentDirectRouteService.tryHandle(
@@ -208,10 +253,10 @@ public class AgentServiceImpl implements AgentService {
                 return reply;
             }
 
-            //7. 构造带业务上下文的Agent输入。(这里会把Redis里的业务上下文拼到用户输入前面)
+            //8. 构造带业务上下文的Agent输入。(这里会把Redis里的业务上下文拼到用户输入前面)
             String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext);
 
-            //8.调用LangChain4j Agent。
+            //9.调用LangChain4j Agent。
             long llmStart = System.currentTimeMillis();
 
             reply = gymAgentAssistant.chat(userId, agentInput);
@@ -226,7 +271,7 @@ public class AgentServiceImpl implements AgentService {
                     System.currentTimeMillis() - llmStart
             );
 
-            //9.Agent调用完成后刷新业务上下文。
+            //10.Agent调用完成后刷新业务上下文。
             long refreshStart = System.currentTimeMillis();
 
             contextEnhanceService.refreshAfterAgent(userId);
@@ -241,10 +286,10 @@ public class AgentServiceImpl implements AgentService {
                     System.currentTimeMillis() - refreshStart
             );
 
-            //10.保存聊天记录。
+            //11.保存聊天记录。
             saveChatRecord(userId, message, reply);
 
-            //11.记录最终回复并结束Trace。
+            //12.记录最终回复并结束Trace。
             agentTraceService.addStep(
                     "FINAL_REPLY",
                     "返回最终回复",

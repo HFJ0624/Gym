@@ -1,5 +1,8 @@
 package com.sau.gym.admin.agent.tool;
 
+
+import com.sau.gym.admin.agent.service.AgentToolGuardService;
+import com.sau.gym.admin.enums.AgentRiskLevel;
 import com.sau.gym.admin.mapper.NoticeMapper;
 import com.sau.gym.admin.mapper.VenueMapper;
 import com.sau.gym.model.entity.notice.Notice;
@@ -22,9 +25,14 @@ public class GymQueryTools {
     private final VenueMapper venueMapper;
     private final NoticeMapper noticeMapper;
 
-    public GymQueryTools(VenueMapper venueMapper, NoticeMapper noticeMapper) {
+    private final AgentToolGuardService agentToolGuardService;
+
+    public GymQueryTools(VenueMapper venueMapper, NoticeMapper noticeMapper,
+                         AgentToolGuardService agentToolGuardService
+    ) {
         this.venueMapper = venueMapper;
         this.noticeMapper = noticeMapper;
+        this.agentToolGuardService = agentToolGuardService;
     }
 
     /***
@@ -35,6 +43,20 @@ public class GymQueryTools {
      */
     @Tool("查询场馆列表。可以按场馆关键词模糊匹配，返回场馆名称和地址。")
     public String queryVenues(@P(value = "场馆关键词，可为空", required = false) String keyword) {
+        //工具调用前风控检查。
+        String blocked = agentToolGuardService.checkBeforeToolCall(
+                null,
+                "query_venue_list",
+                "查询场馆列表",
+                AgentRiskLevel.LOW,
+                false,
+                false,
+                0
+        );
+        if (blocked != null) {
+            return blocked;
+        }
+
         List<Venue> venueList = venueMapper.findAllVenue();
 
         // 如果用户给了关键词，就做简单过滤
@@ -69,6 +91,20 @@ public class GymQueryTools {
      */
     @Tool("查询最新公告，返回最近若干条公告标题和内容。")
     public String queryNotices() {
+        //工具调用前风控检查。
+        String blocked = agentToolGuardService.checkBeforeToolCall(
+                null,
+                "query_notice_list",
+                "查询最新公告",
+                AgentRiskLevel.LOW,
+                false,
+                false,
+                0
+        );
+        if (blocked != null) {
+            return blocked;
+        }
+
         List<Notice> noticeList = noticeMapper.findAllNotice();
         if (noticeList == null || noticeList.isEmpty()) {
             return "当前没有公告。";

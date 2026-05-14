@@ -20,9 +20,9 @@
 
     <update id="Recharge">
         update user_balance
-        set balance = balance + #{amount},
+        set balance = balance + #{userBalanceDto.amount},
             update_time = #{date}
-        where user_id = #{userId}
+        where user_id = #{userBalanceDto.userId}
     </update>
 
     <update id="updateBalance">

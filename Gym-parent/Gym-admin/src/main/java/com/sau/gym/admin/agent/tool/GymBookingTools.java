@@ -1,9 +1,11 @@
 package com.sau.gym.admin.agent.tool;
 
+import com.sau.gym.admin.agent.service.AgentToolGuardService;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
 import com.sau.gym.admin.agent.store.PendingDraftType;
 import com.sau.gym.admin.agent.util.AgentToolLogHelper;
+import com.sau.gym.admin.enums.AgentRiskLevel;
 import com.sau.gym.admin.mapper.CourtBookingMapper;
 import com.sau.gym.admin.mapper.CourtMapper;
 import com.sau.gym.admin.mapper.VenueMapper;
@@ -48,18 +50,23 @@ public class GymBookingTools {
     private final AgentDraftStore draftStore;
     private final AgentToolLogHelper agentToolLogHelper;
 
+    private final AgentToolGuardService agentToolGuardService;
+
     public GymBookingTools(VenueMapper venueMapper,
                            CourtMapper courtMapper,
                            CourtBookingMapper courtBookingMapper,
                            CourtBookingService courtBookingService,
                            AgentDraftStore draftStore,
-                           AgentToolLogHelper agentToolLogHelper) {
+                           AgentToolLogHelper agentToolLogHelper,
+                           AgentToolGuardService agentToolGuardService
+                           ) {
         this.venueMapper = venueMapper;
         this.courtMapper = courtMapper;
         this.courtBookingMapper = courtBookingMapper;
         this.courtBookingService = courtBookingService;
         this.draftStore = draftStore;
         this.agentToolLogHelper = agentToolLogHelper;
+        this.agentToolGuardService = agentToolGuardService;
     }
 
     //根据当前页面的场馆ID和场地ID生成预约草稿。
@@ -72,6 +79,21 @@ public class GymBookingTools {
             @P("结束时间，格式必须是 HH:mm:ss，例如 20:00:00") String endTime,
             @ToolMemoryId Long userId
     ) {
+        //工具调用前风控检查。
+        String blocked = agentToolGuardService.checkBeforeToolCall(
+                userId,
+                "create_booking_draft",
+                "生成预约草稿",
+                AgentRiskLevel.MEDIUM,
+                true,
+                false,
+                3
+        );
+
+        if (blocked != null) {
+            return blocked;
+        }
+
         long begin = System.currentTimeMillis();
 
         //记录工具入参

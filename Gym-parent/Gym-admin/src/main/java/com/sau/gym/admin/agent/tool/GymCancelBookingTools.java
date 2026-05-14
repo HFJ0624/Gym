@@ -1,6 +1,8 @@
 package com.sau.gym.admin.agent.tool;
 
 import com.sau.gym.admin.agent.service.AgentCancelBookingService;
+import com.sau.gym.admin.agent.service.AgentToolGuardService;
+import com.sau.gym.admin.enums.AgentRiskLevel;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
@@ -16,8 +18,14 @@ public class GymCancelBookingTools {
 
     private final AgentCancelBookingService cancelBookingService;
 
-    public GymCancelBookingTools(AgentCancelBookingService cancelBookingService) {
+    private final AgentToolGuardService agentToolGuardService;
+
+    public GymCancelBookingTools(AgentCancelBookingService cancelBookingService,
+                                 AgentToolGuardService agentToolGuardService
+
+    ) {
         this.cancelBookingService = cancelBookingService;
+        this.agentToolGuardService = agentToolGuardService;
     }
 
     /**
@@ -25,6 +33,21 @@ public class GymCancelBookingTools {
      */
     @Tool("查询当前登录用户的可取消预约列表。当用户说“我要取消预约”“我的哪些预约可以取消”“查询可取消预约”时使用。")
     public String queryMyCancelableBookings(@ToolMemoryId Long userId) {
+        //工具调用前风控检查。
+        String blocked = agentToolGuardService.checkBeforeToolCall(
+                userId,
+                "query_cancelable_booking",
+                "查询可取消预约",
+                AgentRiskLevel.LOW,
+                true,
+                false,
+                3
+        );
+
+        if (blocked != null) {
+            return blocked;
+        }
+
         return cancelBookingService.queryCancelableBookings(userId);
     }
 
@@ -39,6 +62,21 @@ public class GymCancelBookingTools {
             @P("取消原因，如果用户没有说明，可以填：用户通过Agent取消预约") String reason,
             @ToolMemoryId Long userId
     ) {
+        //工具调用前风控检查。
+        String blocked = agentToolGuardService.checkBeforeToolCall(
+                userId,
+                "create_cancel_booking_draft",
+                "生成取消预约草稿",
+                AgentRiskLevel.MEDIUM,
+                true,
+                false,
+                3
+        );
+
+        if (blocked != null) {
+            return blocked;
+        }
+
         return cancelBookingService.createCancelBookingDraft(userId, bookingId, reason);
     }
 }

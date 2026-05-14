@@ -1,6 +1,8 @@
 package com.sau.gym.admin.agent.tool;
 
 import com.alibaba.fastjson.JSON;
+import com.sau.gym.admin.agent.service.AgentToolGuardService;
+import com.sau.gym.admin.enums.AgentRiskLevel;
 import com.sau.gym.admin.rag.service.RagQaService;
 import com.sau.gym.model.dto.rag.RagAskDto;
 import com.sau.gym.model.vo.rag.RagAnswerVO;
@@ -29,9 +31,12 @@ import org.springframework.stereotype.Component;
 public class GymRagTools {
 
     private final RagQaService ragQaService;
+    private final AgentToolGuardService agentToolGuardService;
 
-    public GymRagTools(RagQaService ragQaService) {
+    public GymRagTools(RagQaService ragQaService,
+                       AgentToolGuardService agentToolGuardService) {
         this.ragQaService = ragQaService;
+        this.agentToolGuardService = agentToolGuardService;
     }
 
     /**
@@ -48,6 +53,20 @@ public class GymRagTools {
             @P(value = "场馆ID，可为空。如果用户问题涉及某个具体场馆，应传入该场馆ID", required = false) Long venueId,
             @P(value = "场地ID，可为空。如果用户问题涉及某个具体场地，应传入该场地ID", required = false) Long courtId
     ) {
+        //工具调用前风控检查。
+        String blocked = agentToolGuardService.checkBeforeToolCall(
+                null,
+                "rag_qa",
+                "RAG知识库问答",
+                AgentRiskLevel.LOW,
+                false,
+                false,
+                1
+        );
+        if (blocked != null) {
+            return blocked;
+        }
+
         RagAskDto dto = new RagAskDto();
 
         // 用户问题
