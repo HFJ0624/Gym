@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.5</version>
+        <version>3.5.4</version>
     </parent>
 
     <groupId>com.sau</groupId>
@@ -29,7 +29,7 @@
         <mysql.verison>8.0.30</mysql.verison>
         <fastjson.version>2.0.21</fastjson.version>
         <lombok.version>1.18.20</lombok.version>
-        <mybatis.version>3.0.1</mybatis.version>
+        <mybatis.version>3.0.3</mybatis.version>
         <cloud.version>2022.0.2</cloud.version>
         <alibaba.version>2022.0.0.0-RC2</alibaba.version>
         <alipay.version>4.8.73.ALL</alipay.version>
@@ -49,7 +49,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql.version}</version>
+                <version>${mysql.verison}</version>
             </dependency>
 
             <!--fastjson-->
