@@ -1,29 +1,17 @@
 const Layout = () => import('@/layout/index.vue')
-const rag = () => import('@/views/ai/rag.vue')
-const agentToolLog = () => import('@/views/ai/agentToolLog.vue')
-const agentTrace = () => import('@/views/ai/agentTrace.vue')
-const ragEval = () => import('@/views/ai/ragEval.vue')
+const agentToolLog = () => import('@/views/agent/agentToolLog.vue')
+const agentTrace = () => import('@/views/agent/agentTrace.vue')
 
 export default [
     {
-        path: '/ai',
+        path: '/agentLog',
         component: Layout,
-        name: 'ai',
+        name: 'agentLog',
         meta: {
-            title: 'AI应用',
+            title: 'agent调用日志',
         },
         icon: 'Location',
         children: [
-            {
-                path: '/rag',
-                name: 'rag',
-                component: rag,
-                meta: {
-                    title: '场馆知识库问答',
-                },
-                icon: 'Message',
-                hidden: false
-            },
             {
                 path: '/toolLog',
                 name: 'toolLog',
@@ -40,16 +28,6 @@ export default [
                 component: agentTrace,
                 meta: {
                     title: 'agent调用链',
-                },
-                icon: 'Message',
-                hidden: false
-            },
-            {
-                path: '/ragEval',
-                name: 'ragEval',   
-                component: ragEval,
-                meta: {
-                    title: 'rag评估',
                 },
                 icon: 'Message',
                 hidden: false

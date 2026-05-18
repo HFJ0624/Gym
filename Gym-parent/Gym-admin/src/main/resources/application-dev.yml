@@ -49,7 +49,6 @@ gym:
       - /admin/system/index/sendCode/**
       - /admin/system/index/sendEmail
       - /front/agent/chat
-      - /admin/agent/mcp/** # 测试
       # 新增 Swagger 相关路径
       - /swagger-ui.html
       - /swagger-ui/**
