@@ -32,6 +32,11 @@ public class StockCheckTask {
 
         List<Beverage> beverageList = beverageService.findStock();
 
+        if (beverageList == null){
+            log.info("=== 未查到库存不足的商品 ===");
+            return;
+        }
+
         try {
             // 2.发送商品不足邮件
             StringBuilder content = new StringBuilder();

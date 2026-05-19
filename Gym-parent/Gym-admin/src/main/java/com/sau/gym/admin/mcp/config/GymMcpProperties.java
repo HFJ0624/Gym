@@ -63,4 +63,9 @@ public class GymMcpProperties {
      * 是否记录 MCP 响应日志。
      */
     private Boolean logResponses = false;
+
+    /**
+     * 是文件系统 MCP 允许读取的文档根目录。
+     */
+    private String docsRoot;
 }

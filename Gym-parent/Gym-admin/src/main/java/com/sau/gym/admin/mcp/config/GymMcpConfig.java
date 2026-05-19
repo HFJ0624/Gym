@@ -50,14 +50,7 @@ public class GymMcpConfig {
         command.addAll(properties.getArgs());
 
         return StdioMcpTransport.builder()
-                .command(List.of(
-                        "cmd.exe",
-                        "/c",
-                        "npx.cmd",
-                        "-y",
-                        "@modelcontextprotocol/server-filesystem",
-                        "D:\\workspace\\Gym"
-                ))
+                .command(command)
                 .logEvents(Boolean.TRUE.equals(properties.getLogRequests()))
                 .build();
     }
