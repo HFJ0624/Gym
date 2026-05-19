@@ -1,6 +1,8 @@
 package com.sau.gym.admin.mcp.config;
 
 import com.sau.gym.admin.mcp.assistant.GymMcpAssistant;
+import com.sau.gym.admin.mcp.assistant.GymMcpFileDraftAssistant;
+import com.sau.gym.admin.mcp.assistant.GymMcpWriteAssistant;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -11,6 +13,7 @@ import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.tool.ToolProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -74,7 +77,7 @@ public class GymMcpConfig {
      * 创建 MCP ToolProvider。
      * 必须做工具白名单过滤。
      */
-    @Bean
+    @Bean("mcpReadToolProvider")
     public ToolProvider gymMcpToolProvider(McpClient gymMcpClient,
                                            GymMcpProperties properties) {
         McpToolProvider.Builder builder = McpToolProvider.builder()
@@ -88,17 +91,59 @@ public class GymMcpConfig {
     }
 
     /**
-     * 创建 MCP 专用 Assistant。
-     * MCP 工具由 McpToolProvider 动态提供。
+     * 写入 MCP ToolProvider。
+     */
+    @Bean("mcpWriteToolProvider")
+    public ToolProvider mcpWriteToolProvider(McpClient gymMcpClient,
+                                             GymMcpProperties properties) {
+        McpToolProvider.Builder builder = McpToolProvider.builder()
+                .mcpClients(gymMcpClient);
+
+        if (properties.getWriteTools() != null && !properties.getWriteTools().isEmpty()) {
+            builder.filterToolNames(properties.getWriteTools().toArray(new String[0]));
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * 创建后台 MCP 文件文档助手。
+     * 只绑定只读 MCP 工具。
      */
     @Bean
     public GymMcpAssistant gymMcpAssistant(ChatModel gymChatModel,
                                            ChatMemoryProvider gymChatMemoryProvider,
-                                           ToolProvider gymMcpToolProvider) {
+                                           @Qualifier("mcpReadToolProvider")ToolProvider gymMcpToolProvider) {
         return AiServices.builder(GymMcpAssistant.class)
                 .chatModel(gymChatModel)
                 .chatMemoryProvider(gymChatMemoryProvider)
                 .toolProvider(gymMcpToolProvider)
+                .build();
+    }
+
+    /**
+     * 创建 MCP 文件写入助手。
+     */
+    @Bean
+    public GymMcpWriteAssistant gymMcpWriteAssistant(ChatModel gymChatModel,
+                                                     ChatMemoryProvider gymChatMemoryProvider,
+                                                     @Qualifier("mcpWriteToolProvider") ToolProvider mcpWriteToolProvider) {
+        return AiServices.builder(GymMcpWriteAssistant.class)
+                .chatModel(gymChatModel)
+                .chatMemoryProvider(gymChatMemoryProvider)
+                .toolProvider(mcpWriteToolProvider)
+                .build();
+    }
+
+    /**
+     * 创建文件内容草稿生成助手。
+     * 这个助手不绑定 MCP 工具。
+     * 只负责根据管理员提示词生成文件内容。
+     */
+    @Bean
+    public GymMcpFileDraftAssistant gymMcpFileDraftAssistant(ChatModel gymChatModel) {
+        return AiServices.builder(GymMcpFileDraftAssistant.class)
+                .chatModel(gymChatModel)
                 .build();
     }
 }

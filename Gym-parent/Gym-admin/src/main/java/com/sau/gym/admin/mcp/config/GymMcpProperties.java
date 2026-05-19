@@ -68,4 +68,10 @@ public class GymMcpProperties {
      * 是文件系统 MCP 允许读取的文档根目录。
      */
     private String docsRoot;
+
+
+    /**
+     * 写入类 MCP 工具白名单。
+     */
+    private List<String> writeTools = new ArrayList<>();
 }

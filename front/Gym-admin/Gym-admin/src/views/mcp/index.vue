@@ -16,31 +16,6 @@
         </div>
       </template>
 
-      <!-- 说明区域 -->
-      <el-alert
-        title="当前页面用于后台 MCP Agent 测试。建议第一版只使用只读工具，不执行删除、提交、修改配置等高风险操作。"
-        type="warning"
-        show-icon
-        :closable="false"
-        class="top-alert"
-      />
-
-      <!-- 快捷测试问题 -->
-      <div class="quick-area">
-        <div class="quick-title">快捷测试</div>
-
-        <el-space wrap>
-          <el-button
-            v-for="item in quickQuestions"
-            :key="item"
-            size="small"
-            @click="useQuickQuestion(item)"
-          >
-            {{ item }}
-          </el-button>
-        </el-space>
-      </div>
-
       <!-- 对话区域 -->
       <div class="chat-box" ref="chatBoxRef">
         <div
@@ -70,7 +45,7 @@
           v-model="inputMessage"
           type="textarea"
           :rows="3"
-          placeholder="请输入 MCP 测试问题，例如：请调用 echo 工具返回 hello gym"
+          placeholder="请输入MCP问题"
           @keydown.enter.exact.prevent="sendMessage"
         />
 

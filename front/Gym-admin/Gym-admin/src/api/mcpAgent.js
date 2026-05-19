@@ -7,6 +7,7 @@ export function chatWithMcpAgent(data) {
     return request({
         url: '/admin/agent/mcp/chat',
         method: 'post',
-        data
+        data,
+        timeout: 60000
     })
 }
