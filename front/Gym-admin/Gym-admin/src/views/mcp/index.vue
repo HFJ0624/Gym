@@ -44,7 +44,7 @@
         <el-input
           v-model="inputMessage"
           type="textarea"
-          :rows="3"
+          :rows="10"
           placeholder="请输入MCP问题"
           @keydown.enter.exact.prevent="sendMessage"
         />
