@@ -2,6 +2,7 @@ package com.sau.gym.admin.agent.tool;
 
 import com.alibaba.fastjson.JSON;
 import com.sau.gym.admin.agent.service.AgentToolGuardService;
+import com.sau.gym.admin.agent.util.AgentUserContext;
 import com.sau.gym.admin.enums.AgentRiskLevel;
 import com.sau.gym.admin.rag.service.RagQaService;
 import com.sau.gym.model.dto.rag.RagAskDto;
@@ -53,15 +54,18 @@ public class GymRagTools {
             @P(value = "场馆ID，可为空。如果用户问题涉及某个具体场馆，应传入该场馆ID", required = false) Long venueId,
             @P(value = "场地ID，可为空。如果用户问题涉及某个具体场地，应传入该场地ID", required = false) Long courtId
     ) {
+        //从当前 Agent 线程上下文中获取 userId。
+        Long userId = AgentUserContext.getUserId();
+
         //工具调用前风控检查。
         String blocked = agentToolGuardService.checkBeforeToolCall(
-                null,
+                userId,
                 "rag_qa",
                 "RAG知识库问答",
                 AgentRiskLevel.LOW,
                 false,
                 false,
-                1
+                3
         );
         if (blocked != null) {
             return blocked;

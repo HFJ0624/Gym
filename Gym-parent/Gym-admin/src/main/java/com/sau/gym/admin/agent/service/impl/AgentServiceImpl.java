@@ -1,7 +1,11 @@
 package com.sau.gym.admin.agent.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
 
+import com.sau.gym.admin.agent.intent.GymIntentRouter;
+import com.sau.gym.admin.agent.intent.IntentRouteRequest;
+import com.sau.gym.admin.agent.intent.IntentRouteResult;
 import com.sau.gym.admin.agent.security.AgentSafetyCheckResult;
 import com.sau.gym.admin.agent.trace.AgentTraceInfo;
 import com.sau.gym.admin.agent.memory.AgentBusinessContext;
@@ -10,6 +14,7 @@ import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.tool.GymBookingTools;
 import com.sau.gym.admin.agent.tool.GymShoppingTools;
 import com.sau.gym.admin.agent.trace.AgentTraceContext;
+import com.sau.gym.admin.agent.util.AgentUserContext;
 import com.sau.gym.admin.mapper.ChatRecordMapper;
 import com.sau.gym.admin.mapper.UserMapper;
 import com.sau.gym.model.dto.agent.AgentChatDto;
@@ -49,6 +54,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final AgentSafetyService agentSafetyService;
 
+    private final GymIntentRouter gymIntentRouter;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -60,7 +67,8 @@ public class AgentServiceImpl implements AgentService {
                             AgentContextEnhanceService contextEnhanceService,
                             AgentCancelBookingService agentCancelBookingService,
                             AgentTraceService agentTraceService,
-                            AgentSafetyService agentSafetyService
+                            AgentSafetyService agentSafetyService,
+                            GymIntentRouter gymIntentRouter
                             ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
@@ -73,6 +81,7 @@ public class AgentServiceImpl implements AgentService {
         this.agentCancelBookingService = agentCancelBookingService;
         this.agentTraceService = agentTraceService;
         this.agentSafetyService = agentSafetyService;
+        this.gymIntentRouter = gymIntentRouter;
     }
 
     @Override
@@ -97,6 +106,9 @@ public class AgentServiceImpl implements AgentService {
 
             //1.设置当前线程Trace上下文。
             AgentTraceContext.set(new AgentTraceInfo(traceId, userId, message));
+
+            //设置当前线程用户上下文。
+            AgentUserContext.setUserId(userId);
 
             //2. 创建agent_trace主记录。
             agentTraceService.startTrace(traceId, userId, null, message);
@@ -205,13 +217,61 @@ public class AgentServiceImpl implements AgentService {
             }
 
             // 6. 获取有效场馆ID和场地ID。先查看前端是否传入,没有在解析用户本次输入结果,没有再Redis历史上下文
-            Long effectiveVenueId =
-                    contextEnhanceService.getEffectiveVenueId(agentChatDto, agentBusinessContext);
+            Long effectiveVenueId = contextEnhanceService.getEffectiveVenueId(agentChatDto, agentBusinessContext);
 
-            Long effectiveCourtId =
-                    contextEnhanceService.getEffectiveCourtId(agentChatDto, agentBusinessContext);
+            Long effectiveCourtId = contextEnhanceService.getEffectiveCourtId(agentChatDto, agentBusinessContext);
 
-            //7.尝试走直达路由。命中后不请求大模型，减少模型调用成本和响应时间。
+            //7.意图识别
+            //在真正调用大模型之前，先判断用户这一轮是预约、取消、查询场馆、查规则还是闲聊。这样后续可以减少大模型误调用工具的问题。
+            long intentStart = System.currentTimeMillis();
+
+            IntentRouteRequest intentRouteRequest = new IntentRouteRequest();
+            intentRouteRequest.setUserId(userId);
+            intentRouteRequest.setMessage(message);
+            intentRouteRequest.setEffectiveVenueId(effectiveVenueId);
+            intentRouteRequest.setEffectiveCourtId(effectiveCourtId);
+            intentRouteRequest.setBusinessContext(agentBusinessContext);
+
+            IntentRouteResult intentRouteResult = gymIntentRouter.route(intentRouteRequest);
+
+            // 把意图识别结果写入 Trace，方便后台排查。
+            agentTraceService.addStep(
+                    "INTENT_ROUTE",
+                    "用户意图识别完成",
+                    message,
+                    JSON.toJSONString(intentRouteResult),
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - intentStart
+            );
+
+            // 如果意图识别认为必须先追问，则直接返回，不调用大模型。
+            // 示例: 用户只说“帮我预约一下”，但没有场馆、场地、时间等信息。
+            if (intentRouteResult.isNeedClarify()) {
+                reply = intentRouteResult.getClarifyQuestion();
+
+                saveChatRecord(userId, message, reply);
+
+                agentTraceService.addStep(
+                        "INTENT_CLARIFY",
+                        "意图识别发现信息不足，直接追问用户",
+                        message,
+                        reply,
+                        "SUCCESS",
+                        null,
+                        0L
+                );
+
+                agentTraceService.finishSuccess(
+                        traceId,
+                        reply,
+                        System.currentTimeMillis() - traceStart
+                );
+
+                return reply;
+            }
+
+            //8.尝试走直达路由。命中后不请求大模型，减少模型调用成本和响应时间。
             long directStart = System.currentTimeMillis();
 
             reply = agentDirectRouteService.tryHandle(
@@ -253,10 +313,10 @@ public class AgentServiceImpl implements AgentService {
                 return reply;
             }
 
-            //8. 构造带业务上下文的Agent输入。(这里会把Redis里的业务上下文拼到用户输入前面)
-            String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext);
+            //9. 构造带业务上下文的Agent输入。(这里会把Redis里的业务上下文拼到用户输入前面)
+            String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext,intentRouteResult);
 
-            //9.调用LangChain4j Agent。
+            //10.调用LangChain4j Agent。
             long llmStart = System.currentTimeMillis();
 
             reply = gymAgentAssistant.chat(userId, agentInput);
@@ -271,7 +331,7 @@ public class AgentServiceImpl implements AgentService {
                     System.currentTimeMillis() - llmStart
             );
 
-            //10.Agent调用完成后刷新业务上下文。
+            //11.Agent调用完成后刷新业务上下文。
             long refreshStart = System.currentTimeMillis();
 
             contextEnhanceService.refreshAfterAgent(userId);
@@ -286,10 +346,10 @@ public class AgentServiceImpl implements AgentService {
                     System.currentTimeMillis() - refreshStart
             );
 
-            //11.保存聊天记录。
+            //12.保存聊天记录。
             saveChatRecord(userId, message, reply);
 
-            //12.记录最终回复并结束Trace。
+            //13.记录最终回复并结束Trace。
             agentTraceService.addStep(
                     "FINAL_REPLY",
                     "返回最终回复",
@@ -348,6 +408,7 @@ public class AgentServiceImpl implements AgentService {
         } finally {
             //必须清理ThreadLocal。
             AgentTraceContext.clear();
+            AgentUserContext.clear();
         }
     }
 
@@ -487,17 +548,21 @@ public class AgentServiceImpl implements AgentService {
      */
     private String buildAgentInput(String userMessage,
                                    AgentChatDto agentChatDto,
-                                   AgentBusinessContext businessContext) {
+                                   AgentBusinessContext businessContext,
+                                   IntentRouteResult intentRouteResult) {
         StringBuilder builder = new StringBuilder();
 
-        //Redis 业务上下文。
+        // 1. Redis 业务上下文。
+        // 这里会包含最近场馆、最近场地、最近预约日期、最近时间段等信息。
         String contextPrompt = contextEnhanceService.buildContextPrompt(businessContext);
         if (contextPrompt != null && !contextPrompt.trim().isEmpty()) {
             builder.append(contextPrompt).append("\n");
         }
 
-        //当前页面上下文。这个上下文来自前端本次请求。例如用户正在某个场馆详情页聊天，前端就可以传 venueId。
-        builder.append("【当前页面上下文】\n");
+        // 2. 当前页面上下文。
+        // 这个上下文来自前端本次请求。
+        // 例如用户正在某个场馆详情页聊天，前端就可以传 venueId。
+        builder.append("〖当前页面上下文〗\n");
 
         if (agentChatDto != null && agentChatDto.getVenueId() != null) {
             builder.append("当前页面场馆ID：")
@@ -527,17 +592,31 @@ public class AgentServiceImpl implements AgentService {
                     .append("\n");
         }
 
-        //用户原始问题。
-        builder.append("\n【用户问题】\n")
+        // 3. 意图识别结果。
+        // 这是本次新增的关键部分。
+        // 注意: 这不是让模型完全服从规则，而是作为强提示辅助模型选择工具。
+        if (intentRouteResult != null && intentRouteResult.getRoutePrompt() != null) {
+            builder.append("\n")
+                    .append(intentRouteResult.getRoutePrompt())
+                    .append("\n");
+        }
+
+        // 4. 用户原始问题。
+        builder.append("\n〖用户问题〗\n")
                 .append(userMessage)
                 .append("\n");
 
-        //强约束规则。这里要再次提醒模型：上下文不代表可以编造结果。预约动作必须走工具和后端 Service。
-        builder.append("\n【处理要求】\n")
+        // 5. 强约束规则。
+        // 这里要再次提醒模型:
+        // 上下文不代表可以编造结果。
+        // 预约、下单、取消等动作必须走工具和后端 Service。
+        builder.append("\n〖处理要求〗\n")
                 .append("1. 如果用户说“这个场馆”“这个场地”“这里”“刚才那个”，优先结合业务上下文和页面上下文。\n")
-                .append("2. 如果上下文中已有场馆ID、场地ID、日期、开始时间、结束时间，可以用于生成预约草稿。\n")
-                .append("3. 如果缺少必要信息，不要编造，应继续追问用户。\n")
-                .append("4. 涉及预约、下单等真实业务动作，必须调用工具，不允许直接声称操作成功。\n");
+                .append("2. 如果意图识别结果明确为 BOOKING_DRAFT，应优先生成预约草稿，不允许直接声称预约成功。\n")
+                .append("3. 如果意图识别结果明确为 RAG_KNOWLEDGE，应优先调用知识库工具回答规则、公告、设施、停车、退款等问题。\n")
+                .append("4. 如果意图识别结果明确为 BOOKING_CANCEL，应走取消预约流程，并且取消前必须让用户确认。\n")
+                .append("5. 如果缺少必要信息，不要编造，应继续追问用户。\n")
+                .append("6. 涉及预约、下单等真实业务动作，必须调用工具，不允许直接声称操作成功。\n");
 
         return builder.toString();
     }
