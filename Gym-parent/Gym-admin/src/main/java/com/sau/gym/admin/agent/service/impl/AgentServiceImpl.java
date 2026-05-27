@@ -6,6 +6,9 @@ import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
 import com.sau.gym.admin.agent.intent.GymIntentRouter;
 import com.sau.gym.admin.agent.intent.IntentRouteRequest;
 import com.sau.gym.admin.agent.intent.IntentRouteResult;
+import com.sau.gym.admin.agent.rewrite.QuestionRewriteRequest;
+import com.sau.gym.admin.agent.rewrite.QuestionRewriteResult;
+import com.sau.gym.admin.agent.rewrite.service.QuestionRewriteService;
 import com.sau.gym.admin.agent.security.AgentSafetyCheckResult;
 import com.sau.gym.admin.agent.trace.AgentTraceInfo;
 import com.sau.gym.admin.agent.memory.AgentBusinessContext;
@@ -56,6 +59,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final GymIntentRouter gymIntentRouter;
 
+    private final QuestionRewriteService questionRewriteService;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -68,7 +73,8 @@ public class AgentServiceImpl implements AgentService {
                             AgentCancelBookingService agentCancelBookingService,
                             AgentTraceService agentTraceService,
                             AgentSafetyService agentSafetyService,
-                            GymIntentRouter gymIntentRouter
+                            GymIntentRouter gymIntentRouter,
+                            QuestionRewriteService questionRewriteService
                             ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
@@ -82,6 +88,7 @@ public class AgentServiceImpl implements AgentService {
         this.agentTraceService = agentTraceService;
         this.agentSafetyService = agentSafetyService;
         this.gymIntentRouter = gymIntentRouter;
+        this.questionRewriteService = questionRewriteService;
     }
 
     @Override
@@ -271,12 +278,49 @@ public class AgentServiceImpl implements AgentService {
                 return reply;
             }
 
+            //8.问题重写
+            long rewriteStart = System.currentTimeMillis();
+
+            QuestionRewriteRequest rewriteRequest = new QuestionRewriteRequest();
+            rewriteRequest.setUserId(userId);
+            rewriteRequest.setOriginalQuestion(message);
+            rewriteRequest.setIntentRouteResult(intentRouteResult);
+            rewriteRequest.setEffectiveVenueId(effectiveVenueId);
+            rewriteRequest.setEffectiveCourtId(effectiveCourtId);
+            rewriteRequest.setBusinessContext(agentBusinessContext);
+            rewriteRequest.setAgentChatDto(agentChatDto);
+
+            QuestionRewriteResult rewriteResult = questionRewriteService.rewrite(rewriteRequest);
+
+            // 防御性兜底。
+            // 如果重写服务异常返回 null，就使用原始问题，避免影响主流程。
+            if (rewriteResult == null) {
+                rewriteResult = QuestionRewriteResult.noChange(message);
+            }
+
+            // 写入 Trace。
+            // 这样后续可以排查“模型为什么调用了某个工具”，
+            // 看它拿到的是原始问题，还是已经重写后的问题。
+            agentTraceService.addStep(
+                    "QUESTION_REWRITE",
+                    "问题重写完成",
+                    message,
+                    JSON.toJSONString(rewriteResult),
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - rewriteStart
+            );
+
+            // 后续内部路由和大模型调用优先使用重写后的问题。
+            // 注意:保存聊天记录时仍然保存用户原始问题 message。
+            String rewrittenMessage = rewriteResult.getRewrittenQuestion();
+
             //8.尝试走直达路由。命中后不请求大模型，减少模型调用成本和响应时间。
             long directStart = System.currentTimeMillis();
 
             reply = agentDirectRouteService.tryHandle(
                     userId,
-                    message,
+                    rewrittenMessage,
                     effectiveVenueId,
                     effectiveCourtId
             );
@@ -285,7 +329,10 @@ public class AgentServiceImpl implements AgentService {
                 agentTraceService.addStep(
                         "DIRECT_ROUTE",
                         "命中直达路由",
-                        "effectiveVenueId=" + effectiveVenueId + ", effectiveCourtId=" + effectiveCourtId + ", message=" + message,
+                        "originalMessage=" + message
+                                + ", rewrittenMessage=" + rewrittenMessage
+                                + ", effectiveVenueId=" + effectiveVenueId
+                                + ", effectiveCourtId=" + effectiveCourtId,
                         reply,
                         "SUCCESS",
                         null,
@@ -314,7 +361,7 @@ public class AgentServiceImpl implements AgentService {
             }
 
             //9. 构造带业务上下文的Agent输入。(这里会把Redis里的业务上下文拼到用户输入前面)
-            String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext,intentRouteResult);
+            String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext,intentRouteResult,rewriteResult);
 
             //10.调用LangChain4j Agent。
             long llmStart = System.currentTimeMillis();
@@ -549,19 +596,17 @@ public class AgentServiceImpl implements AgentService {
     private String buildAgentInput(String userMessage,
                                    AgentChatDto agentChatDto,
                                    AgentBusinessContext businessContext,
-                                   IntentRouteResult intentRouteResult) {
+                                   IntentRouteResult intentRouteResult,
+                                   QuestionRewriteResult rewriteResult) {
         StringBuilder builder = new StringBuilder();
 
         // 1. Redis 业务上下文。
-        // 这里会包含最近场馆、最近场地、最近预约日期、最近时间段等信息。
         String contextPrompt = contextEnhanceService.buildContextPrompt(businessContext);
         if (contextPrompt != null && !contextPrompt.trim().isEmpty()) {
             builder.append(contextPrompt).append("\n");
         }
 
         // 2. 当前页面上下文。
-        // 这个上下文来自前端本次请求。
-        // 例如用户正在某个场馆详情页聊天，前端就可以传 venueId。
         builder.append("〖当前页面上下文〗\n");
 
         if (agentChatDto != null && agentChatDto.getVenueId() != null) {
@@ -593,30 +638,44 @@ public class AgentServiceImpl implements AgentService {
         }
 
         // 3. 意图识别结果。
-        // 这是本次新增的关键部分。
-        // 注意: 这不是让模型完全服从规则，而是作为强提示辅助模型选择工具。
         if (intentRouteResult != null && intentRouteResult.getRoutePrompt() != null) {
             builder.append("\n")
                     .append(intentRouteResult.getRoutePrompt())
                     .append("\n");
         }
 
-        // 4. 用户原始问题。
-        builder.append("\n〖用户问题〗\n")
+        // 4. 问题重写结果。
+        // 这是本次新增的关键部分。
+        if (rewriteResult != null && rewriteResult.getRewritePrompt() != null) {
+            builder.append("\n")
+                    .append(rewriteResult.getRewritePrompt())
+                    .append("\n");
+        }
+
+        // 5. 用户原始问题。
+        builder.append("\n〖用户原始问题〗\n")
                 .append(userMessage)
                 .append("\n");
 
-        // 5. 强约束规则。
-        // 这里要再次提醒模型:
-        // 上下文不代表可以编造结果。
-        // 预约、下单、取消等动作必须走工具和后端 Service。
+        // 6. 系统建议问题。
+        // 如果发生重写，大模型应优先理解这个问题。
+        if (rewriteResult != null
+                && rewriteResult.getRewrittenQuestion() != null
+                && !rewriteResult.getRewrittenQuestion().trim().isEmpty()) {
+            builder.append("\n〖系统重写后的问题〗\n")
+                    .append(rewriteResult.getRewrittenQuestion())
+                    .append("\n");
+        }
+
+        // 7. 强约束。
         builder.append("\n〖处理要求〗\n")
-                .append("1. 如果用户说“这个场馆”“这个场地”“这里”“刚才那个”，优先结合业务上下文和页面上下文。\n")
-                .append("2. 如果意图识别结果明确为 BOOKING_DRAFT，应优先生成预约草稿，不允许直接声称预约成功。\n")
-                .append("3. 如果意图识别结果明确为 RAG_KNOWLEDGE，应优先调用知识库工具回答规则、公告、设施、停车、退款等问题。\n")
-                .append("4. 如果意图识别结果明确为 BOOKING_CANCEL，应走取消预约流程，并且取消前必须让用户确认。\n")
-                .append("5. 如果缺少必要信息，不要编造，应继续追问用户。\n")
-                .append("6. 涉及预约、下单等真实业务动作，必须调用工具，不允许直接声称操作成功。\n");
+                .append("1. 用户原始问题必须保留语义，系统重写问题只是帮助理解上下文。\n")
+                .append("2. 如果用户说“这个场馆”“这个场地”“这里”“刚才那个”，优先结合业务上下文和问题重写结果。\n")
+                .append("3. 如果系统重写问题中包含场馆ID、场地ID、预约日期、开始时间、结束时间，调用工具时应优先使用这些结构化信息。\n")
+                .append("4. 如果系统重写问题仍然缺少必要信息，不要编造，应继续追问用户。\n")
+                .append("5. 如果意图是 BOOKING_DRAFT，只能生成预约草稿，不能直接声称预约成功。\n")
+                .append("6. 如果意图是 BOOKING_CANCEL，必须走取消预约确认流程，不能直接取消。\n")
+                .append("7. 如果意图是 RAG_KNOWLEDGE，应优先调用知识库工具回答规则、公告、停车、退款、开放时间等问题。\n");
 
         return builder.toString();
     }
