@@ -41,6 +41,7 @@ public class GymRagTools {
         this.gymAgentToolRegistry = gymAgentToolRegistry;
         this.agentToolContextFactory = agentToolContextFactory;
     }
+
     /**
      * 查询体育场馆预约平台知识库。
      *

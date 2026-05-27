@@ -170,9 +170,7 @@ public class GymAgentToolRegistry {
     public List<AgentToolInfo> listTools() {
         List<AgentToolInfo> list = new ArrayList<>(toolInfoMap.values());
 
-        /*
-         * 按工具编码排序，保证返回顺序稳定。
-         */
+        //按工具编码排序，保证返回顺序稳定。
         list.sort(Comparator.comparing(AgentToolInfo::getToolCode));
 
         return list;

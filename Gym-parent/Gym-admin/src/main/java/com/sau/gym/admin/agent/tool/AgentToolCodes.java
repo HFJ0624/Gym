@@ -43,7 +43,7 @@ public final class AgentToolCodes {
     /**
      * 查询场馆工具。
      */
-    public static final String QUERY_VENUE = "query_venue";
+    public static final String QUERY_VENUE_LIST = "query_venue_list";
 
     /**
      * 查询场地工具。
@@ -59,4 +59,21 @@ public final class AgentToolCodes {
      * 商城查询工具。
      */
     public static final String SHOPPING_QUERY = "shopping_query";
+
+    public static final String QUERY_NOTICE_LIST = "query_notice_list";
+
+    /**
+     * 查询当前用户可取消预约工具。
+     */
+    public static final String QUERY_CANCELABLE_BOOKING = "query_cancelable_booking";
+
+    /**
+     * 创建取消预约草稿工具。
+     */
+    public static final String CREATE_CANCEL_BOOKING_DRAFT = "create_cancel_booking_draft";
+
+    /**
+     * 创建商品下单草稿工具。
+     */
+    public static final String CREATE_SHOPPING_DRAFT = "create_shopping_draft";
 }

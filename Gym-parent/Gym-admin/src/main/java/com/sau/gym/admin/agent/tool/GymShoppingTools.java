@@ -1,7 +1,12 @@
 package com.sau.gym.admin.agent.tool;
 
+import com.alibaba.fastjson.JSON;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
+import com.sau.gym.admin.agent.tool.executor.AgentToolContextFactory;
+import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteContext;
+import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteResult;
+import com.sau.gym.admin.agent.tool.registry.GymAgentToolRegistry;
 import com.sau.gym.admin.enums.PendingDraftType;
 import com.sau.gym.admin.agent.util.AgentConfirmTokenUtil;
 import com.sau.gym.admin.mapper.BeverageMapper;
@@ -34,85 +39,42 @@ import java.util.Map;
 @Component
 public class GymShoppingTools {
 
-    private final BeverageMapper beverageMapper;
-    private final CartMapper cartMapper;
-    private final UserMapper userMapper;
-    private final OrderService orderService;
-    private final AgentDraftStore draftStore;
+    private final GymAgentToolRegistry gymAgentToolRegistry;
 
-    public GymShoppingTools(BeverageMapper beverageMapper,
-                            CartMapper cartMapper,
-                            UserMapper userMapper,
-                            OrderService orderService,
-                            AgentDraftStore draftStore) {
-        this.beverageMapper = beverageMapper;
-        this.cartMapper = cartMapper;
-        this.userMapper = userMapper;
-        this.orderService = orderService;
-        this.draftStore = draftStore;
+    private final AgentToolContextFactory agentToolContextFactory;
+
+    public GymShoppingTools(GymAgentToolRegistry gymAgentToolRegistry,
+                         AgentToolContextFactory agentToolContextFactory) {
+        this.gymAgentToolRegistry = gymAgentToolRegistry;
+        this.agentToolContextFactory = agentToolContextFactory;
     }
 
     /***
      *
      * @param productName 商品名称
      * @param quantity 商品数量
-     * @param userId 用户id
      * @return 创建商品下单草稿
      */
     @Tool("根据商品名称和数量生成商城下单草稿。不会真正下单，不会扣余额。")
     public String createShoppingDraft(
             @P("商品名称") String productName,
-            @P("商品数量") Integer quantity,
-            @ToolMemoryId Long userId
+            @P("商品数量") Integer quantity
     ) {
-        // 默认数量 1
-        if (quantity == null || quantity <= 0) {
-            quantity = 1;
-        }
+        // 1. 构造统一工具执行上下文。
+        AgentToolExecuteContext context = agentToolContextFactory.createShoppingDraftContext(
+                "创建商品下单草稿",
+                productName,
+                quantity
+        );
 
-        // 查询商品
-        Beverage beverage = beverageMapper.selectByName(productName);
-        if (beverage == null) {
-            return "未找到商品：" + productName;
-        }
-        if (beverage.getStatus() != null && beverage.getStatus() == 2) {
-            return "商品【" + beverage.getGoodsName() + "】已下架。";
-        }
-        if (beverage.getStock() < quantity) {
-            return "商品【" + beverage.getGoodsName() + "】库存不足，当前库存：" + beverage.getStock();
-        }
+        // 2. 通过工具注册器执行工具。
+        AgentToolExecuteResult result = gymAgentToolRegistry.execute(
+                AgentToolCodes.CREATE_SHOPPING_DRAFT,
+                context
+        );
 
-        // 构造草稿数据
-        Map<String, Object> data = new HashMap<>();
-        data.put("goodsId", beverage.getId());
-        data.put("goodsName", beverage.getGoodsName());
-        data.put("quantity", quantity);
-        data.put("price", beverage.getPrice());
-        data.put("image", beverage.getImage());
-
-        //生成商品下单确认码
-        String confirmToken = AgentConfirmTokenUtil.generateToken();
-
-        // 保存商品草稿到 Redis
-        draftStore.save(userId, new PendingDraft(
-                PendingDraftType.SHOPPING,
-                data,
-                LocalDateTime.now(),
-                confirmToken
-
-        ));
-
-        BigDecimal total = beverage.getPrice().multiply(BigDecimal.valueOf(quantity));
-
-        return "我已生成商品下单草稿：\n"
-                + "商品：" + beverage.getGoodsName() + "\n"
-                + "数量：" + quantity + "\n"
-                + "单价：" + beverage.getPrice() + "\n"
-                + "总价：" + total + "\n"
-                + "确认码：" + confirmToken + "\n"
-                + "如果确认，请回复：确认下单 " + confirmToken + "\n"
-                + "如果放弃，请回复：取消\n"
-                + "注意：该草稿将在15分钟后自动过期。";
+        // 3. 返回统一 JSON 给大模型。
+        return JSON.toJSONString(result);
     }
 
     /***
@@ -123,17 +85,17 @@ public class GymShoppingTools {
     public String confirmPendingShopping(Long userId,String confirmToken) {
         PendingDraft draft = draftStore.get(userId);
 
-        if (draft == null || draft.type() != PendingDraftType.BOOKING) {
-            return "当前没有待确认的预约草稿，可能已经确认、取消或过期。";
+        if (draft == null || draft.type() != PendingDraftType.SHOPPING) {
+            return "当前没有待确认的商品下单草稿，可能已经确认、取消或过期。";
         }
 
         //校验确认码
         if (confirmToken == null || confirmToken.trim().isEmpty()) {
-            return "请带上确认码，例如：确认预约 " + draft.confirmToken();
+            return "请带上确认码，例如：确认下单 " + draft.confirmToken();
         }
 
         if (!draft.confirmToken().equals(confirmToken.trim())) {
-            return "确认码错误，请核对后重新输入。正确格式为：确认预约 " + draft.confirmToken();
+            return "确认码错误，请核对后重新输入。正确格式为：确认下单 " + draft.confirmToken();
         }
 
         try {

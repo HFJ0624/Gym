@@ -84,4 +84,89 @@ public class AgentToolContextFactory {
 
         return context;
     }
+
+    /**
+     * 创建查询场馆列表工具上下文。
+     *
+     * @param keyword 场馆关键词，可为空
+     * @return 工具执行上下文
+     */
+    public AgentToolExecuteContext createQueryVenueContext(String keyword) {
+        AgentToolExecuteContext context = createBaseContext(keyword);
+
+        // 查询场馆工具需要的参数。
+        context.addParam("keyword", keyword);
+
+        return context;
+    }
+
+    /**
+     * 创建查询公告工具上下文。
+     *
+     * @param originalQuestion 用户原始问题，可为空
+     * @return 工具执行上下文
+     */
+    public AgentToolExecuteContext createQueryNoticeContext(String originalQuestion) {
+        AgentToolExecuteContext context = createBaseContext(originalQuestion);
+
+        // 查询公告暂时不需要额外参数。
+        // 这里保留 context，方便后续增加 pageSize、keyword 等参数。
+
+        return context;
+    }
+
+    /**
+     * 创建查询当前用户可取消预约工具上下文。
+     *
+     * @param originalQuestion 用户原始问题
+     * @return 工具执行上下文
+     */
+    public AgentToolExecuteContext createCancelableBookingContext(String originalQuestion) {
+        AgentToolExecuteContext context = createBaseContext(originalQuestion);
+        return context;
+    }
+
+    /**
+     * 创建取消预约草稿工具上下文。
+     *
+     * @param originalQuestion 用户原始问题
+     * @param bookingId 要取消的预约ID
+     * @param reason 取消原因
+     * @return 工具执行上下文
+     */
+    public AgentToolExecuteContext createCancelBookingDraftContext(
+            String originalQuestion,
+            Long bookingId,
+            String reason
+    ) {
+        AgentToolExecuteContext context = createBaseContext(originalQuestion);
+
+        // 取消预约草稿工具需要的参数。
+        context.addParam("bookingId", bookingId);
+        context.addParam("reason", reason);
+
+        return context;
+    }
+
+    /**
+     * 创建商品下单草稿工具上下文。
+     *
+     * @param originalQuestion 用户原始问题
+     * @param productName 商品名称
+     * @param quantity 商品数量
+     * @return 工具执行上下文
+     */
+    public AgentToolExecuteContext createShoppingDraftContext(
+            String originalQuestion,
+            String productName,
+            Integer quantity
+    ) {
+        AgentToolExecuteContext context = createBaseContext(originalQuestion);
+
+        // 商品下单草稿工具需要的参数。
+        context.addParam("productName", productName);
+        context.addParam("quantity", quantity);
+
+        return context;
+    }
 }

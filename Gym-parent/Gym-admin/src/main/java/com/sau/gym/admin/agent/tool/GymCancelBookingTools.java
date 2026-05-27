@@ -1,7 +1,12 @@
 package com.sau.gym.admin.agent.tool;
 
+import com.alibaba.fastjson.JSON;
 import com.sau.gym.admin.agent.service.AgentCancelBookingService;
 import com.sau.gym.admin.agent.service.AgentToolGuardService;
+import com.sau.gym.admin.agent.tool.executor.AgentToolContextFactory;
+import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteContext;
+import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteResult;
+import com.sau.gym.admin.agent.tool.registry.GymAgentToolRegistry;
 import com.sau.gym.admin.enums.AgentRiskLevel;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -16,16 +21,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class GymCancelBookingTools {
 
-    private final AgentCancelBookingService cancelBookingService;
+    private final GymAgentToolRegistry gymAgentToolRegistry;
+    private final AgentToolContextFactory agentToolContextFactory;
 
-    private final AgentToolGuardService agentToolGuardService;
-
-    public GymCancelBookingTools(AgentCancelBookingService cancelBookingService,
-                                 AgentToolGuardService agentToolGuardService
-
+    public GymCancelBookingTools(
+            GymAgentToolRegistry gymAgentToolRegistry,
+            AgentToolContextFactory agentToolContextFactory
     ) {
-        this.cancelBookingService = cancelBookingService;
-        this.agentToolGuardService = agentToolGuardService;
+        this.gymAgentToolRegistry = gymAgentToolRegistry;
+        this.agentToolContextFactory = agentToolContextFactory;
     }
 
     /**
@@ -33,22 +37,17 @@ public class GymCancelBookingTools {
      */
     @Tool("查询当前登录用户的可取消预约列表。当用户说“我要取消预约”“我的哪些预约可以取消”“查询可取消预约”时使用。")
     public String queryMyCancelableBookings(@ToolMemoryId Long userId) {
-        //工具调用前风控检查。
-        String blocked = agentToolGuardService.checkBeforeToolCall(
-                userId,
-                "query_cancelable_booking",
-                "查询可取消预约",
-                AgentRiskLevel.LOW,
-                true,
-                false,
-                3
+        // 1. 构造统一工具执行上下文。
+        AgentToolExecuteContext context = agentToolContextFactory.createCancelableBookingContext("查询可取消预约");
+
+        // 2. 通过工具注册器执行工具。
+        AgentToolExecuteResult result = gymAgentToolRegistry.execute(
+                AgentToolCodes.QUERY_CANCELABLE_BOOKING,
+                context
         );
 
-        if (blocked != null) {
-            return blocked;
-        }
-
-        return cancelBookingService.queryCancelableBookings(userId);
+        // 3. 返回统一 JSON 给大模型。
+        return JSON.toJSONString(result);
     }
 
     /**
@@ -62,21 +61,20 @@ public class GymCancelBookingTools {
             @P("取消原因，如果用户没有说明，可以填：用户通过Agent取消预约") String reason,
             @ToolMemoryId Long userId
     ) {
-        //工具调用前风控检查。
-        String blocked = agentToolGuardService.checkBeforeToolCall(
-                userId,
-                "create_cancel_booking_draft",
-                "生成取消预约草稿",
-                AgentRiskLevel.MEDIUM,
-                true,
-                false,
-                3
+        // 1. 构造统一工具执行上下文。
+        AgentToolExecuteContext context = agentToolContextFactory.createCancelBookingDraftContext(
+                "创建取消预约草稿",
+                bookingId,
+                reason
         );
 
-        if (blocked != null) {
-            return blocked;
-        }
+        // 2. 通过工具注册器执行工具。
+        AgentToolExecuteResult result = gymAgentToolRegistry.execute(
+                AgentToolCodes.CREATE_CANCEL_BOOKING_DRAFT,
+                context
+        );
 
-        return cancelBookingService.createCancelBookingDraft(userId, bookingId, reason);
+        // 3. 返回统一 JSON 给大模型。
+        return JSON.toJSONString(result);
     }
 }
