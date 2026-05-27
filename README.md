@@ -1,8 +1,8 @@
-# Gym 体育场馆预约平台
+# Gym-Agent 体育场馆预约平台
 
 ## 1. 项目介绍
 
-Gym 是一个基于 Spring Boot 3 + Vue3 + LangChain4j Agent + RAG 的体育场馆预约平台，包含用户前台、后台管理系统和智能 Agent 服务。
+Gym-Agent 是一个基于 Spring Boot 3 + Vue3 + LangChain4j Agent + RAG 的体育场馆预约平台，包含用户前台、后台管理系统和智能 Agent 服务。
 
 项目核心业务包括：场馆浏览、场地预约、预约时段可视化、订单管理、评论收藏、公告管理、后台运营管理、邮箱通知、智能问答、RAG 知识库问答与 Agent 工具调用。
 
