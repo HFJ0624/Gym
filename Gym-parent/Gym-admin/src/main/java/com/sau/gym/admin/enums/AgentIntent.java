@@ -1,5 +1,7 @@
 package com.sau.gym.admin.enums;
 
+import com.sau.gym.admin.agent.tool.AgentToolCodes;
+
 public enum AgentIntent {
 
     /**
@@ -43,28 +45,15 @@ public enum AgentIntent {
 
     /**
      * 生成预约草稿。
-     * 注意:
-     * 这里只是生成草稿，不是真正下单。
-     * 真正预约必须等用户确认。
-     *
-     * 示例:
-     * - 帮我预约这个场地
-     * - 明晚7点到8点订一下
-     * - 我要预约羽毛球场
      */
     BOOKING_DRAFT(
             "生成预约草稿",
-            "create_booking_draft",
+            AgentToolCodes.CREATE_BOOKING_DRAFT,
             true
     ),
 
     /**
      * 确认预约。
-     * 示例:
-     * - 确认预约
-     * - 确认预约 ABC123
-     *
-     * 当前项目里这类指令已经在 AgentServiceImpl#handlePendingAction 中处理。
      */
     BOOKING_CONFIRM(
             "确认预约",
@@ -105,12 +94,10 @@ public enum AgentIntent {
      * - 取消后能退款吗
      * - 体育馆可以停车吗
      * - 开放时间是什么
-     *
-     * 当前项目里 GymRagTools 已经有 askGymKnowledge 工具。
      */
     RAG_KNOWLEDGE(
             "知识库问答",
-            "ask_gym_knowledge",
+            AgentToolCodes.ASK_GYM_KNOWLEDGE,
             false
     ),
 

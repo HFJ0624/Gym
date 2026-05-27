@@ -2,9 +2,11 @@ package com.sau.gym.admin.agent.tool;
 
 import com.alibaba.fastjson.JSON;
 import com.sau.gym.admin.agent.service.AgentToolGuardService;
+import com.sau.gym.admin.agent.tool.executor.AgentToolContextFactory;
 import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteContext;
 import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteResult;
 import com.sau.gym.admin.agent.tool.executor.impl.RagKnowledgeToolExecutor;
+import com.sau.gym.admin.agent.tool.registry.GymAgentToolRegistry;
 import com.sau.gym.admin.agent.util.AgentUserContext;
 import com.sau.gym.admin.enums.AgentRiskLevel;
 import com.sau.gym.admin.rag.service.RagQaService;
@@ -17,29 +19,28 @@ import org.springframework.stereotype.Component;
 /**
  * 作者:hfj
  * 功能: Agent的RAG知识库工具
- * 作用:
- * 让现有智能 Agent 可以调用你刚搭建好的 RAG 知识库。
- * 使用场景:
- * 1. 用户问预约规则
- * 2. 用户问取消退款规则
- * 3. 用户问场馆设施
- * 4. 用户问停车说明
- * 5. 用户问开放时间
- * 6. 用户问公告、FAQ、注意事项
- * 注意:
- * 这个工具只负责“查知识”，不负责创建预约、不负责下单。
- * 真正预约仍然交给 GymBookingTools。
+ * 说明:
+ * 这个类现在只保留 LangChain4j @Tool 入口。
+ * 具体执行流程:
+ * 1. LangChain4j 调用 askGymKnowledge()
+ * 2. 构造 AgentToolExecuteContext
+ * 3. 交给 GymAgentToolRegistry
+ * 4. Registry 根据 toolCode 找到 RagKnowledgeToolExecutor
+ * 5. Executor 执行真正 RAG 查询
  * 日期: 2026/5/5 15:19
  */
 @Component
 public class GymRagTools {
 
-    private final RagKnowledgeToolExecutor ragKnowledgeToolExecutor;
+    private final GymAgentToolRegistry gymAgentToolRegistry;
 
-    public GymRagTools(RagKnowledgeToolExecutor ragKnowledgeToolExecutor) {
-        this.ragKnowledgeToolExecutor = ragKnowledgeToolExecutor;
+    private final AgentToolContextFactory agentToolContextFactory;
+
+    public GymRagTools(GymAgentToolRegistry gymAgentToolRegistry,
+                       AgentToolContextFactory agentToolContextFactory) {
+        this.gymAgentToolRegistry = gymAgentToolRegistry;
+        this.agentToolContextFactory = agentToolContextFactory;
     }
-
     /**
      * 查询体育场馆预约平台知识库。
      *
@@ -54,24 +55,17 @@ public class GymRagTools {
             @P(value = "场馆ID，可为空。如果用户问题涉及某个具体场馆，应传入该场馆ID", required = false) Long venueId,
             @P(value = "场地ID，可为空。如果用户问题涉及某个具体场地，应传入该场地ID", required = false) Long courtId
     ) {
-        //1. 构造统一工具执行上下文。
-        AgentToolExecuteContext context = new AgentToolExecuteContext();
 
-        //2. 从 ThreadLocal 中获取当前用户ID。
-        context.setUserId(AgentUserContext.getUserId());
+        // 1. 构造统一工具执行上下文。
+        AgentToolExecuteContext context = agentToolContextFactory.createRagContext(question, venueId, courtId);
 
-        //3. 设置原始问题。
-        context.setOriginalQuestion(question);
+        //2. 通过工具注册器执行工具。
+        AgentToolExecuteResult result = gymAgentToolRegistry.execute(
+                AgentToolCodes.ASK_GYM_KNOWLEDGE,
+                context
+        );
 
-        //4. 设置工具参数。
-        context.addParam("question", question);
-        context.addParam("venueId", venueId);
-        context.addParam("courtId", courtId);
-
-        //5. 统一调用 Executor。
-        AgentToolExecuteResult result = ragKnowledgeToolExecutor.execute(context);
-
-        //6. 返回 JSON 字符串给大模型。
+        //3. 返回统一 JSON 给大模型。
         return JSON.toJSONString(result);
     }
 }

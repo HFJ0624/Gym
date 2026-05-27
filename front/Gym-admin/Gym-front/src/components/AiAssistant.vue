@@ -305,6 +305,8 @@ const sendMessage = async text => {
     actionLoading: false
   })
 
+  scrollToBottom()
+
   sending.value = true
 
   try {
@@ -336,26 +338,20 @@ const sendMessage = async text => {
       }
     )
 
-    const replyText = getReplyText(data)
-
     /**
-     * 解析确认动作：
-     * 确认预约 123456
-     * 确认下单 123456
+     * 新版解析逻辑：
+     * 1. 优先解析后端 AgentToolExecuteResult JSON
+     * 2. 如果不是 JSON，再按旧版纯文本解析
+     *
+     * 这样可以解决你截图里“JSON 和字段串在一起展示”的问题。
      */
-    const actions = parseConfirmActions(replyText)
-
-    /**
-     * 解析草稿卡片：
-     * 预约草稿 / 商品草稿。
-     */
-    const draft = parseDraftCard(replyText, actions)
+    const parsedReply = parseAgentReply(data)
 
     messages.value.push({
       role: 'ai',
-      content: replyText,
-      draft,
-      actions,
+      content: parsedReply.replyText,
+      draft: parsedReply.draft,
+      actions: parsedReply.actions,
       actionUsed: false,
       actionLoading: false
     })
@@ -428,33 +424,518 @@ const handleCancelAction = async msg => {
 }
 
 /**
- * 从后端 Result 中取出真正的回复文本。
+ * 统一解析后端 Agent 回复。
  *
- * 兼容几种返回：
+ * 兼容两种返回：
+ * 1. 旧版纯文本：
+ *    已为您生成预约草稿：\n场馆：xxx...
+ *
+ * 2. 新版工具结果 JSON：
+ *    {
+ *      status,
+ *      success,
+ *      message,
+ *      data,
+ *      extra,
+ *      needConfirm,
+ *      confirmAction
+ *    }
+ *
+ * 返回结构：
+ * {
+ *   replyText: '给用户看的文本',
+ *   draft: 草稿卡片数据,
+ *   actions: 确认按钮动作
+ * }
+ */
+function parseAgentReply(responseData) {
+  /**
+   * 1. 先取出后端 Result 里的真正 data。
+   *
+   * 你的接口大概率返回：
+   * {
+   *   code: 200,
+   *   data: "..."
+   * }
+   */
+  const rawData = responseData && responseData.data !== undefined
+    ? responseData.data
+    : responseData
+
+  /**
+   * 2. 尝试把 rawData 解析成对象。
+   *
+   * 支持：
+   * - rawData 本来就是对象
+   * - rawData 是 JSON 字符串
+   * - rawData 是被二次 JSON.stringify 的字符串
+   */
+  const parsed = parseJsonDeep(rawData)
+
+  /**
+   * 3. 如果解析出来的是统一工具执行结果，
+   * 就优先按结构化结果处理。
+   */
+  if (isToolExecuteResult(parsed)) {
+    return parseToolExecuteResult(parsed)
+  }
+
+  /**
+   * 4. 有些情况下，大模型可能把 JSON 工具结果包在普通文本里。
+   * 例如：
+   * “已为您生成预约草稿：{...json...}”
+   *
+   * 这里尝试从文本里提取 AgentToolExecuteResult JSON。
+   */
+  const embeddedToolResult = extractToolExecuteResultFromText(rawData)
+
+  if (embeddedToolResult) {
+    return parseToolExecuteResult(embeddedToolResult)
+  }
+
+  /**
+   * 5. 如果不是统一工具结果，就兼容旧版纯文本。
+   */
+  const replyText = getPlainReplyText(rawData)
+
+  const actions = parseConfirmActions(replyText)
+  const draft = parseDraftCard(replyText, actions)
+
+  return {
+    replyText,
+    draft,
+    actions
+  }
+}
+
+/**
+ * 判断对象是否是后端统一工具执行结果 AgentToolExecuteResult。
+ *
+ * 典型字段：
+ * status / success / message / data / needConfirm / confirmAction / extra
+ */
+function isToolExecuteResult(obj) {
+  return obj
+    && typeof obj === 'object'
+    && !Array.isArray(obj)
+    && (
+      Object.prototype.hasOwnProperty.call(obj, 'status')
+      || Object.prototype.hasOwnProperty.call(obj, 'needConfirm')
+      || Object.prototype.hasOwnProperty.call(obj, 'confirmAction')
+    )
+}
+
+/**
+ * 解析统一工具执行结果。
+ *
+ * 重点：
+ * 1. replyText 用 result.message
+ * 2. 草稿卡片优先从 result.data 取
+ * 3. 确认码优先从 result.extra.confirmToken 取
+ */
+function parseToolExecuteResult(result) {
+  const message = normalizeText(result.message || '工具执行完成。')
+
+  const actions = parseActionsFromToolResult(result, message)
+
+  let draft = null
+
+  /**
+   * 只有需要确认时，才尝试构造草稿卡片。
+   */
+  if (result.needConfirm || result.status === 'NEED_CONFIRM') {
+    if (actions && actions.type === 'BOOKING') {
+      draft = parseBookingDraftFromToolResult(result, actions)
+    } else if (actions && actions.type === 'SHOPPING') {
+      draft = parseShoppingDraftFromToolResult(result, actions)
+    }
+  }
+
+  return {
+    /**
+     * 有草稿卡片时，模板里 v-if="!msg.draft" 不会展示 content。
+     * 这里仍然保留 message，方便没有 draft 时兜底展示。
+     */
+    replyText: message,
+    draft,
+    actions
+  }
+}
+
+/**
+ * 从统一工具结果中解析确认动作。
+ *
+ * 后端现在可能返回：
+ * confirmAction = "confirm_booking"
+ * extra.confirmToken = "587415"
+ *
+ * 前端要转换成真正发给后端的中文命令：
+ * 确认预约 587415
+ */
+function parseActionsFromToolResult(result, message) {
+  const extra = toPlainObject(result.extra)
+  const token = extra.confirmToken || extractTokenFromText(message)
+
+  if (!token) {
+    return null
+  }
+
+  if (result.confirmAction === 'confirm_booking') {
+    return {
+      type: 'BOOKING',
+      token,
+      confirmLabel: '确认预约',
+      confirmCommand: `确认预约 ${token}`
+    }
+  }
+
+  if (result.confirmAction === 'confirm_shopping') {
+    return {
+      type: 'SHOPPING',
+      token,
+      confirmLabel: '确认下单',
+      confirmCommand: `确认下单 ${token}`
+    }
+  }
+
+  /**
+   * 如果 confirmAction 没传，但是文本里出现了“确认预约”，也按预约处理。
+   */
+  if (message.includes('确认预约')) {
+    return {
+      type: 'BOOKING',
+      token,
+      confirmLabel: '确认预约',
+      confirmCommand: `确认预约 ${token}`
+    }
+  }
+
+  /**
+   * 如果文本里出现了“确认下单”，按商城处理。
+   */
+  if (message.includes('确认下单')) {
+    return {
+      type: 'SHOPPING',
+      token,
+      confirmLabel: '确认下单',
+      confirmCommand: `确认下单 ${token}`
+    }
+  }
+
+  return null
+}
+
+/**
+ * 从统一工具结果中构造预约草稿卡片。
+ *
+ * 后端 data 里字段通常是：
+ * venueName
+ * courtName
+ * courtType
+ * date
+ * startTime
+ * endTime
+ * hoursPrice
+ * totalPrice
+ *
+ * 前端卡片字段是：
+ * venueName
+ * courtName
+ * courtType
+ * date
+ * startTime
+ * endTime
+ * hourPrice
+ * totalPrice
+ */
+function parseBookingDraftFromToolResult(result, actions) {
+  const data = toPlainObject(result.data)
+  const extra = toPlainObject(result.extra)
+
+  return {
+    type: 'BOOKING',
+    title: '预约草稿',
+
+    /**
+     * 优先从结构化 data 里取字段。
+     * 不再从 JSON 字符串里用正则硬抠。
+     */
+    venueName: data.venueName || '-',
+    courtName: data.courtName || '-',
+    courtType: data.courtType || '-',
+    date: data.date || data.bookingDate || '-',
+    startTime: data.startTime || '-',
+    endTime: data.endTime || '-',
+
+    /**
+     * 后端字段可能叫 hoursPrice，前端展示叫 hourPrice。
+     */
+    hourPrice: data.hourPrice || data.hoursPrice || '-',
+    totalPrice: data.totalPrice || '-',
+
+    /**
+     * 确认码优先从 extra.confirmToken 取。
+     */
+    confirmToken: extra.confirmToken || actions.token
+  }
+}
+
+/**
+ * 从统一工具结果中构造商品下单草稿卡片。
+ *
+ * 当前先做兼容，后面按你的商品工具真实返回字段调整。
+ */
+function parseShoppingDraftFromToolResult(result, actions) {
+  const data = toPlainObject(result.data)
+  const extra = toPlainObject(result.extra)
+
+  return {
+    type: 'SHOPPING',
+    title: '商品下单草稿',
+    goodsName: data.goodsName || data.productName || '-',
+    quantity: data.quantity || '-',
+    price: data.price || data.unitPrice || '-',
+    totalPrice: data.totalPrice || '-',
+    confirmToken: extra.confirmToken || actions.token
+  }
+}
+
+/**
+ * 深度解析 JSON。
+ *
+ * 为什么需要这个：
+ * 有时候后端返回的是对象；
+ * 有时候返回的是 JSON 字符串；
+ * 有时候大模型/后端又把 JSON 字符串包了一层。
+ *
+ * 这个函数会尽量解析 2 次，避免双重 JSON 字符串导致前端拿不到字段。
+ */
+function parseJsonDeep(value) {
+  let current = value
+
+  for (let i = 0; i < 2; i++) {
+    if (typeof current !== 'string') {
+      return current
+    }
+
+    const text = current.trim()
+
+    if (!text) {
+      return current
+    }
+
+    /**
+     * 去掉可能出现的 markdown 代码块。
+     */
+    const cleaned = text
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```$/i, '')
+      .trim()
+
+    /**
+     * 只有明显是 JSON 对象或数组时才解析。
+     */
+    if (!(
+      (cleaned.startsWith('{') && cleaned.endsWith('}'))
+      || (cleaned.startsWith('[') && cleaned.endsWith(']'))
+    )) {
+      return current
+    }
+
+    try {
+      current = JSON.parse(cleaned)
+    } catch (e) {
+      return current
+    }
+  }
+
+  return current
+}
+
+/**
+ * 把任意值转换成普通对象。
+ *
+ * 支持：
+ * 1. 本身就是对象
+ * 2. JSON 字符串
+ * 3. 空值
+ */
+function toPlainObject(value) {
+  if (!value) {
+    return {}
+  }
+
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return value
+  }
+
+  const parsed = parseJsonDeep(value)
+
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+    return parsed
+  }
+
+  return {}
+}
+
+/**
+ * 从普通文本里提取 AgentToolExecuteResult JSON。
+ *
+ * 解决这种情况：
+ * 大模型把工具 JSON 包进了自然语言里，导致整个返回不是合法 JSON，
+ * 但中间仍然包含 { "status": "NEED_CONFIRM", ... }。
+ */
+function extractToolExecuteResultFromText(value) {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const text = normalizeText(value)
+
+  /**
+   * 先尝试原文本。
+   */
+  const result1 = extractJsonObjects(text).find(isToolExecuteResult)
+  if (result1) {
+    return result1
+  }
+
+  /**
+   * 再尝试把 \" 还原成 "。
+   * 有些后端/模型会把 JSON 双重转义。
+   */
+  const unescaped = text.replace(/\\"/g, '"')
+  const result2 = extractJsonObjects(unescaped).find(isToolExecuteResult)
+
+  return result2 || null
+}
+
+/**
+ * 从一段文本中提取所有平衡的 JSON 对象。
+ *
+ * 说明：
+ * 这里不是简单正则，因为 JSON 里可能有嵌套对象。
+ * 所以用括号计数的方式提取 {...}。
+ */
+function extractJsonObjects(text) {
+  const results = []
+
+  if (!text) {
+    return results
+  }
+
+  let start = -1
+  let depth = 0
+  let inString = false
+  let escaped = false
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+
+    if (escaped) {
+      escaped = false
+      continue
+    }
+
+    if (ch === '\\') {
+      escaped = true
+      continue
+    }
+
+    if (ch === '"') {
+      inString = !inString
+      continue
+    }
+
+    if (inString) {
+      continue
+    }
+
+    if (ch === '{') {
+      if (depth === 0) {
+        start = i
+      }
+      depth++
+    }
+
+    if (ch === '}') {
+      depth--
+
+      if (depth === 0 && start !== -1) {
+        const candidate = text.slice(start, i + 1)
+
+        try {
+          const parsed = JSON.parse(candidate)
+          results.push(parsed)
+        } catch (e) {
+          /**
+           * 不是合法 JSON，忽略。
+           */
+        }
+
+        start = -1
+      }
+    }
+  }
+
+  /**
+   * 优先返回后出现的 JSON。
+   * 因为模型有时前面会输出一些非关键对象，最后一个才是工具结果。
+   */
+  return results.reverse()
+}
+
+/**
+ * 获取普通文本回复。
+ *
+ * 用于兼容旧版后端返回：
  * 1. { data: "xxx" }
  * 2. { data: { answer: "xxx" } }
  * 3. "xxx"
  */
-function getReplyText(responseData) {
+function getPlainReplyText(responseData) {
   if (!responseData) {
     return '暂时没有返回内容。'
   }
 
-  const data = responseData.data
+  const data = responseData && responseData.data !== undefined
+    ? responseData.data
+    : responseData
 
   if (typeof data === 'string') {
-    return data
+    return normalizeText(data)
   }
 
   if (data && typeof data.answer === 'string') {
-    return data.answer
+    return normalizeText(data.answer)
   }
 
   if (typeof responseData === 'string') {
-    return responseData
+    return normalizeText(responseData)
   }
 
-  return JSON.stringify(data || responseData)
+  return normalizeText(JSON.stringify(data || responseData))
+}
+
+/**
+ * 把字符串里的转义换行转换成真实换行。
+ *
+ * 例如：
+ * "\\n" -> "\n"
+ *
+ * 这样旧版正则解析时才能按行截断。
+ */
+function normalizeText(text) {
+  if (text === null || text === undefined) {
+    return ''
+  }
+
+  return String(text)
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\n')
+    .trim()
 }
 
 /**
@@ -462,20 +943,15 @@ function getReplyText(responseData) {
  *
  * 当前支持：
  * 1. 确认预约 536348
- * 2. 确认下单 536348
- *
- * 返回示例：
- * {
- *   type: 'BOOKING',
- *   token: '536348',
- *   confirmLabel: '确认预约',
- *   confirmCommand: '确认预约 536348'
- * }
+ * 2. 确认预约：536348
+ * 3. 确认下单 536348
  */
 function parseConfirmActions(text) {
   if (!text) {
     return null
   }
+
+  const normalizedText = normalizeText(text)
 
   /**
    * 匹配预约确认：
@@ -483,7 +959,7 @@ function parseConfirmActions(text) {
    * 确认预约：536348
    * 确认预约: 536348
    */
-  const bookingMatch = text.match(/确认预约\s*[:：]?\s*(\d{6})/)
+  const bookingMatch = normalizedText.match(/确认预约\s*[:：]?\s*(\d{6})/)
 
   if (bookingMatch && bookingMatch[1]) {
     return {
@@ -499,7 +975,7 @@ function parseConfirmActions(text) {
    * 确认下单 536348
    * 确认下单：536348
    */
-  const shoppingMatch = text.match(/确认下单\s*[:：]?\s*(\d{6})/)
+  const shoppingMatch = normalizedText.match(/确认下单\s*[:：]?\s*(\d{6})/)
 
   if (shoppingMatch && shoppingMatch[1]) {
     return {
@@ -514,9 +990,41 @@ function parseConfirmActions(text) {
 }
 
 /**
+ * 从文本里提取 6 位确认码。
+ */
+function extractTokenFromText(text) {
+  if (!text) {
+    return ''
+  }
+
+  const normalizedText = normalizeText(text)
+
+  const tokenMatch = normalizedText.match(/确认码\s*[:：]?\s*(\d{6})/)
+
+  if (tokenMatch && tokenMatch[1]) {
+    return tokenMatch[1]
+  }
+
+  const bookingMatch = normalizedText.match(/确认预约\s*[:：]?\s*(\d{6})/)
+
+  if (bookingMatch && bookingMatch[1]) {
+    return bookingMatch[1]
+  }
+
+  const shoppingMatch = normalizedText.match(/确认下单\s*[:：]?\s*(\d{6})/)
+
+  if (shoppingMatch && shoppingMatch[1]) {
+    return shoppingMatch[1]
+  }
+
+  return ''
+}
+
+/**
  * 解析草稿卡片。
  *
- * 只有当 AI 回复中包含确认动作时，才尝试解析草稿。
+ * 这是旧版纯文本兜底解析。
+ * 新版 JSON 工具结果会优先走 parseBookingDraftFromToolResult。
  *
  * @param {string} text AI 回复文本
  * @param {Object|null} actions 确认动作
@@ -538,7 +1046,7 @@ function parseDraftCard(text, actions) {
 }
 
 /**
- * 解析预约草稿。
+ * 解析旧版预约草稿文本。
  *
  * 支持后端文本：
  * 场馆：xxx
@@ -552,45 +1060,53 @@ function parseDraftCard(text, actions) {
  * 确认码：xxx
  */
 function parseBookingDraft(text, actions) {
+  const normalizedText = normalizeText(text)
+
   return {
     type: 'BOOKING',
     title: '预约草稿',
-    venueName: extractField(text, '场馆') || extractField(text, '场馆名称'),
-    courtName: extractField(text, '场地') || extractField(text, '场地名称'),
-    courtType: extractField(text, '类型') || extractField(text, '场地类型'),
-    date: extractField(text, '日期') || extractField(text, '预约日期'),
-    startTime: extractField(text, '开始时间'),
-    endTime: extractField(text, '结束时间'),
-    hourPrice: extractField(text, '单小时价格') || extractField(text, '单价'),
-    totalPrice: extractField(text, '总价'),
-    confirmToken: extractField(text, '确认码') || actions.token
+    venueName: extractField(normalizedText, '场馆') || extractField(normalizedText, '场馆名称') || '-',
+    courtName: extractField(normalizedText, '场地') || extractField(normalizedText, '场地名称') || '-',
+    courtType: extractField(normalizedText, '类型') || extractField(normalizedText, '场地类型') || '-',
+    date: extractField(normalizedText, '日期') || extractField(normalizedText, '预约日期') || '-',
+    startTime: extractField(normalizedText, '开始时间') || '-',
+    endTime: extractField(normalizedText, '结束时间') || '-',
+    hourPrice: extractField(normalizedText, '单小时价格') || extractField(normalizedText, '单价') || '-',
+    totalPrice: extractField(normalizedText, '总价') || '-',
+    confirmToken: extractField(normalizedText, '确认码') || actions.token
   }
 }
 
 /**
- * 解析商品下单草稿。
+ * 解析旧版商品下单草稿文本。
  *
  * 这里先兼容常见字段。
  * 如果你的后端商品草稿字段不一样，后面按实际返回文本扩展。
  */
 function parseShoppingDraft(text, actions) {
+  const normalizedText = normalizeText(text)
+
   return {
     type: 'SHOPPING',
     title: '商品下单草稿',
-    goodsName: extractField(text, '商品') || extractField(text, '商品名称'),
-    quantity: extractField(text, '数量') || extractField(text, '购买数量'),
-    price: extractField(text, '单价') || extractField(text, '商品单价'),
-    totalPrice: extractField(text, '总价') || extractField(text, '合计'),
-    confirmToken: extractField(text, '确认码') || actions.token
+    goodsName: extractField(normalizedText, '商品') || extractField(normalizedText, '商品名称') || '-',
+    quantity: extractField(normalizedText, '数量') || extractField(normalizedText, '购买数量') || '-',
+    price: extractField(normalizedText, '单价') || extractField(normalizedText, '商品单价') || '-',
+    totalPrice: extractField(normalizedText, '总价') || extractField(normalizedText, '合计') || '-',
+    confirmToken: extractField(normalizedText, '确认码') || actions.token
   }
 }
 
 /**
- * 从文本中提取字段值。
+ * 从纯文本中提取字段值。
  *
  * 支持：
  * 场馆：沈阳航空航天大学体育馆
  * 场馆: 沈阳航空航天大学体育馆
+ *
+ * 关键修复：
+ * 用 normalizeText 把 "\\n" 变成真实换行，
+ * 再用 [^\n\r]+ 截断，避免字段串到后面的 JSON。
  *
  * @param {string} text 原始文本
  * @param {string} fieldName 字段名
@@ -600,8 +1116,9 @@ function extractField(text, fieldName) {
     return ''
   }
 
+  const normalizedText = normalizeText(text)
   const reg = new RegExp(`${fieldName}\\s*[:：]\\s*([^\\n\\r]+)`)
-  const match = text.match(reg)
+  const match = normalizedText.match(reg)
 
   if (!match || !match[1]) {
     return ''
@@ -618,9 +1135,12 @@ function cleanFieldValue(value) {
     return ''
   }
 
-  return value
+  return String(value)
     .replace(/\r/g, '')
     .replace(/\n/g, '')
+    .replace(/\\n/g, '')
+    .replace(/"/g, '')
+    .replace(/,$/, '')
     .trim()
 }
 

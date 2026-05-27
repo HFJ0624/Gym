@@ -12,6 +12,7 @@ import com.sau.gym.admin.agent.rewrite.QuestionRewriteRequest;
 import com.sau.gym.admin.agent.rewrite.QuestionRewriteResult;
 import com.sau.gym.admin.agent.rewrite.service.QuestionRewriteService;
 import com.sau.gym.admin.agent.security.AgentSafetyCheckResult;
+import com.sau.gym.admin.agent.tool.registry.GymAgentToolRegistry;
 import com.sau.gym.admin.agent.trace.AgentTraceInfo;
 import com.sau.gym.admin.agent.memory.model.AgentBusinessContext;
 import com.sau.gym.admin.agent.service.*;
@@ -65,6 +66,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final AgentSessionMemoryService agentSessionMemoryService;
 
+    private final GymAgentToolRegistry gymAgentToolRegistry;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -79,7 +82,8 @@ public class AgentServiceImpl implements AgentService {
                             AgentSafetyService agentSafetyService,
                             GymIntentRouter gymIntentRouter,
                             QuestionRewriteService questionRewriteService,
-                            AgentSessionMemoryService agentSessionMemoryService
+                            AgentSessionMemoryService agentSessionMemoryService,
+                            GymAgentToolRegistry gymAgentToolRegistry
                             ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
@@ -95,6 +99,7 @@ public class AgentServiceImpl implements AgentService {
         this.gymIntentRouter = gymIntentRouter;
         this.questionRewriteService = questionRewriteService;
         this.agentSessionMemoryService = agentSessionMemoryService;
+        this.gymAgentToolRegistry = gymAgentToolRegistry;
     }
 
     @Override
@@ -613,12 +618,14 @@ public class AgentServiceImpl implements AgentService {
     /**
      * 构造传给 Agent 的输入内容。
      * 当前输入由几部分组成:
-     * 1. 业务上下文：结构化槽位，例如 venueId、courtId、date、time
-     * 2. 会话记忆：最近几轮自然语言对话
-     * 3. 当前页面上下文：前端传来的 venueId、courtId
+     * 1. 业务上下文
+     * 2. 会话记忆
+     * 3. 当前页面上下文
      * 4. 意图识别结果
      * 5. 问题重写结果
-     * 6. 用户原始问题
+     * 6. 可用工具列表
+     * 7. 用户原始问题
+     * 8. 系统重写后的问题
      */
     private String buildAgentInput(String userMessage,
                                    AgentChatDto agentChatDto,
@@ -628,16 +635,13 @@ public class AgentServiceImpl implements AgentService {
                                    AgentSessionMemory sessionMemory) {
         StringBuilder builder = new StringBuilder();
 
-        // 1. Redis 业务上下文。
-        // 这里保存的是结构化业务槽位，例如最近场馆、最近场地、最近预约时间。
+        // 1. 业务上下文。
         String contextPrompt = contextEnhanceService.buildContextPrompt(businessContext);
         if (contextPrompt != null && !contextPrompt.trim().isEmpty()) {
             builder.append(contextPrompt).append("\n");
         }
 
-        // 2. Redis 会话记忆。
-        // 这里保存的是最近几轮自然语言对话。
-        // 作用是让大模型理解“刚才那个”“那就预约这个”等上下文指代。
+        // 2. 会话记忆。
         String memoryPrompt = agentSessionMemoryService.buildMemoryPrompt(sessionMemory);
         if (memoryPrompt != null && !memoryPrompt.trim().isEmpty()) {
             builder.append(memoryPrompt).append("\n");
@@ -688,12 +692,22 @@ public class AgentServiceImpl implements AgentService {
                     .append("\n");
         }
 
-        // 6. 用户原始问题。
+        // 6. 可用工具列表。
+        // 作用:
+        // 让大模型知道当前系统有哪些工具、各自适合什么场景、需要哪些参数。
+        String toolPrompt = gymAgentToolRegistry.buildToolPrompt();
+        if (toolPrompt != null && !toolPrompt.trim().isEmpty()) {
+            builder.append("\n")
+                    .append(toolPrompt)
+                    .append("\n");
+        }
+
+        // 7. 用户原始问题。
         builder.append("\n〖用户原始问题〗\n")
                 .append(userMessage)
                 .append("\n");
 
-        // 7. 系统重写后的问题。
+        // 8. 系统重写后的问题。
         if (rewriteResult != null
                 && rewriteResult.getRewrittenQuestion() != null
                 && !rewriteResult.getRewrittenQuestion().trim().isEmpty()) {
@@ -702,7 +716,7 @@ public class AgentServiceImpl implements AgentService {
                     .append("\n");
         }
 
-        // 8. 强约束。
+        // 9. 强约束。
         builder.append("\n〖处理要求〗\n")
                 .append("1. 用户原始问题必须保留语义，系统重写问题只是帮助理解上下文。\n")
                 .append("2. 最近会话记忆只用于理解多轮对话，不代表最终业务事实。\n")
@@ -711,7 +725,8 @@ public class AgentServiceImpl implements AgentService {
                 .append("5. 如果缺少必要信息，不要编造，应继续追问用户。\n")
                 .append("6. 如果意图是 BOOKING_DRAFT，只能生成预约草稿，不能直接声称预约成功。\n")
                 .append("7. 如果意图是 BOOKING_CANCEL，必须走取消预约确认流程，不能直接取消。\n")
-                .append("8. 如果意图是 RAG_KNOWLEDGE，应优先调用知识库工具回答规则、公告、停车、退款、开放时间等问题。\n");
+                .append("8. 如果意图是 RAG_KNOWLEDGE，应优先调用知识库工具回答规则、公告、停车、退款、开放时间等问题。\n")
+                .append("9. 工具调用结果才代表真实业务结果，不能仅凭模型推测声称预约成功、取消成功或退款成功。\n");
 
         return builder.toString();
     }

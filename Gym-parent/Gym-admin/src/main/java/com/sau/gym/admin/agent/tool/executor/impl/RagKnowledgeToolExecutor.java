@@ -1,6 +1,7 @@
 package com.sau.gym.admin.agent.tool.executor.impl;
 
 import com.sau.gym.admin.agent.service.AgentToolGuardService;
+import com.sau.gym.admin.agent.tool.AgentToolCodes;
 import com.sau.gym.admin.agent.tool.executor.AbstractGymAgentToolExecutor;
 import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteContext;
 import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteResult;
@@ -41,7 +42,7 @@ public class RagKnowledgeToolExecutor extends AbstractGymAgentToolExecutor {
      */
     @Override
     public String toolCode() {
-        return "ask_gym_knowledge";
+        return AgentToolCodes.ASK_GYM_KNOWLEDGE;
     }
 
     /**
