@@ -39,12 +39,28 @@ import java.util.Map;
 @Component
 public class GymShoppingTools {
 
+    private final BeverageMapper beverageMapper;
+    private final CartMapper cartMapper;
+    private final UserMapper userMapper;
+    private final OrderService orderService;
+    private final AgentDraftStore draftStore;
+
     private final GymAgentToolRegistry gymAgentToolRegistry;
 
     private final AgentToolContextFactory agentToolContextFactory;
 
-    public GymShoppingTools(GymAgentToolRegistry gymAgentToolRegistry,
-                         AgentToolContextFactory agentToolContextFactory) {
+    public GymShoppingTools(BeverageMapper beverageMapper,
+                            CartMapper cartMapper,
+                            UserMapper userMapper,
+                            OrderService orderService,
+                            AgentDraftStore draftStore,
+                            GymAgentToolRegistry gymAgentToolRegistry,
+                            AgentToolContextFactory agentToolContextFactory) {
+        this.beverageMapper = beverageMapper;
+        this.cartMapper = cartMapper;
+        this.userMapper = userMapper;
+        this.orderService = orderService;
+        this.draftStore = draftStore;
         this.gymAgentToolRegistry = gymAgentToolRegistry;
         this.agentToolContextFactory = agentToolContextFactory;
     }
@@ -53,12 +69,14 @@ public class GymShoppingTools {
      *
      * @param productName 商品名称
      * @param quantity 商品数量
+     * @param userId 用户id
      * @return 创建商品下单草稿
      */
     @Tool("根据商品名称和数量生成商城下单草稿。不会真正下单，不会扣余额。")
     public String createShoppingDraft(
             @P("商品名称") String productName,
-            @P("商品数量") Integer quantity
+            @P("商品数量") Integer quantity,
+            @ToolMemoryId Long userId
     ) {
         // 1. 构造统一工具执行上下文。
         AgentToolExecuteContext context = agentToolContextFactory.createShoppingDraftContext(
