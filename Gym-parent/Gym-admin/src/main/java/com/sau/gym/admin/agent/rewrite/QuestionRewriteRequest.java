@@ -1,7 +1,7 @@
 package com.sau.gym.admin.agent.rewrite;
 
 import com.sau.gym.admin.agent.intent.IntentRouteResult;
-import com.sau.gym.admin.agent.memory.AgentBusinessContext;
+import com.sau.gym.admin.agent.memory.model.AgentBusinessContext;
 import com.sau.gym.model.dto.agent.AgentChatDto;
 import lombok.Data;
 

@@ -6,12 +6,14 @@ import com.sau.gym.admin.agent.assistant.GymAgentAssistant;
 import com.sau.gym.admin.agent.intent.GymIntentRouter;
 import com.sau.gym.admin.agent.intent.IntentRouteRequest;
 import com.sau.gym.admin.agent.intent.IntentRouteResult;
+import com.sau.gym.admin.agent.memory.model.AgentSessionMemory;
+import com.sau.gym.admin.agent.memory.service.AgentSessionMemoryService;
 import com.sau.gym.admin.agent.rewrite.QuestionRewriteRequest;
 import com.sau.gym.admin.agent.rewrite.QuestionRewriteResult;
 import com.sau.gym.admin.agent.rewrite.service.QuestionRewriteService;
 import com.sau.gym.admin.agent.security.AgentSafetyCheckResult;
 import com.sau.gym.admin.agent.trace.AgentTraceInfo;
-import com.sau.gym.admin.agent.memory.AgentBusinessContext;
+import com.sau.gym.admin.agent.memory.model.AgentBusinessContext;
 import com.sau.gym.admin.agent.service.*;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.tool.GymBookingTools;
@@ -61,6 +63,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final QuestionRewriteService questionRewriteService;
 
+    private final AgentSessionMemoryService agentSessionMemoryService;
+
 
     public AgentServiceImpl(GymAgentAssistant gymAgentAssistant,
                             AgentDraftStore agentDraftStore,
@@ -74,7 +78,8 @@ public class AgentServiceImpl implements AgentService {
                             AgentTraceService agentTraceService,
                             AgentSafetyService agentSafetyService,
                             GymIntentRouter gymIntentRouter,
-                            QuestionRewriteService questionRewriteService
+                            QuestionRewriteService questionRewriteService,
+                            AgentSessionMemoryService agentSessionMemoryService
                             ) {
         this.gymAgentAssistant = gymAgentAssistant;
         this.agentDraftStore = agentDraftStore;
@@ -89,6 +94,7 @@ public class AgentServiceImpl implements AgentService {
         this.agentSafetyService = agentSafetyService;
         this.gymIntentRouter = gymIntentRouter;
         this.questionRewriteService = questionRewriteService;
+        this.agentSessionMemoryService = agentSessionMemoryService;
     }
 
     @Override
@@ -148,6 +154,7 @@ public class AgentServiceImpl implements AgentService {
                         System.currentTimeMillis() - safetyStart
                 );
 
+                rememberRound(userId, message, reply);
                 saveChatRecord(userId, message, reply);
 
                 agentTraceService.finishFailed(
@@ -186,6 +193,21 @@ public class AgentServiceImpl implements AgentService {
                     System.currentTimeMillis() - contextStart
             );
 
+            //4.1读取最近会话记忆。
+            long memoryLoadStart = System.currentTimeMillis();
+
+            AgentSessionMemory sessionMemory = agentSessionMemoryService.getMemory(userId, null);
+
+            agentTraceService.addStep(
+                    "SESSION_MEMORY_LOAD",
+                    "读取最近会话记忆完成",
+                    message,
+                    JSON.toJSONString(sessionMemory),
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - memoryLoadStart
+            );
+
             //5.优先处理确认/取消类指令。(用户回复确认预约和取消等不用走大模型)
             long pendingStart = System.currentTimeMillis();
 
@@ -202,6 +224,7 @@ public class AgentServiceImpl implements AgentService {
                         System.currentTimeMillis() - pendingStart
                 );
 
+                rememberRound(userId, message, reply);
                 saveChatRecord(userId, message, reply);
 
                 agentTraceService.addStep(
@@ -257,6 +280,7 @@ public class AgentServiceImpl implements AgentService {
             if (intentRouteResult.isNeedClarify()) {
                 reply = intentRouteResult.getClarifyQuestion();
 
+                rememberRound(userId,message,reply);
                 saveChatRecord(userId, message, reply);
 
                 agentTraceService.addStep(
@@ -339,6 +363,7 @@ public class AgentServiceImpl implements AgentService {
                         System.currentTimeMillis() - directStart
                 );
 
+                rememberRound(userId, message, reply);
                 saveChatRecord(userId, message, reply);
 
                 agentTraceService.addStep(
@@ -361,7 +386,7 @@ public class AgentServiceImpl implements AgentService {
             }
 
             //9. 构造带业务上下文的Agent输入。(这里会把Redis里的业务上下文拼到用户输入前面)
-            String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext,intentRouteResult,rewriteResult);
+            String agentInput = buildAgentInput(message, agentChatDto, agentBusinessContext,intentRouteResult,rewriteResult,sessionMemory);
 
             //10.调用LangChain4j Agent。
             long llmStart = System.currentTimeMillis();
@@ -393,6 +418,7 @@ public class AgentServiceImpl implements AgentService {
                     System.currentTimeMillis() - refreshStart
             );
 
+            rememberRound(userId, message, reply);
             //12.保存聊天记录。
             saveChatRecord(userId, message, reply);
 
@@ -424,6 +450,7 @@ public class AgentServiceImpl implements AgentService {
                 reply = "AI服务异常，请稍后再试。";
             }
 
+            rememberRound(userId, message, reply);
             //异常也要保存聊天记录。
             saveChatRecord(userId, message, reply);
 
@@ -585,28 +612,38 @@ public class AgentServiceImpl implements AgentService {
 
     /**
      * 构造传给 Agent 的输入内容。
-     *
-     * 这里要明确区分三类信息：
-     * 1. 用户原始问题
-     * 2. 当前页面上下文
-     * 3. Redis 中保存的业务上下文
-     *
-     * 这些内容最终都会传给大模型。
+     * 当前输入由几部分组成:
+     * 1. 业务上下文：结构化槽位，例如 venueId、courtId、date、time
+     * 2. 会话记忆：最近几轮自然语言对话
+     * 3. 当前页面上下文：前端传来的 venueId、courtId
+     * 4. 意图识别结果
+     * 5. 问题重写结果
+     * 6. 用户原始问题
      */
     private String buildAgentInput(String userMessage,
                                    AgentChatDto agentChatDto,
                                    AgentBusinessContext businessContext,
                                    IntentRouteResult intentRouteResult,
-                                   QuestionRewriteResult rewriteResult) {
+                                   QuestionRewriteResult rewriteResult,
+                                   AgentSessionMemory sessionMemory) {
         StringBuilder builder = new StringBuilder();
 
         // 1. Redis 业务上下文。
+        // 这里保存的是结构化业务槽位，例如最近场馆、最近场地、最近预约时间。
         String contextPrompt = contextEnhanceService.buildContextPrompt(businessContext);
         if (contextPrompt != null && !contextPrompt.trim().isEmpty()) {
             builder.append(contextPrompt).append("\n");
         }
 
-        // 2. 当前页面上下文。
+        // 2. Redis 会话记忆。
+        // 这里保存的是最近几轮自然语言对话。
+        // 作用是让大模型理解“刚才那个”“那就预约这个”等上下文指代。
+        String memoryPrompt = agentSessionMemoryService.buildMemoryPrompt(sessionMemory);
+        if (memoryPrompt != null && !memoryPrompt.trim().isEmpty()) {
+            builder.append(memoryPrompt).append("\n");
+        }
+
+        // 3. 当前页面上下文。
         builder.append("〖当前页面上下文〗\n");
 
         if (agentChatDto != null && agentChatDto.getVenueId() != null) {
@@ -637,28 +674,26 @@ public class AgentServiceImpl implements AgentService {
                     .append("\n");
         }
 
-        // 3. 意图识别结果。
+        // 4. 意图识别结果。
         if (intentRouteResult != null && intentRouteResult.getRoutePrompt() != null) {
             builder.append("\n")
                     .append(intentRouteResult.getRoutePrompt())
                     .append("\n");
         }
 
-        // 4. 问题重写结果。
-        // 这是本次新增的关键部分。
+        // 5. 问题重写结果。
         if (rewriteResult != null && rewriteResult.getRewritePrompt() != null) {
             builder.append("\n")
                     .append(rewriteResult.getRewritePrompt())
                     .append("\n");
         }
 
-        // 5. 用户原始问题。
+        // 6. 用户原始问题。
         builder.append("\n〖用户原始问题〗\n")
                 .append(userMessage)
                 .append("\n");
 
-        // 6. 系统建议问题。
-        // 如果发生重写，大模型应优先理解这个问题。
+        // 7. 系统重写后的问题。
         if (rewriteResult != null
                 && rewriteResult.getRewrittenQuestion() != null
                 && !rewriteResult.getRewrittenQuestion().trim().isEmpty()) {
@@ -667,15 +702,16 @@ public class AgentServiceImpl implements AgentService {
                     .append("\n");
         }
 
-        // 7. 强约束。
+        // 8. 强约束。
         builder.append("\n〖处理要求〗\n")
                 .append("1. 用户原始问题必须保留语义，系统重写问题只是帮助理解上下文。\n")
-                .append("2. 如果用户说“这个场馆”“这个场地”“这里”“刚才那个”，优先结合业务上下文和问题重写结果。\n")
-                .append("3. 如果系统重写问题中包含场馆ID、场地ID、预约日期、开始时间、结束时间，调用工具时应优先使用这些结构化信息。\n")
-                .append("4. 如果系统重写问题仍然缺少必要信息，不要编造，应继续追问用户。\n")
-                .append("5. 如果意图是 BOOKING_DRAFT，只能生成预约草稿，不能直接声称预约成功。\n")
-                .append("6. 如果意图是 BOOKING_CANCEL，必须走取消预约确认流程，不能直接取消。\n")
-                .append("7. 如果意图是 RAG_KNOWLEDGE，应优先调用知识库工具回答规则、公告、停车、退款、开放时间等问题。\n");
+                .append("2. 最近会话记忆只用于理解多轮对话，不代表最终业务事实。\n")
+                .append("3. 如果用户说“这个场馆”“这个场地”“这里”“刚才那个”，优先结合业务上下文、会话记忆和问题重写结果。\n")
+                .append("4. 如果系统重写问题中包含场馆ID、场地ID、预约日期、开始时间、结束时间，调用工具时应优先使用这些结构化信息。\n")
+                .append("5. 如果缺少必要信息，不要编造，应继续追问用户。\n")
+                .append("6. 如果意图是 BOOKING_DRAFT，只能生成预约草稿，不能直接声称预约成功。\n")
+                .append("7. 如果意图是 BOOKING_CANCEL，必须走取消预约确认流程，不能直接取消。\n")
+                .append("8. 如果意图是 RAG_KNOWLEDGE，应优先调用知识库工具回答规则、公告、停车、退款、开放时间等问题。\n");
 
         return builder.toString();
     }
@@ -695,5 +731,52 @@ public class AgentServiceImpl implements AgentService {
         }
 
         return token;
+    }
+
+    /**
+     * 保存一轮会话记忆。
+     * 一轮会话包含:
+     * 1. 用户原始输入
+     * 2. AI 最终回复
+     * 注意:
+     * 这里保存的是原始用户消息和最终回复，
+     * 不保存 agentInput、工具 JSON、Trace 信息。
+     *
+     * @param userId 用户ID
+     * @param userMessage 用户原始消息
+     * @param aiReply AI 最终回复
+     */
+    private void rememberRound(Long userId, String userMessage, String aiReply) {
+        long start = System.currentTimeMillis();
+
+        try {
+            agentSessionMemoryService.appendRound(
+                    userId,
+                    null,
+                    userMessage,
+                    aiReply
+            );
+
+            agentTraceService.addStep(
+                    "SESSION_MEMORY_SAVE",
+                    "保存本轮会话记忆完成",
+                    userMessage,
+                    aiReply,
+                    "SUCCESS",
+                    null,
+                    System.currentTimeMillis() - start
+            );
+        } catch (Exception e) {
+            //会话记忆失败不能影响主聊天流程。
+            agentTraceService.addStep(
+                    "SESSION_MEMORY_SAVE",
+                    "保存本轮会话记忆失败",
+                    userMessage,
+                    aiReply,
+                    "FAILED",
+                    e.getMessage(),
+                    System.currentTimeMillis() - start
+            );
+        }
     }
 }

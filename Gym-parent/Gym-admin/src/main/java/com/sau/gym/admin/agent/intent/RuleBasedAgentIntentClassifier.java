@@ -1,7 +1,7 @@
 package com.sau.gym.admin.agent.intent;
 
 import com.sau.gym.admin.agent.intent.classifier.AgentIntentClassifier;
-import com.sau.gym.admin.agent.memory.AgentBusinessContext;
+import com.sau.gym.admin.agent.memory.model.AgentBusinessContext;
 import com.sau.gym.admin.enums.AgentIntent;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;

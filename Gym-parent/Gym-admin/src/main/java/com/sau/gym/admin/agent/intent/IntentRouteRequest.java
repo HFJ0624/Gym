@@ -1,6 +1,6 @@
 package com.sau.gym.admin.agent.intent;
 
-import com.sau.gym.admin.agent.memory.AgentBusinessContext;
+import com.sau.gym.admin.agent.memory.model.AgentBusinessContext;
 import lombok.Data;
 
 /**

@@ -1,7 +1,7 @@
 package com.sau.gym.admin.agent.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sau.gym.admin.agent.memory.AgentBusinessContext;
+import com.sau.gym.admin.agent.memory.model.AgentBusinessContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 

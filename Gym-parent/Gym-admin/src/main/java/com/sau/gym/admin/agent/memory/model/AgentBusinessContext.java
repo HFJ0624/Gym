@@ -1,4 +1,4 @@
-package com.sau.gym.admin.agent.memory;
+package com.sau.gym.admin.agent.memory.model;
 
 import lombok.Data;
 
