@@ -2,6 +2,9 @@ package com.sau.gym.admin.agent.tool;
 
 import com.alibaba.fastjson.JSON;
 import com.sau.gym.admin.agent.service.AgentToolGuardService;
+import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteContext;
+import com.sau.gym.admin.agent.tool.executor.AgentToolExecuteResult;
+import com.sau.gym.admin.agent.tool.executor.impl.RagKnowledgeToolExecutor;
 import com.sau.gym.admin.agent.util.AgentUserContext;
 import com.sau.gym.admin.enums.AgentRiskLevel;
 import com.sau.gym.admin.rag.service.RagQaService;
@@ -31,17 +34,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class GymRagTools {
 
-    private final RagQaService ragQaService;
-    private final AgentToolGuardService agentToolGuardService;
+    private final RagKnowledgeToolExecutor ragKnowledgeToolExecutor;
 
-    public GymRagTools(RagQaService ragQaService,
-                       AgentToolGuardService agentToolGuardService) {
-        this.ragQaService = ragQaService;
-        this.agentToolGuardService = agentToolGuardService;
+    public GymRagTools(RagKnowledgeToolExecutor ragKnowledgeToolExecutor) {
+        this.ragKnowledgeToolExecutor = ragKnowledgeToolExecutor;
     }
 
     /**
-     * 查询 RAG 知识库。
+     * 查询体育场馆预约平台知识库。
      *
      * @param question 用户问题
      * @param venueId  当前场馆ID，可为空
@@ -54,35 +54,24 @@ public class GymRagTools {
             @P(value = "场馆ID，可为空。如果用户问题涉及某个具体场馆，应传入该场馆ID", required = false) Long venueId,
             @P(value = "场地ID，可为空。如果用户问题涉及某个具体场地，应传入该场地ID", required = false) Long courtId
     ) {
-        //从当前 Agent 线程上下文中获取 userId。
-        Long userId = AgentUserContext.getUserId();
+        //1. 构造统一工具执行上下文。
+        AgentToolExecuteContext context = new AgentToolExecuteContext();
 
-        //工具调用前风控检查。
-        String blocked = agentToolGuardService.checkBeforeToolCall(
-                userId,
-                "rag_qa",
-                "RAG知识库问答",
-                AgentRiskLevel.LOW,
-                false,
-                false,
-                3
-        );
-        if (blocked != null) {
-            return blocked;
-        }
+        //2. 从 ThreadLocal 中获取当前用户ID。
+        context.setUserId(AgentUserContext.getUserId());
 
-        RagAskDto dto = new RagAskDto();
+        //3. 设置原始问题。
+        context.setOriginalQuestion(question);
 
-        // 用户问题
-        dto.setQuestion(question);
+        //4. 设置工具参数。
+        context.addParam("question", question);
+        context.addParam("venueId", venueId);
+        context.addParam("courtId", courtId);
 
-        // 如果 Agent 能从上下文识别到 venueId / courtId，就传给 RAG 做业务范围过滤
-        dto.setVenueId(venueId);
-        dto.setCourtId(courtId);
+        //5. 统一调用 Executor。
+        AgentToolExecuteResult result = ragKnowledgeToolExecutor.execute(context);
 
-        RagAnswerVO answerVO = ragQaService.ask(dto);
-
-        //返回json给模型
-        return JSON.toJSONString(answerVO);
+        //6. 返回 JSON 字符串给大模型。
+        return JSON.toJSONString(result);
     }
 }

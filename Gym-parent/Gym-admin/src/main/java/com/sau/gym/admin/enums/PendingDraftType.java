@@ -1,4 +1,4 @@
-package com.sau.gym.admin.agent.store;
+package com.sau.gym.admin.enums;
 
 /**
  * 草稿类型枚举

@@ -9,7 +9,7 @@ import com.sau.gym.admin.agent.service.AgentEntityResolveService;
 import com.sau.gym.admin.agent.store.AgentBusinessContextStore;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
-import com.sau.gym.admin.agent.store.PendingDraftType;
+import com.sau.gym.admin.enums.PendingDraftType;
 import com.sau.gym.model.dto.agent.AgentChatDto;
 import org.springframework.stereotype.Service;
 

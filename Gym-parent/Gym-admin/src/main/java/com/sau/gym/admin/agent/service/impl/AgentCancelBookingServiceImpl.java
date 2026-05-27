@@ -4,7 +4,7 @@ import com.sau.gym.admin.agent.model.AgentCancelableBookingVO;
 import com.sau.gym.admin.agent.service.AgentCancelBookingService;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
-import com.sau.gym.admin.agent.store.PendingDraftType;
+import com.sau.gym.admin.enums.PendingDraftType;
 import com.sau.gym.admin.agent.util.AgentConfirmTokenUtil;
 import com.sau.gym.admin.mapper.BookingRefundRequestMapper;
 import com.sau.gym.admin.mapper.CourtBookingMapper;

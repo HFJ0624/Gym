@@ -1,5 +1,7 @@
 package com.sau.gym.admin.agent.store;
 
+import com.sau.gym.admin.enums.PendingDraftType;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;

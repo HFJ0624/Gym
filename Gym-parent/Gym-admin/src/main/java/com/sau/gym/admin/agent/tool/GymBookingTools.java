@@ -3,7 +3,7 @@ package com.sau.gym.admin.agent.tool;
 import com.sau.gym.admin.agent.service.AgentToolGuardService;
 import com.sau.gym.admin.agent.store.AgentDraftStore;
 import com.sau.gym.admin.agent.store.PendingDraft;
-import com.sau.gym.admin.agent.store.PendingDraftType;
+import com.sau.gym.admin.enums.PendingDraftType;
 import com.sau.gym.admin.agent.util.AgentToolLogHelper;
 import com.sau.gym.admin.enums.AgentRiskLevel;
 import com.sau.gym.admin.mapper.CourtBookingMapper;
